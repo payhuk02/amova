@@ -20,6 +20,10 @@ const AuthPage = () => {
     setLoading(true);
 
     try {
+      if (!isLogin && password.length < 8) {
+        throw new Error("Le mot de passe doit contenir au moins 8 caractères.");
+      }
+
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -77,7 +81,7 @@ const AuthPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                minLength={6}
+                minLength={8}
                 className="h-11 sm:h-12 bg-secondary/50 border-border/50 focus:border-primary/50 pr-12 text-base"
               />
               <button

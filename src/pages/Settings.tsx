@@ -12,11 +12,14 @@ import {
 } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { useGeolocation } from "@/hooks/useGeolocation";
+import { useSubscription } from "@/hooks/useSubscription";
+import { getLimitErrorMessage } from "@/lib/limits";
 
 const Settings = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { position, loading: geoLoading, requestLocation } = useGeolocation();
+  const { limits } = useSubscription();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -66,11 +69,21 @@ const Settings = () => {
 
   const toggleIncognito = async (checked: boolean) => {
     if (!user) return;
+    if (checked && !limits.incognitoMode) {
+      toast.error("Le mode incognito est réservé au plan VIP.");
+      return;
+    }
     setSettings((s) => ({ ...s, incognito_mode: checked }));
-    await supabase
+    const { error } = await supabase
       .from("profiles")
       .update({ incognito_mode: checked } as any)
       .eq("user_id", user.id);
+    if (error) {
+      const limitMsg = getLimitErrorMessage(error);
+      toast.error(limitMsg || "Impossible d'activer le mode incognito");
+      setSettings((s) => ({ ...s, incognito_mode: !checked }));
+      return;
+    }
     toast.success(checked ? "Mode incognito activé" : "Mode incognito désactivé");
   };
 
@@ -95,10 +108,35 @@ const Settings = () => {
 
   const handleDeleteAccount = async () => {
     if (deleteInput !== "SUPPRIMER" || !user) return;
-    // Sign out — actual deletion would need admin/edge function
-    toast.success("Votre compte sera supprimé sous 30 jours");
-    await signOut();
-    navigate("/");
+    setSaving(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Session expirée");
+
+      const resp = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        },
+      );
+
+      if (!resp.ok) {
+        const body = await resp.json().catch(() => ({}));
+        throw new Error(body.error || "Suppression impossible");
+      }
+
+      toast.success("Votre compte a été supprimé");
+      await signOut();
+      navigate("/");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erreur lors de la suppression");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleChangePassword = async () => {
@@ -282,7 +320,7 @@ const Settings = () => {
                     variant="destructive"
                     size="sm"
                     onClick={handleDeleteAccount}
-                    disabled={deleteInput !== "SUPPRIMER"}
+                    disabled={deleteInput !== "SUPPRIMER" || saving}
                     className="flex-1"
                   >
                     Confirmer

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
 import { Heart, User, MapPin, MessageCircle, ShieldCheck, Eye, Sparkles, Check } from "lucide-react";
 import AppShell from "@/components/AppShell";
@@ -28,6 +29,8 @@ interface LikerProfile {
 const LikedMe = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { limits } = useSubscription();
+  const canSeeWhoLiked = limits.canSeeWhoLiked;
   const [likers, setLikers] = useState<LikerProfile[]>([]);
   const [likedBackIds, setLikedBackIds] = useState<Set<string>>(new Set());
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
@@ -126,6 +129,16 @@ const LikedMe = () => {
             <p className="text-muted-foreground text-xs sm:text-sm">
               {likers.length} personne{likers.length > 1 ? "s" : ""} {likers.length > 1 ? "ont" : "a"} aimé votre profil
             </p>
+            {!canSeeWhoLiked && likers.length > 0 && (
+              <div className="mt-4 p-4 rounded-xl bg-primary/10 border border-primary/20">
+                <p className="text-sm text-foreground mb-3">
+                  Passez Premium pour voir qui vous a aimé et réagir plus vite.
+                </p>
+                <Button variant="hero" size="sm" onClick={() => navigate("/premium")}>
+                  Débloquer Premium
+                </Button>
+              </div>
+            )}
           </div>
         </ScrollReveal>
 
@@ -149,7 +162,7 @@ const LikedMe = () => {
             {likers.map((liker, i) => {
               const isLikedBack = likedBackIds.has(liker.user_id);
               const isMatch = matchedIds.has(liker.user_id);
-              const isRevealed = revealed.has(liker.user_id);
+              const isRevealed = revealed.has(liker.user_id) || canSeeWhoLiked;
               const online = isOnline(liker.last_seen);
 
               return (
@@ -256,7 +269,7 @@ const LikedMe = () => {
                                 <span className="hidden sm:inline">Aimer aussi</span>
                                 <span className="sm:hidden">Aimer</span>
                               </Button>
-                              {!isRevealed && (
+                              {!isRevealed && canSeeWhoLiked && (
                                 <Button
                                   variant="outline"
                                   size="sm"

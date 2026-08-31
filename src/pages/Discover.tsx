@@ -15,6 +15,7 @@ import CompatibilityModal from "@/components/CompatibilityModal";
 import DiscoverFilters, { type DiscoverFiltersState } from "@/components/DiscoverFilters";
 import BadgesDisplay from "@/components/BadgesDisplay";
 import { useCheckAndAwardBadges } from "@/hooks/useBadges";
+import { getLimitErrorMessage } from "@/lib/limits";
 
 interface Profile {
   id: string;
@@ -178,9 +179,16 @@ const Discover = () => {
             setMatchAnimation(currentProfile.display_name || "quelqu'un");
             toast.success("C'est un match ! 🎉");
             setTimeout(() => setMatchAnimation(null), 2500);
-            checkBadges(); // check for first_match badge
+            checkBadges();
           } else if (isSuper) {
             toast.success("Super Like envoyé ! ⭐");
+          }
+        } else {
+          const limitMsg = getLimitErrorMessage(error);
+          if (limitMsg) {
+            toast.error(limitMsg);
+          } else {
+            toast.error("Impossible d'envoyer ce like");
           }
         }
       }
