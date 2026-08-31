@@ -54,7 +54,7 @@ Configurer les secrets Supabase :
 
 ```bash
 supabase secrets set MONEYFUSION_API_URL="https://pay.moneyfusion.net/Votre_App/votre-cle/pay/"
-supabase secrets set APP_URL="https://votre-domaine.com"
+supabase secrets set APP_URL="https://www.amova.space"
 ```
 
 Documentation paiement : [FusionPay API Web](https://docs.moneyfusion.net/fr/webapi)
