@@ -21,7 +21,7 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/30 bg-background/80 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between">
         <a href="/" className="font-display text-2xl font-semibold tracking-wide text-foreground">
-          Éclipse
+          Amova
         </a>
 
         <div className="hidden lg:flex items-center gap-8">

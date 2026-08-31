@@ -11,7 +11,7 @@ const CTASection = () => (
           Votre histoire <span className="text-gradient-copper italic">commence ici</span>
         </h2>
         <p className="text-muted-foreground text-lg mb-10 leading-relaxed">
-          L'accès à Éclipse est limité pour garantir la qualité de chaque rencontre. 
+          L'accès à Amova est limité pour garantir la qualité de chaque rencontre. 
           Soumettez votre candidature et rejoignez un cercle d'exception.
         </p>
         <Button variant="hero" size="xl">
