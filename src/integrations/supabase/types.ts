@@ -319,6 +319,7 @@ export type Database = {
           id: string
           incognito_mode: boolean
           interests: string[] | null
+          is_admin: boolean
           is_verified: boolean
           last_seen: string | null
           latitude: number | null
@@ -624,6 +625,19 @@ export type Database = {
           p_expires_at?: string | null
         }
         Returns: undefined
+      }
+      admin_get_stats: { Args: Record<PropertyKey, never>; Returns: Json }
+      admin_review_verification: {
+        Args: { p_request_id: string; p_approved: boolean }
+        Returns: undefined
+      }
+      admin_set_admin: {
+        Args: { p_user_id: string; p_is_admin: boolean }
+        Returns: undefined
+      }
+      admin_send_notification: {
+        Args: { p_title: string; p_body: string; p_user_id?: string | null }
+        Returns: number
       }
       fulfill_payment_by_token: { Args: { p_token: string }; Returns: boolean }
       is_user_admin: { Args: Record<PropertyKey, never>; Returns: boolean }

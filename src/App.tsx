@@ -28,6 +28,13 @@ import AdminRoute from "@/components/AdminRoute";
 import AdminDashboard from "./pages/admin/Dashboard.tsx";
 import AdminUsers from "./pages/admin/Users.tsx";
 import AdminReports from "./pages/admin/Reports.tsx";
+import AdminVerifications from "./pages/admin/Verifications.tsx";
+import AdminSubscriptions from "./pages/admin/Subscriptions.tsx";
+import AdminPayments from "./pages/admin/Payments.tsx";
+import AdminModeration from "./pages/admin/Moderation.tsx";
+import AdminEvents from "./pages/admin/Events.tsx";
+import AdminNotifications from "./pages/admin/Notifications.tsx";
+import AdminAdmins from "./pages/admin/Admins.tsx";
 
 const queryClient = new QueryClient();
 
@@ -61,7 +68,14 @@ const App = () => (
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+            <Route path="/admin/admins" element={<AdminRoute><AdminAdmins /></AdminRoute>} />
+            <Route path="/admin/verifications" element={<AdminRoute><AdminVerifications /></AdminRoute>} />
+            <Route path="/admin/subscriptions" element={<AdminRoute><AdminSubscriptions /></AdminRoute>} />
+            <Route path="/admin/payments" element={<AdminRoute><AdminPayments /></AdminRoute>} />
             <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
+            <Route path="/admin/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
+            <Route path="/admin/events" element={<AdminRoute><AdminEvents /></AdminRoute>} />
+            <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

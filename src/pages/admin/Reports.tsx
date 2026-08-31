@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import AdminLayout from "@/components/AdminLayout";
+import AdminLayout, { AdminPageHeader, AdminTable, StatusBadge } from "@/components/AdminLayout";
 import { CheckCircle, AlertTriangle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -66,12 +66,12 @@ export default function AdminReports() {
 
   return (
     <AdminLayout>
-      <div className="mb-8">
-        <h1 className="text-3xl font-display font-semibold mb-2">Signalements</h1>
-        <p className="text-muted-foreground">Gérez les comportements inappropriés et les plaintes.</p>
-      </div>
+      <AdminPageHeader
+        title="Signalements"
+        description="Gérez les comportements inappropriés et les plaintes"
+      />
 
-      <div className="bg-secondary/30 rounded-2xl border border-border/50 overflow-hidden">
+      <AdminTable>
         {loading ? (
           <div className="p-8 text-center text-muted-foreground">Chargement...</div>
         ) : (
@@ -92,11 +92,7 @@ export default function AdminReports() {
                   <td className="px-6 py-4 font-medium text-foreground">{r.reason}</td>
                   <td className="px-6 py-4 text-muted-foreground max-w-xs truncate">{r.details || '-'}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      r.status === 'pending' ? 'bg-orange-500/20 text-orange-500' : 'bg-emerald-500/20 text-emerald-500'
-                    }`}>
-                      {r.status === 'pending' ? 'En attente' : 'Résolu'}
-                    </span>
+                    <StatusBadge status={r.status} />
                   </td>
                   <td className="px-6 py-4 flex justify-end gap-2">
                     {r.status === 'pending' && (
@@ -128,7 +124,7 @@ export default function AdminReports() {
             </tbody>
           </table>
         )}
-      </div>
+      </AdminTable>
     </AdminLayout>
   );
 }

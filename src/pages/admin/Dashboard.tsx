@@ -1,74 +1,78 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Flag, Heart } from "lucide-react";
-import AdminLayout from "@/components/AdminLayout";
+import {
+  Users, Flag, Heart, MessageSquare, Crown, ShieldCheck,
+  CreditCard, Calendar, Zap, TrendingUp,
+} from "lucide-react";
+import AdminLayout, { AdminPageHeader } from "@/components/AdminLayout";
+import type { AdminStats } from "@/lib/admin";
+import { formatFcfa } from "@/lib/admin";
+
+const statCards = [
+  { key: "users_count" as const, label: "Utilisateurs", icon: Users, color: "text-primary bg-primary/20" },
+  { key: "premium_users" as const, label: "Abonnés Premium/VIP", icon: Crown, color: "text-amber-500 bg-amber-500/20" },
+  { key: "reports_pending" as const, label: "Signalements en attente", icon: Flag, color: "text-red-500 bg-red-500/20" },
+  { key: "verifications_pending" as const, label: "Vérifications en attente", icon: ShieldCheck, color: "text-blue-500 bg-blue-500/20" },
+  { key: "likes_count" as const, label: "Likes envoyés", icon: Heart, color: "text-copper bg-copper/20" },
+  { key: "matches_count" as const, label: "Matchs mutuels", icon: Heart, color: "text-pink-500 bg-pink-500/20" },
+  { key: "messages_count" as const, label: "Messages", icon: MessageSquare, color: "text-indigo-500 bg-indigo-500/20" },
+  { key: "events_count" as const, label: "Événements", icon: Calendar, color: "text-teal-500 bg-teal-500/20" },
+  { key: "stories_active" as const, label: "Stories actives", icon: Zap, color: "text-purple-500 bg-purple-500/20" },
+  { key: "payments_paid" as const, label: "Paiements réussis", icon: CreditCard, color: "text-emerald-500 bg-emerald-500/20" },
+  { key: "speed_dating_active" as const, label: "Speed dating actif", icon: Users, color: "text-orange-500 bg-orange-500/20" },
+];
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    usersCount: 0,
-    reportsCount: 0,
-    likesCount: 0,
-  });
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadStats() {
-      const { count: usersCount } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true });
-
-      const { count: reportsCount } = await supabase
-        .from("reports")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pending");
-
-      const { count: likesCount } = await supabase
-        .from("likes")
-        .select("*", { count: "exact", head: true });
-
-      setStats({
-        usersCount: usersCount || 0,
-        reportsCount: reportsCount || 0,
-        likesCount: likesCount || 0,
-      });
+      const { data, error } = await supabase.rpc("admin_get_stats");
+      if (!error && data) {
+        setStats(data as AdminStats);
+      }
+      setLoading(false);
     }
     loadStats();
   }, []);
 
   return (
     <AdminLayout>
-      <h1 className="text-3xl font-display font-semibold mb-8">Tableau de bord</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-card p-6 rounded-2xl flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-            <Users size={28} />
-          </div>
-          <div>
-            <p className="text-muted-foreground text-sm font-medium">Utilisateurs inscrits</p>
-            <p className="text-3xl font-bold">{stats.usersCount}</p>
-          </div>
-        </div>
+      <AdminPageHeader
+        title="Tableau de bord"
+        description="Vue d'ensemble de l'activité de la plateforme"
+      />
 
-        <div className="glass-card p-6 rounded-2xl flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-red-500/20 flex items-center justify-center text-red-500">
-            <Flag size={28} />
+      {stats && (
+        <div className="glass-card p-5 rounded-2xl mb-6 flex items-center gap-4 border border-emerald-500/20">
+          <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center">
+            <TrendingUp className="text-emerald-500" size={24} />
           </div>
           <div>
-            <p className="text-muted-foreground text-sm font-medium">Signalements en attente</p>
-            <p className="text-3xl font-bold">{stats.reportsCount}</p>
+            <p className="text-sm text-muted-foreground">Revenus totaux</p>
+            <p className="text-2xl font-bold text-emerald-500">{formatFcfa(stats.revenue_total)}</p>
           </div>
         </div>
+      )}
 
-        <div className="glass-card p-6 rounded-2xl flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-copper/20 flex items-center justify-center text-copper">
-            <Heart size={28} />
-          </div>
-          <div>
-            <p className="text-muted-foreground text-sm font-medium">Likes envoyés</p>
-            <p className="text-3xl font-bold">{stats.likesCount}</p>
-          </div>
+      {loading ? (
+        <div className="text-center text-muted-foreground py-12">Chargement...</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {statCards.map(({ key, label, icon: Icon, color }) => (
+            <div key={key} className="glass-card p-5 rounded-2xl flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${color}`}>
+                <Icon size={22} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-muted-foreground text-xs font-medium truncate">{label}</p>
+                <p className="text-2xl font-bold">{stats?.[key] ?? 0}</p>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+      )}
     </AdminLayout>
   );
 }
