@@ -7,7 +7,7 @@ const plans = [
   {
     id: "free" as PlanType,
     name: "Gratuit",
-    price: "0€",
+    price: "0 FCFA",
     period: "",
     icon: Heart,
     color: "from-muted to-muted/50",
@@ -27,7 +27,7 @@ const plans = [
   {
     id: "premium" as PlanType,
     name: "Premium",
-    price: "9,99€",
+    price: "4900 FCFA",
     period: "/mois",
     icon: Sparkles,
     color: "from-amber-500/20 to-orange-500/20",
@@ -50,7 +50,7 @@ const plans = [
   {
     id: "vip" as PlanType,
     name: "VIP",
-    price: "19,99€",
+    price: "9900 FCFA",
     period: "/mois",
     icon: Crown,
     color: "from-violet-500/20 to-purple-500/20",

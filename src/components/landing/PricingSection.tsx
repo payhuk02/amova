@@ -5,7 +5,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 const plans = [
   {
     name: "Découverte",
-    price: "Gratuit",
+    price: "0 FCFA",
     period: "",
     description: "Pour explorer en toute discrétion",
     features: ["3 profils par jour", "Messagerie basique", "Profil vérifié", "Chiffrement des messages"],
@@ -14,7 +14,7 @@ const plans = [
   },
   {
     name: "Privilège",
-    price: "29€",
+    price: "4900 FCFA",
     period: "/mois",
     description: "L'expérience complète sans limite",
     features: ["Profils illimités", "Messages éphémères", "Matching avancé", "Accès événements", "Profil prioritaire", "Support dédié"],
@@ -23,7 +23,7 @@ const plans = [
   },
   {
     name: "Cercle d'Or",
-    price: "79€",
+    price: "9900 FCFA",
     period: "/mois",
     description: "Le summum de l'exclusivité",
     features: ["Tout de Privilège", "Concierge personnel", "Événements VIP", "Visibilité maximale", "Matching prioritaire", "Invitations +1"],
