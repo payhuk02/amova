@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -39,7 +39,7 @@ const PLAN_LIMITS: Record<PlanType, {
     unlimitedSwipes: true,
   },
   vip: {
-    superLikesPerDay: -1, // unlimited
+    superLikesPerDay: -1,
     boostsPerDay: 3,
     canSeeWhoLiked: true,
     incognitoMode: true,
@@ -50,7 +50,6 @@ const PLAN_LIMITS: Record<PlanType, {
 
 export function useSubscription() {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
   const { data: subscription, isLoading } = useQuery({
     queryKey: ["subscription", user?.id],
@@ -72,56 +71,17 @@ export function useSubscription() {
   const currentPlan: PlanType = (subscription?.plan as PlanType) || "free";
   const limits = PLAN_LIMITS[currentPlan];
 
-  const upgradeMutation = useMutation({
-    mutationFn: async (newPlan: PlanType) => {
-      if (!user) throw new Error("Non connecté");
-
-      const expiresAt = new Date();
-      expiresAt.setMonth(expiresAt.getMonth() + 1);
-
-      // Try upsert
-      const { data: existing } = await supabase
-        .from("subscriptions")
-        .select("id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (existing) {
-        const { error } = await supabase
-          .from("subscriptions")
-          .update({
-            plan: newPlan,
-            started_at: new Date().toISOString(),
-            expires_at: newPlan === "free" ? null : expiresAt.toISOString(),
-            status: "active",
-          })
-          .eq("user_id", user.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("subscriptions")
-          .insert({
-            user_id: user.id,
-            plan: newPlan,
-            expires_at: newPlan === "free" ? null : expiresAt.toISOString(),
-          });
-        if (error) throw error;
-      }
-    },
-    onSuccess: (_, newPlan) => {
-      queryClient.invalidateQueries({ queryKey: ["subscription"] });
-      const names = { free: "Gratuit", premium: "Premium", vip: "VIP" };
-      toast.success(`Abonnement ${names[newPlan]} activé !`);
-    },
-    onError: () => toast.error("Erreur lors de la mise à jour de l'abonnement"),
-  });
+  const upgrade = (newPlan: PlanType) => {
+    if (newPlan === currentPlan) return;
+    toast.info("Le paiement en ligne arrive bientôt. Contactez le support pour activer un abonnement.");
+  };
 
   return {
     subscription,
     currentPlan,
     limits,
     isLoading,
-    upgrade: upgradeMutation.mutate,
-    isUpgrading: upgradeMutation.isPending,
+    upgrade,
+    isUpgrading: false,
   };
 }

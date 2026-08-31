@@ -1,15 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { corsHeaders, requireAuth } from "../_shared/auth.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const { error: authError } = await requireAuth(req);
+  if (authError) return authError;
 
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -32,7 +30,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `Tu es un coach de rencontres bienveillant et expert sur l'app Éclipse. Tu donnes des conseils personnalisés, encourageants et concrets pour aider l'utilisateur dans sa vie amoureuse. Tu peux conseiller sur : les profils, les premiers messages, les rendez-vous, la confiance en soi, gérer le rejet, etc. Sois chaleureux, utilise des emojis avec parcimonie, et reste concis (2-4 phrases max par réponse). ${profileContext}`,
+            content: `Tu es un coach de rencontres bienveillant et expert sur l'app Amova. Tu donnes des conseils personnalisés, encourageants et concrets pour aider l'utilisateur dans sa vie amoureuse. Tu peux conseiller sur : les profils, les premiers messages, les rendez-vous, la confiance en soi, gérer le rejet, etc. Sois chaleureux, utilise des emojis avec parcimonie, et reste concis (2-4 phrases max par réponse). ${profileContext}`,
           },
           ...messages,
         ],

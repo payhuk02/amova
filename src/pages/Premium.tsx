@@ -70,7 +70,7 @@ const plans = [
 ];
 
 export default function Premium() {
-  const { currentPlan, upgrade, isUpgrading } = useSubscription();
+  const { currentPlan, upgrade } = useSubscription();
 
   return (
     <div className="container max-w-5xl py-6 px-4 pb-24 lg:pb-6">
@@ -138,14 +138,14 @@ export default function Premium() {
 
               <Button
                 onClick={() => upgrade(plan.id)}
-                disabled={isCurrent || isUpgrading}
+                disabled={isCurrent}
                 variant={plan.popular ? "default" : "outline"}
                 className={cn(
                   "w-full",
                   plan.popular && "bg-amber-500 hover:bg-amber-600 text-white"
                 )}
               >
-                {isCurrent ? "Plan actuel" : plan.id === "free" ? "Rétrograder" : "Choisir ce plan"}
+                {isCurrent ? "Plan actuel" : plan.id === "free" ? "Plan gratuit" : "Bientôt disponible"}
               </Button>
             </div>
           );

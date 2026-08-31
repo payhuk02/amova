@@ -576,6 +576,16 @@ export type Database = {
         }[]
       }
       get_user_plan: { Args: { p_user_id: string }; Returns: string }
+      check_and_award_badges: { Args: Record<PropertyKey, never>; Returns: undefined }
+      notify_story_like: { Args: { p_story_id: string }; Returns: undefined }
+      admin_set_subscription: {
+        Args: {
+          p_user_id: string
+          p_plan: Database["public"]["Enums"]["subscription_plan"]
+          p_expires_at?: string | null
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       subscription_plan: "free" | "premium" | "vip"

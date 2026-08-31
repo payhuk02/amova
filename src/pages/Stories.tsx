@@ -169,14 +169,8 @@ const Stories = () => {
     
     setLiked(prev => new Set([...prev, story.id]));
     
-    // Send like as notification
-    await supabase.from("notifications").insert({
-      user_id: story.user_id,
-      type: "story_like",
-      title: "❤️ Story aimée",
-      body: "Quelqu'un a aimé votre story",
-      related_user_id: user.id,
-    } as any);
+    // Send like as notification via secured RPC
+    await supabase.rpc("notify_story_like", { p_story_id: story.id });
     
     toast.success("❤️");
   };

@@ -52,13 +52,21 @@ const DatingCoach = () => {
     let assistantSoFar = "";
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Vous devez être connecté");
+        setIsLoading(false);
+        return;
+      }
+
       const resp = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dating-coach`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
           body: JSON.stringify({
             messages: [...messages, userMsg],
@@ -66,6 +74,12 @@ const DatingCoach = () => {
           }),
         }
       );
+
+      if (resp.status === 401) {
+        toast.error("Session expirée, reconnectez-vous");
+        setIsLoading(false);
+        return;
+      }
 
       if (resp.status === 429) {
         toast.error("Trop de requêtes, réessayez dans un instant");
