@@ -1,0 +1,199 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 20 10% 7%;
+    --foreground: 30 20% 90%;
+
+    --card: 20 8% 12%;
+    --card-foreground: 30 20% 90%;
+
+    --popover: 20 8% 12%;
+    --popover-foreground: 30 20% 90%;
+
+    --primary: 25 60% 55%;
+    --primary-foreground: 20 10% 7%;
+
+    --secondary: 20 8% 16%;
+    --secondary-foreground: 30 15% 75%;
+
+    --muted: 20 6% 18%;
+    --muted-foreground: 25 10% 50%;
+
+    --accent: 350 40% 55%;
+    --accent-foreground: 30 20% 95%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 20 8% 18%;
+    --input: 20 8% 18%;
+    --ring: 25 60% 55%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 20 8% 10%;
+    --sidebar-foreground: 30 15% 75%;
+    --sidebar-primary: 25 60% 55%;
+    --sidebar-primary-foreground: 20 10% 7%;
+    --sidebar-accent: 20 8% 16%;
+    --sidebar-accent-foreground: 30 15% 75%;
+    --sidebar-border: 20 8% 18%;
+    --sidebar-ring: 25 60% 55%;
+
+    /* Custom tokens */
+    --copper: 25 60% 55%;
+    --copper-light: 30 50% 70%;
+    --rose-warm: 350 40% 55%;
+    --gold-soft: 38 50% 60%;
+  }
+
+  .light {
+    --background: 30 15% 97%;
+    --foreground: 20 12% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 20 12% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 12% 15%;
+
+    --primary: 25 55% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 25 12% 92%;
+    --secondary-foreground: 20 12% 35%;
+
+    --muted: 25 8% 93%;
+    --muted-foreground: 20 8% 45%;
+
+    --accent: 350 35% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 25 10% 88%;
+    --input: 25 10% 88%;
+    --ring: 25 55% 48%;
+
+    --sidebar-background: 30 10% 95%;
+    --sidebar-foreground: 20 8% 35%;
+    --sidebar-primary: 25 55% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 25 12% 92%;
+    --sidebar-accent-foreground: 20 8% 35%;
+    --sidebar-border: 25 10% 88%;
+    --sidebar-ring: 25 55% 48%;
+
+    --copper: 25 55% 48%;
+    --copper-light: 30 45% 58%;
+    --rose-warm: 350 35% 50%;
+    --gold-soft: 38 45% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+    overflow-wrap: break-word;
+  }
+}
+
+@layer components {
+  .text-gradient-copper {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--copper-light)), hsl(var(--copper)), hsl(var(--gold-soft)));
+  }
+
+  .glass-card {
+    @apply bg-card/60 backdrop-blur-xl border border-border/50;
+    box-shadow: 0 8px 32px hsla(20, 10%, 5%, 0.4), inset 0 1px 0 hsla(30, 20%, 90%, 0.05);
+  }
+
+  .glow-copper {
+    box-shadow: 0 0 40px hsla(25, 60%, 55%, 0.15), 0 0 80px hsla(25, 60%, 55%, 0.05);
+  }
+}
+
+@layer utilities {
+  .reveal-up {
+    animation: revealUp 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .reveal-fade {
+    animation: revealFade 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .snap-x-mandatory {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .snap-start {
+    scroll-snap-align: start;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes revealFade {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
