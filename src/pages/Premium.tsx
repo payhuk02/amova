@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Check, Crown, Sparkles, Zap, Shield, Eye, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSubscription, PlanType } from "@/hooks/useSubscription";
+import PaymentCheckoutDialog from "@/components/PaymentCheckoutDialog";
 import { cn } from "@/lib/utils";
 
 const plans = [
@@ -70,7 +72,13 @@ const plans = [
 ];
 
 export default function Premium() {
-  const { currentPlan, upgrade } = useSubscription();
+  const { currentPlan } = useSubscription();
+  const [checkoutPlan, setCheckoutPlan] = useState<Exclude<PlanType, "free"> | null>(null);
+
+  const handleSelectPlan = (planId: PlanType) => {
+    if (planId === "free" || planId === currentPlan) return;
+    setCheckoutPlan(planId);
+  };
 
   return (
     <div className="container max-w-5xl py-6 px-4 pb-24 lg:pb-6">
@@ -137,7 +145,7 @@ export default function Premium() {
               </div>
 
               <Button
-                onClick={() => upgrade(plan.id)}
+                onClick={() => handleSelectPlan(plan.id)}
                 disabled={isCurrent}
                 variant={plan.popular ? "default" : "outline"}
                 className={cn(
@@ -145,7 +153,7 @@ export default function Premium() {
                   plan.popular && "bg-amber-500 hover:bg-amber-600 text-white"
                 )}
               >
-                {isCurrent ? "Plan actuel" : plan.id === "free" ? "Plan gratuit" : "Bientôt disponible"}
+                {isCurrent ? "Plan actuel" : plan.id === "free" ? "Plan gratuit" : "S'abonner"}
               </Button>
             </div>
           );
@@ -170,6 +178,12 @@ export default function Premium() {
           );
         })}
       </div>
+
+      <PaymentCheckoutDialog
+        plan={checkoutPlan}
+        open={checkoutPlan !== null}
+        onOpenChange={(open) => !open && setCheckoutPlan(null)}
+      />
     </div>
   );
 }

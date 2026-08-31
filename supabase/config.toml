@@ -1,1 +1,4 @@
 project_id = "gnemjdaauqbfmqctwhsg"
+
+[functions.moneyfusion-webhook]
+verify_jwt = false

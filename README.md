@@ -47,8 +47,17 @@ supabase db push
 Déployer les Edge Functions :
 
 ```bash
-supabase functions deploy ai-match icebreaker compatibility dating-coach delete-account
+supabase functions deploy ai-match icebreaker compatibility dating-coach delete-account create-payment verify-payment moneyfusion-webhook
 ```
+
+Configurer les secrets Supabase :
+
+```bash
+supabase secrets set MONEYFUSION_API_URL="https://pay.moneyfusion.net/Votre_App/votre-cle/pay/"
+supabase secrets set APP_URL="https://votre-domaine.com"
+```
+
+Documentation paiement : [FusionPay API Web](https://docs.moneyfusion.net/fr/webapi)
 
 ## Scripts utiles
 

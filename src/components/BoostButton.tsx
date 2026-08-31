@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { getLimitErrorMessage } from "@/lib/limits";
+import type { BoostInsert } from "@/lib/supabase-helpers";
 import { Zap, Crown } from "lucide-react";
 import { toast } from "sonner";
 
@@ -42,7 +43,7 @@ const BoostButton = () => {
 
     const { error } = await supabase.from("boosts").insert({
       user_id: user.id,
-    } as any);
+    } satisfies BoostInsert);
 
     if (error) {
       const limitMsg = getLimitErrorMessage(error);

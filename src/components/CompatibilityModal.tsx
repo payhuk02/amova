@@ -1,4 +1,6 @@
 import { useState } from "react";
+import type { ProfileSummary } from "@/types/profile";
+import { getErrorMessage } from "@/lib/supabase-helpers";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -14,8 +16,8 @@ interface CompatibilityReport {
 }
 
 interface CompatibilityModalProps {
-  userProfile: any;
-  targetProfile: any;
+  userProfile: ProfileSummary;
+  targetProfile: ProfileSummary;
   open: boolean;
   onClose: () => void;
 }
@@ -37,8 +39,8 @@ const CompatibilityModal = ({ userProfile, targetProfile, open, onClose }: Compa
       } else {
         toast.error("Analyse impossible");
       }
-    } catch (e: any) {
-      toast.error(e.message || "Erreur d'analyse");
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e) || "Erreur d'analyse");
     } finally {
       setLoading(false);
     }

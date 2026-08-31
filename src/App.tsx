@@ -23,6 +23,7 @@ import LikedMe from "./pages/LikedMe.tsx";
 import Settings from "./pages/Settings.tsx";
 import NearbyMap from "./pages/NearbyMap.tsx";
 import Premium from "./pages/Premium.tsx";
+import PremiumCallback from "./pages/PremiumCallback.tsx";
 import AdminRoute from "@/components/AdminRoute";
 import AdminDashboard from "./pages/admin/Dashboard.tsx";
 import AdminUsers from "./pages/admin/Users.tsx";
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/nearby" element={<ProtectedRoute><NearbyMap /></ProtectedRoute>} />
             <Route path="/premium" element={<ProtectedRoute><Premium /></ProtectedRoute>} />
+            <Route path="/premium/callback" element={<ProtectedRoute><PremiumCallback /></ProtectedRoute>} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

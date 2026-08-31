@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 
 export type PlanType = "free" | "premium" | "vip";
 
@@ -72,8 +71,8 @@ export function useSubscription() {
   const limits = PLAN_LIMITS[currentPlan];
 
   const upgrade = (newPlan: PlanType) => {
-    if (newPlan === currentPlan) return;
-    toast.info("Le paiement en ligne arrive bientôt. Contactez le support pour activer un abonnement.");
+    if (newPlan === currentPlan || newPlan === "free") return;
+    // Payment flow handled on /premium page via PaymentCheckoutDialog
   };
 
   return {

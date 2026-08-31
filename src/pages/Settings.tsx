@@ -14,6 +14,7 @@ import AppShell from "@/components/AppShell";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useSubscription } from "@/hooks/useSubscription";
 import { getLimitErrorMessage } from "@/lib/limits";
+import type { ProfileUpdate } from "@/lib/supabase-helpers";
 
 const Settings = () => {
   const { user, signOut } = useAuth();
@@ -48,8 +49,8 @@ const Settings = () => {
 
       if (data) {
         setSettings({
-          incognito_mode: (data as any).incognito_mode || false,
-          has_location: !!(data as any).latitude,
+          incognito_mode: data.incognito_mode || false,
+          has_location: data.latitude != null,
         });
       }
 
@@ -76,7 +77,7 @@ const Settings = () => {
     setSettings((s) => ({ ...s, incognito_mode: checked }));
     const { error } = await supabase
       .from("profiles")
-      .update({ incognito_mode: checked } as any)
+      .update({ incognito_mode: checked } satisfies ProfileUpdate)
       .eq("user_id", user.id);
     if (error) {
       const limitMsg = getLimitErrorMessage(error);
@@ -93,7 +94,7 @@ const Settings = () => {
       if (!user) return;
       await supabase
         .from("profiles")
-        .update({ latitude: null, longitude: null } as any)
+        .update({ latitude: null, longitude: null } satisfies ProfileUpdate)
         .eq("user_id", user.id);
       setSettings((s) => ({ ...s, has_location: false }));
       toast.success("Localisation supprimée");

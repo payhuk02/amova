@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { getErrorMessage } from "@/lib/supabase-helpers";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
@@ -38,8 +37,8 @@ const AuthPage = () => {
         if (error) throw error;
         toast.success("Inscription réussie ! Vérifiez votre email.");
       }
-    } catch (error: any) {
-      toast.error(error.message || "Une erreur est survenue");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error));
     } finally {
       setLoading(false);
     }

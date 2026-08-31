@@ -546,6 +546,45 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_orders: {
+        Row: {
+          amount: number
+          client_name: string | null
+          client_phone: string | null
+          created_at: string
+          id: string
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          status: string
+          token_pay: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          client_name?: string | null
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          status?: string
+          token_pay?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          client_name?: string | null
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          status?: string
+          token_pay?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -586,6 +625,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      fulfill_payment_by_token: { Args: { p_token: string }; Returns: boolean }
     }
     Enums: {
       subscription_plan: "free" | "premium" | "vip"

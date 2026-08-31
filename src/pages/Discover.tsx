@@ -13,9 +13,10 @@ import SuperLikeButton from "@/components/SuperLikeButton";
 import BoostButton from "@/components/BoostButton";
 import CompatibilityModal from "@/components/CompatibilityModal";
 import DiscoverFilters, { type DiscoverFiltersState } from "@/components/DiscoverFilters";
-import BadgesDisplay from "@/components/BadgesDisplay";
+import type { ProfileRow } from "@/types/profile";
 import { useCheckAndAwardBadges } from "@/hooks/useBadges";
 import { getLimitErrorMessage } from "@/lib/limits";
+import type { LikeInsert } from "@/lib/supabase-helpers";
 
 interface Profile {
   id: string;
@@ -30,6 +31,7 @@ interface Profile {
   last_seen: string | null;
   interests: string[] | null;
   is_verified?: boolean;
+  looking_for: string | null;
   compatibility?: number;
 }
 
@@ -47,7 +49,7 @@ const Discover = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [reportTarget, setReportTarget] = useState<Profile | null>(null);
   const [showCompatibility, setShowCompatibility] = useState(false);
-  const [myProfile, setMyProfile] = useState<any>(null);
+  const [myProfile, setMyProfile] = useState<ProfileRow | null>(null);
   const { blockedIds, reload: reloadBlocked } = useBlockedUsers();
   const { checkBadges } = useCheckAndAwardBadges();
   const [filters, setFilters] = useState<DiscoverFiltersState>({
@@ -145,8 +147,8 @@ const Discover = () => {
     if (filters.ageMin && p.age && p.age < parseInt(filters.ageMin)) return false;
     if (filters.ageMax && p.age && p.age > parseInt(filters.ageMax)) return false;
     if (filters.gender && p.gender !== filters.gender) return false;
-    if (filters.lookingFor && (p as any).looking_for !== filters.lookingFor) return false;
-    if (filters.verifiedOnly && !(p as any).is_verified) return false;
+    if (filters.lookingFor && p.looking_for !== filters.lookingFor) return false;
+    if (filters.verifiedOnly && !p.is_verified) return false;
     if (filters.onlineOnly && !isOnline(p.last_seen)) return false;
     if (filters.hasInterests.length > 0) {
       const pInterests = p.interests || [];
@@ -165,7 +167,7 @@ const Discover = () => {
       if (direction === "right") {
         const { error } = await supabase
           .from("likes")
-          .insert({ from_user_id: user.id, to_user_id: currentProfile.user_id, is_super: isSuper } as any);
+          .insert({ from_user_id: user.id, to_user_id: currentProfile.user_id, is_super: isSuper } satisfies LikeInsert);
 
         if (!error) {
           const { data: reverse } = await supabase
@@ -393,7 +395,7 @@ const Discover = () => {
                     <button onClick={() => navigate(`/profile/${currentProfile.user_id}`)} className="hover:text-primary transition-colors">
                       {currentProfile.display_name}
                     </button>
-                    {(currentProfile as any).is_verified && <ShieldCheck size={18} className="text-emerald-500" />}
+                    {currentProfile.is_verified && <ShieldCheck size={18} className="text-emerald-500" />}
                     {currentProfile.age && (
                       <span className="text-muted-foreground font-light">, {currentProfile.age}</span>
                     )}

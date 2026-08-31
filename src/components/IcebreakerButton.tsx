@@ -1,12 +1,14 @@
 import { useState } from "react";
+import type { ProfileSummary } from "@/types/profile";
+import { getErrorMessage } from "@/lib/supabase-helpers";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 
 interface IcebreakerButtonProps {
-  userProfile: any;
-  targetProfile: any;
+  userProfile: ProfileSummary;
+  targetProfile: ProfileSummary;
   onSelect?: (text: string) => void;
 }
 
@@ -31,8 +33,8 @@ const IcebreakerButton = ({ userProfile, targetProfile, onSelect }: IcebreakerBu
       } else {
         toast.error("Pas de suggestions disponibles");
       }
-    } catch (e: any) {
-      toast.error(e.message || "Erreur lors de la génération");
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e) || "Erreur lors de la génération");
     } finally {
       setLoading(false);
     }
