@@ -12,4 +12,4 @@ CREATE TRIGGER on_new_like_notify
   EXECUTE FUNCTION public.notify_on_match();
 
 -- Enable realtime for notifications table
-ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+-- ALREADY ADDED IN PREVIOUS MIGRATION

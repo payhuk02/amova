@@ -71,7 +71,7 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
               onClick={() => navigate("/dashboard")}
               className="font-display text-lg sm:text-xl font-semibold tracking-wide text-foreground"
             >
-              Éclipse
+              Amova
             </button>
           </div>
 
@@ -93,7 +93,7 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-4 h-12 border-b border-border/30">
-              <span className="font-display text-lg font-semibold tracking-wide text-foreground">Éclipse</span>
+              <span className="font-display text-lg font-semibold tracking-wide text-foreground">Amova</span>
               <button onClick={() => setDrawerOpen(false)} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground">
                 <X size={20} />
               </button>

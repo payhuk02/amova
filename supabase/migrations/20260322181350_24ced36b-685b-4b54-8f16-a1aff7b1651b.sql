@@ -26,7 +26,6 @@ CREATE POLICY "System can insert notifications"
   WITH CHECK (true);
 
 -- Enable realtime for messages and notifications
-ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
 
 -- Function to create notification on match

@@ -78,7 +78,7 @@ export default function Premium() {
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
           <Crown size={16} />
-          Abonnements Éclipse
+          Abonnements Amova
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
           Trouvez l'amour plus vite
