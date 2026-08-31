@@ -23,6 +23,10 @@ import LikedMe from "./pages/LikedMe.tsx";
 import Settings from "./pages/Settings.tsx";
 import NearbyMap from "./pages/NearbyMap.tsx";
 import Premium from "./pages/Premium.tsx";
+import AdminRoute from "@/components/AdminRoute";
+import AdminDashboard from "./pages/admin/Dashboard.tsx";
+import AdminUsers from "./pages/admin/Users.tsx";
+import AdminReports from "./pages/admin/Reports.tsx";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +55,12 @@ const App = () => (
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/nearby" element={<ProtectedRoute><NearbyMap /></ProtectedRoute>} />
             <Route path="/premium" element={<ProtectedRoute><Premium /></ProtectedRoute>} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+            <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
