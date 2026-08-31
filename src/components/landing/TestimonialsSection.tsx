@@ -2,7 +2,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 
 const testimonials = [
   {
-    quote: "J'ai trouvé quelqu'un qui comprend le besoin de discrétion. Éclipse a changé ma vision des rencontres.",
+    quote: "J'ai trouvé quelqu'un qui comprend le besoin de discrétion. Amova a changé ma vision des rencontres.",
     name: "Camille R.",
     age: 34,
     initials: "CR",
