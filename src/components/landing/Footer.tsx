@@ -2,7 +2,10 @@ const Footer = () => (
   <footer className="border-t border-border/30 py-10 md:py-12">
     <div className="container">
       <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-        <p className="font-display text-xl tracking-wide">Amova</p>
+        <div className="flex items-center gap-2 font-display text-xl tracking-wide">
+          <img src="/logo.png" alt="Amova" className="h-6 w-6 object-contain" />
+          Amova
+        </div>
         <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-sm text-muted-foreground">
           <a href="#" className="hover:text-foreground transition-colors">Confidentialité</a>
           <a href="#" className="hover:text-foreground transition-colors">Conditions</a>
