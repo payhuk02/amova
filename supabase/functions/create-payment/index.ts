@@ -4,6 +4,7 @@ import {
   createMoneyfusionPayment,
   getAppUrl,
   getServiceClient,
+  normalizePhone,
   PLAN_PRICES,
   type PaidPlan,
 } from "../_shared/moneyfusion.ts";
@@ -65,7 +66,7 @@ serve(async (req) => {
     const payment = await createMoneyfusionPayment({
       totalPrice: amount,
       articleLabel: `Amova ${paidPlan}`,
-      phone: String(phone).trim(),
+      phone: normalizePhone(String(phone)),
       clientName: String(clientName).trim(),
       orderId: order.id,
       userId: user.id,

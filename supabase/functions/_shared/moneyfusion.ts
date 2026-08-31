@@ -36,6 +36,12 @@ export function getServiceClient() {
   return createClient(url, key);
 }
 
+export function normalizePhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length === 8) return `0${digits}`;
+  return digits;
+}
+
 export function getAppUrl() {
   return Deno.env.get("APP_URL") ?? "http://localhost:5173";
 }
@@ -55,12 +61,12 @@ export async function createMoneyfusionPayment(params: {
     throw new Error("MONEYFUSION_API_URL is not configured");
   }
 
-  const response = await fetch(apiUrl, {
+  const response = await fetch(apiUrl.replace(/\/$/, ""), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       totalPrice: params.totalPrice,
-      article: [{ [params.articleLabel]: params.totalPrice }],
+      article: [{ abonnement: params.totalPrice }],
       numeroSend: params.phone,
       nomclient: params.clientName,
       personal_Info: [{ userId: params.userId, orderId: params.orderId }],
@@ -69,12 +75,21 @@ export async function createMoneyfusionPayment(params: {
     }),
   });
 
+  const data = (await response.json()) as MoneyfusionCreateResponse;
+
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Moneyfusion error: ${response.status} ${text}`);
+    throw new Error(data.message || `Moneyfusion error: ${response.status}`);
   }
 
-  return await response.json();
+  if (!data.statut) {
+    throw new Error(
+      data.message === "Application non approuvée."
+        ? "Le compte marchand Moneyfusion n'est pas encore approuvé. Contactez Moneyfusion pour activer les paiements."
+        : data.message || "Paiement refusé par Moneyfusion. Vérifiez que l'application est approuvée.",
+    );
+  }
+
+  return data;
 }
 
 export async function checkMoneyfusionPayment(token: string): Promise<MoneyfusionStatusResponse> {

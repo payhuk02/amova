@@ -2,11 +2,12 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LogOut, Heart, MessageCircle, Bell, Compass, User, Settings, Zap, Eye, Menu, X, BookOpen, Calendar, MapPin, Crown } from "lucide-react";
+import { LogOut, Heart, MessageCircle, Bell, Compass, User, Settings, Zap, Eye, Menu, X, BookOpen, Calendar, MapPin, Crown, Shield } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useNotificationCount } from "@/hooks/useNotifications";
 import { useTrackOnlineStatus } from "@/hooks/useOnlineStatus";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useAdmin } from "@/hooks/useAdmin";
 import IncomingCallOverlay from "@/components/IncomingCallOverlay";
 
 // All nav items for the drawer/sidebar
@@ -38,6 +39,7 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const unreadCount = useNotificationCount();
+  const { isAdmin } = useAdmin();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   useTrackOnlineStatus();
@@ -92,6 +94,19 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
               </button>
             );
           })}
+          {isAdmin && (
+            <button
+              onClick={() => navigate("/admin")}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                location.pathname.startsWith("/admin")
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+              }`}
+            >
+              <Shield size={20} className={location.pathname.startsWith("/admin") ? "text-primary" : "text-muted-foreground"} />
+              <span>Administration</span>
+            </button>
+          )}
         </nav>
 
         <div className="p-4 border-t border-border/30 flex items-center justify-between">
@@ -172,6 +187,19 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
                     </button>
                   );
                 })}
+                {isAdmin && (
+                  <button
+                    onClick={() => handleDrawerNav("/admin")}
+                    className={`w-full flex items-center gap-3 px-5 py-3.5 text-sm font-medium transition-colors touch-manipulation ${
+                      location.pathname.startsWith("/admin")
+                        ? "bg-primary/10 text-foreground border-r-2 border-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                    }`}
+                  >
+                    <Shield size={20} />
+                    <span>Administration</span>
+                  </button>
+                )}
               </nav>
               <div className="p-4 border-t border-border/30 safe-area-bottom">
                 <Button variant="ghost" size="sm" onClick={handleSignOut} className="w-full justify-start text-muted-foreground gap-2 hover:text-red-500 hover:bg-red-500/10">

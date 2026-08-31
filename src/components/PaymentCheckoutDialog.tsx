@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -19,6 +20,19 @@ interface PaymentCheckoutDialogProps {
   plan: Exclude<PlanType, "free"> | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+async function getInvokeErrorMessage(error: unknown): Promise<string> {
+  if (error instanceof FunctionsHttpError) {
+    try {
+      const body = await error.context.json();
+      if (body?.error) return String(body.error);
+    } catch {
+      // ignore parse errors
+    }
+  }
+  if (error instanceof Error) return error.message;
+  return "Erreur de paiement";
 }
 
 export default function PaymentCheckoutDialog({
@@ -48,13 +62,16 @@ export default function PaymentCheckoutDialog({
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(await getInvokeErrorMessage(error));
+      }
       if (data?.error) throw new Error(data.error);
       if (!data?.url) throw new Error("URL de paiement indisponible");
 
       window.location.href = data.url;
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erreur de paiement");
+      const message = err instanceof Error ? err.message : await getInvokeErrorMessage(err);
+      toast.error(message, { duration: 6000 });
       setLoading(false);
     }
   };

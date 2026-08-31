@@ -11,6 +11,7 @@ import {
   Eye, EyeOff, Lock, Mail, LogOut, ChevronRight, AlertTriangle
 } from "lucide-react";
 import AppShell from "@/components/AppShell";
+import { useAdmin } from "@/hooks/useAdmin";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useSubscription } from "@/hooks/useSubscription";
 import { getLimitErrorMessage } from "@/lib/limits";
@@ -21,6 +22,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const { position, loading: geoLoading, requestLocation } = useGeolocation();
   const { limits } = useSubscription();
+  const { isAdmin } = useAdmin();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -206,6 +208,22 @@ const Settings = () => {
             </button>
           </div>
         </section>
+
+        {isAdmin && (
+          <section className="mb-6 sm:mb-8">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Administration</h2>
+            <button
+              onClick={() => navigate("/admin")}
+              className="w-full flex items-center justify-between p-3.5 rounded-xl hover:bg-secondary/50 transition-colors touch-manipulation border border-primary/20"
+            >
+              <div className="flex items-center gap-3">
+                <Shield size={18} className="text-primary" />
+                <span className="text-sm font-medium">Panneau d&apos;administration</span>
+              </div>
+              <ChevronRight size={16} className="text-muted-foreground" />
+            </button>
+          </section>
+        )}
 
         {/* Notifications Section */}
         <section className="mb-6 sm:mb-8">

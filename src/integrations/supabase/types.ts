@@ -626,6 +626,7 @@ export type Database = {
         Returns: undefined
       }
       fulfill_payment_by_token: { Args: { p_token: string }; Returns: boolean }
+      is_user_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
     }
     Enums: {
       subscription_plan: "free" | "premium" | "vip"
