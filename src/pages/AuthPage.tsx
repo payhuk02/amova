@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import TrustBar from "@/components/TrustBar";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -47,7 +48,8 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 safe-area-top safe-area-bottom">
+    <div className="min-h-[100dvh] flex flex-col safe-area-top safe-area-bottom">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
       <div className="w-full max-w-sm">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8 sm:mb-10 touch-manipulation">
           <ArrowLeft size={16} />
@@ -58,7 +60,9 @@ const AuthPage = () => {
           {isLogin ? "Bon retour" : "Rejoignez-nous"}
         </h1>
         <p className="text-muted-foreground text-sm sm:text-base mb-6 sm:mb-8">
-          {isLogin ? "Connectez-vous à votre espace secret." : "Créez votre compte en toute confidentialité."}
+          {isLogin
+            ? "Accédez à votre espace personnel sécurisé."
+            : "Rejoignez une communauté vérifiée et protégée."}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
@@ -133,11 +137,16 @@ const AuthPage = () => {
           {isLogin ? "Pas encore membre ?" : "Déjà membre ?"}{" "}
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-copper hover:text-copper-light transition-colors underline underline-offset-4 touch-manipulation"
+            className="text-champagne hover:text-champagne-light transition-colors underline underline-offset-4 touch-manipulation"
           >
-            {isLogin ? "Demander un accès" : "Se connecter"}
+            {isLogin ? "Créer un compte" : "Se connecter"}
           </button>
         </p>
+      </div>
+      </div>
+
+      <div className="border-t border-border/40 bg-secondary/20 px-4 py-4">
+        <TrustBar compact />
       </div>
     </div>
   );
