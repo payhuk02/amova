@@ -11,6 +11,11 @@ interface VerificationRequest {
   status: string;
   created_at: string;
   display_name?: string;
+  liveness_score?: number | null;
+  face_match_score?: number | null;
+  auto_review_status?: string | null;
+  pose_challenge?: string | null;
+  rejection_reason?: string | null;
 }
 
 export default function AdminVerifications() {
@@ -103,6 +108,7 @@ export default function AdminVerifications() {
               <tr>
                 <th className="px-6 py-4">Utilisateur</th>
                 <th className="px-6 py-4">Selfie</th>
+                <th className="px-6 py-4">Scores IA</th>
                 <th className="px-6 py-4">Date</th>
                 <th className="px-6 py-4">Statut</th>
                 <th className="px-6 py-4 text-right">Actions</th>
@@ -116,6 +122,16 @@ export default function AdminVerifications() {
                     <a href={r.selfie_url} target="_blank" rel="noopener noreferrer">
                       <img src={r.selfie_url} alt="Selfie" className="w-16 h-16 rounded-lg object-cover border border-border/50" />
                     </a>
+                  </td>
+                  <td className="px-6 py-4 text-xs text-muted-foreground">
+                    {r.liveness_score != null && (
+                      <div>Liveness: {Math.round(r.liveness_score * 100)}%</div>
+                    )}
+                    {r.face_match_score != null && (
+                      <div>Match: {Math.round(r.face_match_score * 100)}%</div>
+                    )}
+                    {r.auto_review_status && <div>{r.auto_review_status}</div>}
+                    {r.pose_challenge && <div className="italic">{r.pose_challenge}</div>}
                   </td>
                   <td className="px-6 py-4">{new Date(r.created_at).toLocaleDateString("fr-FR")}</td>
                   <td className="px-6 py-4"><StatusBadge status={r.status} /></td>
@@ -143,7 +159,7 @@ export default function AdminVerifications() {
               ))}
               {requests.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
                     Aucune demande de vérification
                   </td>
                 </tr>

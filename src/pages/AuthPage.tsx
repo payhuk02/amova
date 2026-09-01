@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import TrustBar from "@/components/TrustBar";
+import { trackEvent } from "@/lib/analytics";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -35,6 +36,7 @@ const AuthPage = () => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Connexion réussie");
+        trackEvent("Login");
         navigate("/dashboard");
       } else {
         const { error } = await supabase.auth.signUp({
@@ -43,6 +45,7 @@ const AuthPage = () => {
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
+        trackEvent("Signup");
         toast.success("Inscription réussie ! Vérifiez votre email.");
       }
     } catch (error: unknown) {

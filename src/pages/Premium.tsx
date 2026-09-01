@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Check, Crown, Sparkles, Zap, Shield, Eye, Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSubscription, PlanType } from "@/hooks/useSubscription";
 import PaymentCheckoutDialog from "@/components/PaymentCheckoutDialog";
 import PaymentReassurance from "@/components/PaymentReassurance";
+import MerchantStatusBanner from "@/components/MerchantStatusBanner";
 import AppShell from "@/components/AppShell";
 import { cn } from "@/lib/utils";
 import { PLAN_PRICES } from "@/lib/plans";
@@ -60,11 +62,27 @@ function CellValue({ value }: { value: string | boolean }) {
 
 export default function Premium() {
   const { currentPlan } = useSubscription();
+  const [searchParams] = useSearchParams();
   const [checkoutPlan, setCheckoutPlan] = useState<Exclude<PlanType, "free"> | null>(null);
+  const [isRenewalCheckout, setIsRenewalCheckout] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("renew") === "1" && currentPlan !== "free") {
+      setCheckoutPlan(currentPlan);
+      setIsRenewalCheckout(true);
+    }
+  }, [searchParams, currentPlan]);
 
   const handleSelectPlan = (planId: PlanType) => {
     if (planId === "free" || planId === currentPlan) return;
+    setIsRenewalCheckout(false);
     setCheckoutPlan(planId);
+  };
+
+  const openRenewal = () => {
+    if (currentPlan === "free") return;
+    setIsRenewalCheckout(true);
+    setCheckoutPlan(currentPlan);
   };
 
   return (
@@ -82,6 +100,16 @@ export default function Premium() {
             Des formules transparentes, sans engagement caché. Choisissez le plan adapté à vos ambitions.
           </p>
         </div>
+
+        <MerchantStatusBanner />
+
+        {currentPlan !== "free" && (
+          <div className="mb-6 flex justify-center">
+            <Button variant="outline" size="sm" onClick={openRenewal} className="border-champagne/30">
+              Renouveler mon abonnement {currentPlan.toUpperCase()}
+            </Button>
+          </div>
+        )}
 
         {/* Plan cards */}
         <div className="grid gap-4 sm:grid-cols-3 mb-10">
@@ -179,7 +207,13 @@ export default function Premium() {
         <PaymentCheckoutDialog
           plan={checkoutPlan}
           open={checkoutPlan !== null}
-          onOpenChange={(open) => !open && setCheckoutPlan(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setCheckoutPlan(null);
+              setIsRenewalCheckout(false);
+            }
+          }}
+          isRenewal={isRenewalCheckout}
         />
       </div>
     </AppShell>

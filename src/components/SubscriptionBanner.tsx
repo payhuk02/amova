@@ -23,7 +23,7 @@ export default function SubscriptionBanner() {
             : `Votre abonnement ${currentPlan.toUpperCase()} expire dans ${daysLeft} jour${daysLeft > 1 ? "s" : ""}.`}
         </p>
         <Link
-          to="/premium"
+          to="/premium?renew=1"
           className="text-champagne font-medium hover:underline text-xs sm:text-sm"
         >
           Renouveler →

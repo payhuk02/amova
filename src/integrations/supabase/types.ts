@@ -534,24 +534,39 @@ export type Database = {
       }
       verification_requests: {
         Row: {
+          auto_review_status: string | null
           created_at: string
+          face_match_score: number | null
           id: string
+          liveness_score: number | null
+          pose_challenge: string | null
+          rejection_reason: string | null
           reviewed_at: string | null
           selfie_url: string
           status: string
           user_id: string
         }
         Insert: {
+          auto_review_status?: string | null
           created_at?: string
+          face_match_score?: number | null
           id?: string
+          liveness_score?: number | null
+          pose_challenge?: string | null
+          rejection_reason?: string | null
           reviewed_at?: string | null
           selfie_url: string
           status?: string
           user_id: string
         }
         Update: {
+          auto_review_status?: string | null
           created_at?: string
+          face_match_score?: number | null
           id?: string
+          liveness_score?: number | null
+          pose_challenge?: string | null
+          rejection_reason?: string | null
           reviewed_at?: string | null
           selfie_url?: string
           status?: string
@@ -566,6 +581,7 @@ export type Database = {
           client_phone: string | null
           created_at: string
           id: string
+          is_renewal: boolean
           plan: Database["public"]["Enums"]["subscription_plan"]
           status: string
           token_pay: string | null
@@ -578,6 +594,7 @@ export type Database = {
           client_phone?: string | null
           created_at?: string
           id?: string
+          is_renewal?: boolean
           plan: Database["public"]["Enums"]["subscription_plan"]
           status?: string
           token_pay?: string | null
@@ -590,10 +607,68 @@ export type Database = {
           client_phone?: string | null
           created_at?: string
           id?: string
+          is_renewal?: boolean
           plan?: Database["public"]["Enums"]["subscription_plan"]
           status?: string
           token_pay?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      push_devices: {
+        Row: {
+          created_at: string
+          id: string
+          platform: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          platform: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      push_queue: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          notification_type: string | null
+          processed: boolean
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          notification_type?: string | null
+          processed?: boolean
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          notification_type?: string | null
+          processed?: boolean
+          title?: string
           user_id?: string
         }
         Relationships: []
@@ -672,6 +747,11 @@ export type Database = {
         }[]
       }
       export_my_data: { Args: Record<PropertyKey, never>; Returns: Json }
+      register_push_device: {
+        Args: { p_token: string; p_platform: string }
+        Returns: undefined
+      }
+      send_subscription_renewal_reminders: { Args: Record<PropertyKey, never>; Returns: number }
     }
     Enums: {
       subscription_plan: "free" | "premium" | "vip"

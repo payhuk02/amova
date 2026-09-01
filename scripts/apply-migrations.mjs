@@ -19,8 +19,7 @@ const projectRef =
   "yjnqpedabcgkwvnqaohs";
 
 const pending = [
-  "20260901050000_premium_saas_fixes.sql",
-  "20260901060000_subscription_expiry.sql",
+  "20260901100000_push_kyc_renewals.sql",
 ];
 
 if (!token) {

@@ -2,6 +2,9 @@ import { Capacitor } from "@capacitor/core";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { initAnalytics } from "@/lib/analytics";
+
+initAnalytics();
 
 if (Capacitor.isNativePlatform()) {
   void import("@capacitor/status-bar").then(({ StatusBar, Style }) => {

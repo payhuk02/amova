@@ -321,7 +321,10 @@ const EditProfile = () => {
           {/* Verification */}
           <div className="space-y-2 sm:space-y-3">
             <label className="text-xs sm:text-sm font-medium block">Vérification du profil</label>
-            <VerificationRequest currentStatus={form.verification_status} />
+            <VerificationRequest
+              currentStatus={form.verification_status}
+              avatarUrl={form.avatar_url}
+            />
           </div>
 
           <Button variant="hero" size="xl" className="w-full touch-manipulation" onClick={handleSave} disabled={saving}>

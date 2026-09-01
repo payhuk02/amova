@@ -1,4 +1,7 @@
-project_id = "gnemjdaauqbfmqctwhsg"
+project_id = "yjnqpedabcgkwvnqaohs"
 
 [functions.moneyfusion-webhook]
+verify_jwt = false
+
+[functions.platform-cron]
 verify_jwt = false

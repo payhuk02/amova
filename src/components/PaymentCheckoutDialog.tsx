@@ -16,11 +16,13 @@ import { toast } from "sonner";
 import type { PlanType } from "@/hooks/useSubscription";
 import { PLAN_LABELS, PLAN_PRICES } from "@/lib/plans";
 import PaymentReassurance from "@/components/PaymentReassurance";
+import { trackEvent } from "@/lib/analytics";
 
 interface PaymentCheckoutDialogProps {
   plan: Exclude<PlanType, "free"> | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isRenewal?: boolean;
 }
 
 async function getInvokeErrorMessage(error: unknown): Promise<string> {
@@ -40,6 +42,7 @@ export default function PaymentCheckoutDialog({
   plan,
   open,
   onOpenChange,
+  isRenewal = false,
 }: PaymentCheckoutDialogProps) {
   const { user } = useAuth();
   const [phone, setPhone] = useState("");
@@ -60,6 +63,7 @@ export default function PaymentCheckoutDialog({
           plan,
           phone: phone.trim(),
           clientName: clientName.trim(),
+          isRenewal,
         },
       });
 
@@ -68,6 +72,8 @@ export default function PaymentCheckoutDialog({
       }
       if (data?.error) throw new Error(data.error);
       if (!data?.url) throw new Error("URL de paiement indisponible");
+
+      trackEvent(isRenewal ? "Renewal Checkout" : "Premium Checkout", { plan });
 
       window.location.href = data.url;
     } catch (err) {
@@ -84,10 +90,11 @@ export default function PaymentCheckoutDialog({
       <DialogContent className="sm:max-w-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
-            Paiement {PLAN_LABELS[plan]}
+            {isRenewal ? "Renouveler" : "Paiement"} {PLAN_LABELS[plan]}
           </DialogTitle>
           <DialogDescription>
             {PLAN_PRICES[plan].toLocaleString("fr-FR")} FCFA / mois
+            {isRenewal && " — prolongation de 30 jours"}
           </DialogDescription>
         </DialogHeader>
 

@@ -24,7 +24,7 @@ serve(async (req) => {
   }
 
   try {
-    const { plan, phone, clientName } = await req.json();
+    const { plan, phone, clientName, isRenewal } = await req.json();
 
     if (plan !== "premium" && plan !== "vip") {
       return new Response(JSON.stringify({ error: "Plan invalide" }), {
@@ -53,6 +53,7 @@ serve(async (req) => {
         client_name: clientName,
         client_phone: phone,
         status: "pending",
+        is_renewal: Boolean(isRenewal),
       })
       .select("id")
       .single();
