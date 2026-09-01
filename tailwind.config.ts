@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
-        body: ['"DM Sans"', 'system-ui', 'sans-serif'],
+        display: ['"Fraunces"', 'Georgia', 'serif'],
+        body: ['"Inter"', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -35,6 +35,10 @@ export default {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
@@ -51,6 +55,17 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        elevated: "hsl(var(--elevated))",
+        champagne: {
+          DEFAULT: "hsl(var(--champagne))",
+          light: "hsl(var(--champagne-light))",
+          dark: "hsl(var(--champagne-dark))",
+        },
+        trust: {
+          DEFAULT: "hsl(var(--trust))",
+          muted: "hsl(var(--trust-muted))",
+        },
+        /* Legacy aliases */
         copper: "hsl(var(--copper))",
         "copper-light": "hsl(var(--copper-light))",
         "rose-warm": "hsl(var(--rose-warm))",
@@ -70,6 +85,11 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "calc(var(--radius) + 4px)",
+      },
+      boxShadow: {
+        premium: "0 4px 24px hsla(220, 13%, 4%, 0.45), inset 0 1px 0 hsla(40, 20%, 94%, 0.04)",
+        "premium-sm": "0 2px 12px hsla(220, 13%, 4%, 0.3)",
       },
       keyframes: {
         "accordion-down": {
