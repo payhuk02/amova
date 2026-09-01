@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Compass, MapPin, Heart, Eye, MessageCircle, Bell,
-  BookOpen, Calendar, Zap, Crown, Settings, User,
+  BookOpen, Calendar, Zap, Crown, Settings, User, Bot,
 } from "lucide-react";
 
 export interface NavItem {
@@ -45,6 +45,7 @@ export const navGroups: NavGroup[] = [
     label: "Mon espace",
     items: [
       { path: "/edit-profile", icon: User, label: "Mon profil" },
+      { path: "/coach", icon: Bot, label: "Coach Dating" },
       { path: "/premium", icon: Crown, label: "Premium" },
       { path: "/settings", icon: Settings, label: "Paramètres" },
     ],
