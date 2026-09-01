@@ -4,10 +4,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   applyCallSignal,
   fetchLatestCallSignal,
+  fetchPeerCallSignals,
   insertCallSignal,
   isRemoteCallSignal,
   subscribeToPeerCallSignals,
   type CallSignalRow,
+  type CallSignalContext,
 } from "@/lib/call-signaling";
 import {
   PhoneOff, Mic, MicOff, Volume2, VolumeX, User,
@@ -46,6 +48,8 @@ const AudioCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: AudioCallPro
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const reconnectTimeout = useRef<ReturnType<typeof setTimeout>>();
   const pendingSignals = useRef<CallSignalRow[]>([]);
+  const processedSignalIds = useRef(new Set<string>());
+  const signalContext = useRef<CallSignalContext>({ iceCandidateQueue: [] });
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
 
@@ -76,6 +80,8 @@ const AudioCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: AudioCallPro
 
   const processRemoteSignal = useCallback(async (signal: CallSignalRow) => {
     if (!user || !isRemoteCallSignal(signal, user.id)) return;
+    if (processedSignalIds.current.has(signal.id)) return;
+    processedSignalIds.current.add(signal.id);
 
     const peerConnection = pc.current;
     if (!peerConnection) {
@@ -84,10 +90,18 @@ const AudioCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: AudioCallPro
     }
 
     try {
-      const result = await applyCallSignal(peerConnection, signal, sendSignal, ["audio-offer"]);
+      const result = await applyCallSignal(
+        peerConnection,
+        signal,
+        sendSignal,
+        ["audio-offer"],
+        signalContext.current,
+      );
       if (result === "hangup") {
         cleanup();
         onEndRef.current();
+      } else if (result === "answered") {
+        setStatus((current) => (current === "connecting" || current === "ringing" ? "connected" : current));
       }
     } catch (err) {
       console.error("Signal processing error:", err);
@@ -186,6 +200,11 @@ const AudioCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: AudioCallPro
       const queued = [...pendingSignals.current];
       pendingSignals.current = [];
       for (const signal of queued) {
+        await processRemoteSignal(signal);
+      }
+
+      const missedSignals = await fetchPeerCallSignals({ userId: user.id, remoteUserId });
+      for (const signal of missedSignals) {
         await processRemoteSignal(signal);
       }
     } catch (err) {

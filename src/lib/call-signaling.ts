@@ -66,27 +66,61 @@ export async function fetchLatestCallSignal(params: {
   return data as CallSignalRow | null;
 }
 
+export type CallSignalContext = {
+  iceCandidateQueue: RTCIceCandidateInit[];
+};
+
+async function flushIceCandidateQueue(
+  peerConnection: RTCPeerConnection,
+  queue: RTCIceCandidateInit[],
+) {
+  while (queue.length > 0) {
+    const candidate = queue[0];
+    try {
+      await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+      queue.shift();
+    } catch {
+      break;
+    }
+  }
+}
+
 export async function applyCallSignal(
   peerConnection: RTCPeerConnection,
   signal: CallSignalRow,
   sendSignal: (type: string, data: Record<string, unknown>) => Promise<void>,
   offerTypes: string[] = ["offer", "audio-offer"],
+  ctx?: CallSignalContext,
 ) {
+  const iceQueue = ctx?.iceCandidateQueue;
+
   if (offerTypes.includes(signal.signal_type) && signal.signal_data.sdp) {
     await peerConnection.setRemoteDescription(new RTCSessionDescription(signal.signal_data.sdp));
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
     await sendSignal("answer", { sdp: answer });
+    if (iceQueue) await flushIceCandidateQueue(peerConnection, iceQueue);
     return "answered";
   }
 
   if (signal.signal_type === "answer" && signal.signal_data.sdp) {
     await peerConnection.setRemoteDescription(new RTCSessionDescription(signal.signal_data.sdp));
+    if (iceQueue) await flushIceCandidateQueue(peerConnection, iceQueue);
     return "answered";
   }
 
   if (signal.signal_type === "ice-candidate" && signal.signal_data.candidate) {
-    await peerConnection.addIceCandidate(new RTCIceCandidate(signal.signal_data.candidate));
+    const candidate = signal.signal_data.candidate;
+    if (!peerConnection.remoteDescription) {
+      iceQueue?.push(candidate);
+      return "ice-queued";
+    }
+    try {
+      await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    } catch {
+      iceQueue?.push(candidate);
+      return "ice-queued";
+    }
     return "ice";
   }
 
@@ -95,6 +129,21 @@ export async function applyCallSignal(
   }
 
   return "ignored";
+}
+
+export async function fetchPeerCallSignals(params: {
+  userId: string;
+  remoteUserId: string;
+}) {
+  const { data } = await supabase
+    .from("call_signals")
+    .select("*")
+    .or(
+      `and(caller_id.eq.${params.userId},callee_id.eq.${params.remoteUserId}),and(caller_id.eq.${params.remoteUserId},callee_id.eq.${params.userId})`,
+    )
+    .order("created_at", { ascending: true });
+
+  return (data ?? []) as CallSignalRow[];
 }
 
 export function subscribeToPeerCallSignals(params: {

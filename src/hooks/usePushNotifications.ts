@@ -158,7 +158,7 @@ export function usePushNotifications() {
             signal_type: string;
             caller_id: string;
           };
-          if (signal.signal_type !== "offer") return;
+          if (signal.signal_type !== "offer" && signal.signal_type !== "audio-offer") return;
           if (!prefsRef.current.messages) return;
 
           const { data: profile } = await supabase

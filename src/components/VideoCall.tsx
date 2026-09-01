@@ -4,10 +4,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   applyCallSignal,
   fetchLatestCallSignal,
+  fetchPeerCallSignals,
   insertCallSignal,
   isRemoteCallSignal,
   subscribeToPeerCallSignals,
   type CallSignalRow,
+  type CallSignalContext,
 } from "@/lib/call-signaling";
 import {
   Phone, PhoneOff, Video, VideoOff, Mic, MicOff,
@@ -64,6 +66,8 @@ const VideoCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: VideoCallPro
   const statsInterval = useRef<ReturnType<typeof setInterval>>();
   const reconnectTimeout = useRef<ReturnType<typeof setTimeout>>();
   const pendingSignals = useRef<CallSignalRow[]>([]);
+  const processedSignalIds = useRef(new Set<string>());
+  const signalContext = useRef<CallSignalContext>({ iceCandidateQueue: [] });
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
 
@@ -90,6 +94,8 @@ const VideoCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: VideoCallPro
 
   const processRemoteSignal = useCallback(async (signal: CallSignalRow) => {
     if (!user || !isRemoteCallSignal(signal, user.id)) return;
+    if (processedSignalIds.current.has(signal.id)) return;
+    processedSignalIds.current.add(signal.id);
 
     const peerConnection = pc.current;
     if (!peerConnection) {
@@ -98,12 +104,18 @@ const VideoCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: VideoCallPro
     }
 
     try {
-      const result = await applyCallSignal(peerConnection, signal, sendSignal, ["offer"]);
+      const result = await applyCallSignal(
+        peerConnection,
+        signal,
+        sendSignal,
+        ["offer"],
+        signalContext.current,
+      );
       if (result === "hangup") {
         cleanup();
         onEndRef.current();
       } else if (result === "answered") {
-        setStatus((current) => (current === "connecting" || current === "ringing" ? "ringing" : current));
+        setStatus((current) => (current === "connecting" || current === "ringing" ? "connected" : current));
       }
     } catch (err) {
       console.error("Signal processing error:", err);
@@ -232,6 +244,11 @@ const VideoCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: VideoCallPro
       const queued = [...pendingSignals.current];
       pendingSignals.current = [];
       for (const signal of queued) {
+        await processRemoteSignal(signal);
+      }
+
+      const missedSignals = await fetchPeerCallSignals({ userId: user.id, remoteUserId });
+      for (const signal of missedSignals) {
         await processRemoteSignal(signal);
       }
     } catch (err) {

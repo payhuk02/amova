@@ -5,6 +5,7 @@ import { Phone, PhoneOff } from "lucide-react";
 import VideoCall from "./VideoCall";
 import AudioCall from "./AudioCall";
 import { insertCallSignal, type CallSignalRow } from "@/lib/call-signaling";
+import { createIncomingCallRingtone } from "@/lib/incoming-call-ringtone";
 
 interface IncomingCall {
   callerId: string;
@@ -19,6 +20,7 @@ const IncomingCallOverlay = () => {
   const [accepted, setAccepted] = useState(false);
   const incomingRef = useRef<IncomingCall | null>(null);
   const acceptedRef = useRef(false);
+  const ringtoneRef = useRef<ReturnType<typeof createIncomingCallRingtone> | null>(null);
 
   useEffect(() => {
     incomingRef.current = incoming;
@@ -27,6 +29,25 @@ const IncomingCallOverlay = () => {
   useEffect(() => {
     acceptedRef.current = accepted;
   }, [accepted]);
+
+  useEffect(() => {
+    if (!incoming || accepted) {
+      ringtoneRef.current?.stop();
+      ringtoneRef.current = null;
+      return;
+    }
+
+    const ringtone = createIncomingCallRingtone();
+    ringtoneRef.current = ringtone;
+    void ringtone.start();
+
+    return () => {
+      ringtone.stop();
+      if (ringtoneRef.current === ringtone) {
+        ringtoneRef.current = null;
+      }
+    };
+  }, [incoming, accepted]);
 
   useEffect(() => {
     if (!user) return;
