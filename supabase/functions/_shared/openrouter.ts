@@ -2,6 +2,9 @@ import { getServiceClient } from "./moneyfusion.ts";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
+/** Reliable fallback when configured models are retired on OpenRouter */
+export const OPENROUTER_FALLBACK_MODEL = "google/gemini-2.5-flash-lite";
+
 export type AiFeature = "match" | "compatibility" | "icebreaker" | "coach" | "kyc";
 
 export interface AiSettings {
@@ -15,11 +18,11 @@ export interface AiSettings {
 
 const DEFAULT_SETTINGS: AiSettings = {
   enabled: true,
-  model_match: "google/gemini-2.0-flash-exp:free",
-  model_compatibility: "google/gemini-2.0-flash-exp:free",
-  model_icebreaker: "google/gemini-2.0-flash-exp:free",
-  model_coach: "google/gemini-2.0-flash-exp:free",
-  model_kyc: "google/gemini-2.0-flash-exp:free",
+  model_match: OPENROUTER_FALLBACK_MODEL,
+  model_compatibility: OPENROUTER_FALLBACK_MODEL,
+  model_icebreaker: OPENROUTER_FALLBACK_MODEL,
+  model_coach: OPENROUTER_FALLBACK_MODEL,
+  model_kyc: OPENROUTER_FALLBACK_MODEL,
 };
 
 interface KeyEntry {
@@ -145,6 +148,12 @@ async function getKeyPool(): Promise<KeyEntry[]> {
   return pool;
 }
 
+function isModelNotFound(status: number, body: string): boolean {
+  if (status !== 404) return false;
+  const lower = body.toLowerCase();
+  return lower.includes("model") || lower.includes("not found") || lower.includes("no endpoints");
+}
+
 export async function openRouterChat(body: Record<string, unknown>): Promise<Response> {
   const settings = await getAiSettings();
   if (!settings.enabled) {
@@ -160,38 +169,50 @@ export async function openRouterChat(body: Record<string, unknown>): Promise<Res
   }
 
   let lastError = "Aucune clé disponible";
+  const modelsToTry = [
+    body.model as string,
+    OPENROUTER_FALLBACK_MODEL,
+  ].filter((m, i, arr) => Boolean(m) && arr.indexOf(m) === i);
 
-  for (const keyEntry of keys) {
-    const res = await fetch(OPENROUTER_URL, {
-      method: "POST",
-      headers: openRouterHeaders(keyEntry.api_key),
-      body: JSON.stringify(body),
-    });
+  for (const model of modelsToTry) {
+    const requestBody = { ...body, model };
 
-    if (res.ok) {
-      if (keyEntry.id) await recordKeySuccess(keyEntry.id);
-      return res;
+    for (const keyEntry of keys) {
+      const res = await fetch(OPENROUTER_URL, {
+        method: "POST",
+        headers: openRouterHeaders(keyEntry.api_key),
+        body: JSON.stringify(requestBody),
+      });
+
+      if (res.ok) {
+        if (keyEntry.id) await recordKeySuccess(keyEntry.id);
+        return res;
+      }
+
+      const text = await res.text();
+      lastError = text;
+
+      if (isModelNotFound(res.status, text)) {
+        break;
+      }
+
+      if (isCreditExhausted(res.status, text)) {
+        if (keyEntry.id) await markKeyExhausted(keyEntry.id, text);
+        continue;
+      }
+
+      if (keyEntry.id && res.status >= 500) {
+        await markKeyError(keyEntry.id, text);
+      }
+
+      return new Response(text, {
+        status: res.status,
+        headers: { "Content-Type": "application/json" },
+      });
     }
-
-    const text = await res.text();
-    lastError = text;
-
-    if (isCreditExhausted(res.status, text)) {
-      if (keyEntry.id) await markKeyExhausted(keyEntry.id, text);
-      continue;
-    }
-
-    if (keyEntry.id && res.status >= 500) {
-      await markKeyError(keyEntry.id, text);
-    }
-
-    return new Response(text, {
-      status: res.status,
-      headers: { "Content-Type": "application/json" },
-    });
   }
 
-  throw new Error(`Crédits OpenRouter épuisés sur toutes les clés. ${lastError.slice(0, 200)}`);
+  throw new Error(`OpenRouter indisponible. ${lastError.slice(0, 200)}`);
 }
 
 export async function openRouterChatJson(body: Record<string, unknown>): Promise<unknown> {

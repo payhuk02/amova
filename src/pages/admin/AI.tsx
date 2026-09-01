@@ -34,11 +34,10 @@ interface AiSettingsRow {
 }
 
 const FREE_MODELS = [
-  "google/gemini-2.0-flash-exp:free",
+  "google/gemini-2.5-flash-lite",
+  "google/gemini-2.0-flash-lite-001",
   "meta-llama/llama-3.2-3b-instruct:free",
   "qwen/qwen-2.5-7b-instruct:free",
-  "microsoft/phi-3-mini-128k-instruct:free",
-  "google/gemma-3-27b-it:free",
 ];
 
 const FEATURES = [

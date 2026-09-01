@@ -25,6 +25,7 @@ const pending = [
   "20260901190000_p2_features_fixes.sql",
   "20260901200000_p3_features_fixes.sql",
   "20260901210000_optional_features.sql",
+  "20260901220000_fix_openrouter_models.sql",
 ];
 
 if (!token) {

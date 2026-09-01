@@ -91,7 +91,19 @@ const DatingCoach = () => {
         setIsLoading(false);
         return;
       }
-      if (!resp.ok || !resp.body) throw new Error("Failed");
+      if (!resp.ok) {
+        let detail = "Erreur du coach IA";
+        try {
+          const err = await resp.json();
+          if (err?.error) detail = err.error;
+        } catch {
+          // ignore parse errors
+        }
+        toast.error(detail);
+        setIsLoading(false);
+        return;
+      }
+      if (!resp.body) throw new Error("Failed");
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
