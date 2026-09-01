@@ -2,6 +2,14 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
+  applyCallSignal,
+  fetchLatestCallSignal,
+  insertCallSignal,
+  isRemoteCallSignal,
+  subscribeToPeerCallSignals,
+  type CallSignalRow,
+} from "@/lib/call-signaling";
+import {
   Phone, PhoneOff, Video, VideoOff, Mic, MicOff,
   Volume2, VolumeX, Maximize, Minimize, RotateCcw,
   Monitor, MonitorOff, WifiOff, RefreshCw,
@@ -55,6 +63,9 @@ const VideoCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: VideoCallPro
   const controlsTimeout = useRef<ReturnType<typeof setTimeout>>();
   const statsInterval = useRef<ReturnType<typeof setInterval>>();
   const reconnectTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const pendingSignals = useRef<CallSignalRow[]>([]);
+  const onEndRef = useRef(onEnd);
+  onEndRef.current = onEnd;
 
   const cleanup = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -67,15 +78,37 @@ const VideoCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: VideoCallPro
     setStatus("ended");
   }, []);
 
-  const sendSignal = useCallback(async (type: string, data: any) => {
+  const sendSignal = useCallback(async (type: string, data: Record<string, unknown>) => {
     if (!user) return;
-    await supabase.from("call_signals").insert({
-      caller_id: user.id,
-      callee_id: remoteUserId,
-      signal_type: type,
-      signal_data: data,
-    } as any);
+    await insertCallSignal({
+      callerId: user.id,
+      calleeId: remoteUserId,
+      signalType: type,
+      signalData: data,
+    });
   }, [user, remoteUserId]);
+
+  const processRemoteSignal = useCallback(async (signal: CallSignalRow) => {
+    if (!user || !isRemoteCallSignal(signal, user.id)) return;
+
+    const peerConnection = pc.current;
+    if (!peerConnection) {
+      pendingSignals.current.push(signal);
+      return;
+    }
+
+    try {
+      const result = await applyCallSignal(peerConnection, signal, sendSignal, ["offer"]);
+      if (result === "hangup") {
+        cleanup();
+        onEndRef.current();
+      } else if (result === "answered") {
+        setStatus((current) => (current === "connecting" || current === "ringing" ? "ringing" : current));
+      }
+    } catch (err) {
+      console.error("Signal processing error:", err);
+    }
+  }, [user, sendSignal, cleanup]);
 
   // Monitor connection quality
   const startStatsMonitoring = useCallback(() => {
@@ -151,7 +184,7 @@ const VideoCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: VideoCallPro
                 pc.current?.restartIce();
               } else {
                 cleanup();
-                onEnd();
+                onEndRef.current();
               }
             }
           }, 5000);
@@ -162,7 +195,7 @@ const VideoCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: VideoCallPro
             setStatus("reconnecting");
           } else {
             cleanup();
-            onEnd();
+            onEndRef.current();
           }
         } else if (state === "connected") {
           setStatus("connected");
@@ -182,59 +215,60 @@ const VideoCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: VideoCallPro
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
         await sendSignal("offer", { sdp: offer });
+      } else {
+        const pendingOffer = await fetchLatestCallSignal({
+          userId: user.id,
+          remoteUserId,
+          signalType: "offer",
+          fromRemote: true,
+        });
+        if (pendingOffer) {
+          await processRemoteSignal(pendingOffer);
+        } else {
+          setStatus("ringing");
+        }
+      }
+
+      const queued = [...pendingSignals.current];
+      pendingSignals.current = [];
+      for (const signal of queued) {
+        await processRemoteSignal(signal);
       }
     } catch (err) {
       console.error("Failed to start call:", err);
       cleanup();
-      onEnd();
+      onEndRef.current();
     }
-  }, [user, isIncoming, sendSignal, cleanup, onEnd, startStatsMonitoring, reconnectAttempt]);
+  }, [user, isIncoming, sendSignal, cleanup, startStatsMonitoring, remoteUserId, processRemoteSignal]);
+
+  const processRemoteSignalRef = useRef(processRemoteSignal);
+  processRemoteSignalRef.current = processRemoteSignal;
+  const startCallRef = useRef(startCall);
+  startCallRef.current = startCall;
+  const hasStartedRef = useRef(false);
 
   // Listen for signals
   useEffect(() => {
-    if (!user) return;
+    if (!user || hasStartedRef.current) return;
+    hasStartedRef.current = true;
 
-    const channel = supabase
-      .channel(`call-${[user.id, remoteUserId].sort().join("-")}`)
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "call_signals",
-        filter: `callee_id=eq.${user.id}`,
-      }, async (payload) => {
-        const signal = payload.new as any;
-        if (signal.caller_id === user.id) return;
+    const channel = subscribeToPeerCallSignals({
+      userId: user.id,
+      remoteUserId,
+      channelName: `call-${[user.id, remoteUserId].sort().join("-")}`,
+      onSignal: (signal) => {
+        void processRemoteSignalRef.current(signal);
+      },
+    });
 
-        const peerConnection = pc.current;
-        if (!peerConnection) return;
-
-        try {
-          if (signal.signal_type === "offer") {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(signal.signal_data.sdp));
-            const answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
-            await sendSignal("answer", { sdp: answer });
-          } else if (signal.signal_type === "answer") {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(signal.signal_data.sdp));
-          } else if (signal.signal_type === "ice-candidate") {
-            await peerConnection.addIceCandidate(new RTCIceCandidate(signal.signal_data.candidate));
-          } else if (signal.signal_type === "hangup") {
-            cleanup();
-            onEnd();
-          }
-        } catch (err) {
-          console.error("Signal processing error:", err);
-        }
-      })
-      .subscribe();
-
-    startCall();
+    void startCallRef.current();
 
     return () => {
+      hasStartedRef.current = false;
       supabase.removeChannel(channel);
       cleanup();
     };
-  }, [user, remoteUserId]);
+  }, [user, remoteUserId, cleanup]);
 
   // Screen sharing
   const toggleScreenShare = async () => {
@@ -326,7 +360,7 @@ const VideoCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: VideoCallPro
   const hangUp = async () => {
     await sendSignal("hangup", {});
     cleanup();
-    onEnd();
+    onEndRef.current();
   };
 
   const handleTap = () => {

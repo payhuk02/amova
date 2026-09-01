@@ -2,6 +2,14 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
+  applyCallSignal,
+  fetchLatestCallSignal,
+  insertCallSignal,
+  isRemoteCallSignal,
+  subscribeToPeerCallSignals,
+  type CallSignalRow,
+} from "@/lib/call-signaling";
+import {
   PhoneOff, Mic, MicOff, Volume2, VolumeX, User,
 } from "lucide-react";
 
@@ -37,6 +45,9 @@ const AudioCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: AudioCallPro
 
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const reconnectTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const pendingSignals = useRef<CallSignalRow[]>([]);
+  const onEndRef = useRef(onEnd);
+  onEndRef.current = onEnd;
 
   // Audio visualizer
   const [audioLevel, setAudioLevel] = useState(0);
@@ -53,15 +64,35 @@ const AudioCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: AudioCallPro
     setStatus("ended");
   }, []);
 
-  const sendSignal = useCallback(async (type: string, data: any) => {
+  const sendSignal = useCallback(async (type: string, data: Record<string, unknown>) => {
     if (!user) return;
-    await supabase.from("call_signals").insert({
-      caller_id: user.id,
-      callee_id: remoteUserId,
-      signal_type: type,
-      signal_data: data,
-    } as any);
+    await insertCallSignal({
+      callerId: user.id,
+      calleeId: remoteUserId,
+      signalType: type,
+      signalData: data,
+    });
   }, [user, remoteUserId]);
+
+  const processRemoteSignal = useCallback(async (signal: CallSignalRow) => {
+    if (!user || !isRemoteCallSignal(signal, user.id)) return;
+
+    const peerConnection = pc.current;
+    if (!peerConnection) {
+      pendingSignals.current.push(signal);
+      return;
+    }
+
+    try {
+      const result = await applyCallSignal(peerConnection, signal, sendSignal, ["audio-offer"]);
+      if (result === "hangup") {
+        cleanup();
+        onEndRef.current();
+      }
+    } catch (err) {
+      console.error("Signal processing error:", err);
+    }
+  }, [user, sendSignal, cleanup]);
 
   // Audio level monitoring for visualizer
   const startAudioMonitoring = useCallback((stream: MediaStream) => {
@@ -124,7 +155,7 @@ const AudioCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: AudioCallPro
             }, 3000);
           } else {
             cleanup();
-            onEnd();
+            onEndRef.current();
           }
         } else if (state === "connected") {
           setStatus("connected");
@@ -138,59 +169,60 @@ const AudioCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: AudioCallPro
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
         await sendSignal("audio-offer", { sdp: offer });
+      } else {
+        const pendingOffer = await fetchLatestCallSignal({
+          userId: user.id,
+          remoteUserId,
+          signalType: "audio-offer",
+          fromRemote: true,
+        });
+        if (pendingOffer) {
+          await processRemoteSignal(pendingOffer);
+        } else {
+          setStatus("ringing");
+        }
+      }
+
+      const queued = [...pendingSignals.current];
+      pendingSignals.current = [];
+      for (const signal of queued) {
+        await processRemoteSignal(signal);
       }
     } catch (err) {
       console.error("Failed to start audio call:", err);
       cleanup();
-      onEnd();
+      onEndRef.current();
     }
-  }, [user, isIncoming, sendSignal, cleanup, onEnd, startAudioMonitoring, reconnectAttempt]);
+  }, [user, isIncoming, sendSignal, cleanup, startAudioMonitoring, remoteUserId, processRemoteSignal]);
+
+  const processRemoteSignalRef = useRef(processRemoteSignal);
+  processRemoteSignalRef.current = processRemoteSignal;
+  const startCallRef = useRef(startCall);
+  startCallRef.current = startCall;
+  const hasStartedRef = useRef(false);
 
   // Listen for signals
   useEffect(() => {
-    if (!user) return;
+    if (!user || hasStartedRef.current) return;
+    hasStartedRef.current = true;
 
-    const channel = supabase
-      .channel(`audiocall-${[user.id, remoteUserId].sort().join("-")}`)
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "call_signals",
-        filter: `callee_id=eq.${user.id}`,
-      }, async (payload) => {
-        const signal = payload.new as any;
-        if (signal.caller_id === user.id) return;
+    const channel = subscribeToPeerCallSignals({
+      userId: user.id,
+      remoteUserId,
+      channelName: `audiocall-${[user.id, remoteUserId].sort().join("-")}`,
+      onSignal: (signal) => {
+        void processRemoteSignalRef.current(signal);
+      },
+    });
 
-        const peerConnection = pc.current;
-        if (!peerConnection) return;
-
-        try {
-          if (signal.signal_type === "audio-offer") {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(signal.signal_data.sdp));
-            const answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
-            await sendSignal("answer", { sdp: answer });
-          } else if (signal.signal_type === "answer") {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(signal.signal_data.sdp));
-          } else if (signal.signal_type === "ice-candidate") {
-            await peerConnection.addIceCandidate(new RTCIceCandidate(signal.signal_data.candidate));
-          } else if (signal.signal_type === "hangup") {
-            cleanup();
-            onEnd();
-          }
-        } catch (err) {
-          console.error("Signal processing error:", err);
-        }
-      })
-      .subscribe();
-
-    startCall();
+    void startCallRef.current();
 
     return () => {
+      hasStartedRef.current = false;
       supabase.removeChannel(channel);
       cleanup();
     };
-  }, [user, remoteUserId]);
+  }, [user, remoteUserId, cleanup]);
 
   const toggleAudio = () => {
     const audioTrack = localStream.current?.getAudioTracks()[0];
@@ -210,7 +242,7 @@ const AudioCall = ({ remoteUserId, remoteName, onEnd, isIncoming }: AudioCallPro
   const hangUp = async () => {
     await sendSignal("hangup", {});
     cleanup();
-    onEnd();
+    onEndRef.current();
   };
 
   const formatTime = (s: number) =>

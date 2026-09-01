@@ -1,9 +1,10 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Phone, PhoneOff } from "lucide-react";
 import VideoCall from "./VideoCall";
 import AudioCall from "./AudioCall";
+import { insertCallSignal, type CallSignalRow } from "@/lib/call-signaling";
 
 interface IncomingCall {
   callerId: string;
@@ -13,9 +14,19 @@ interface IncomingCall {
 
 const IncomingCallOverlay = () => {
   const { user } = useAuth();
-  
+
   const [incoming, setIncoming] = useState<IncomingCall | null>(null);
   const [accepted, setAccepted] = useState(false);
+  const incomingRef = useRef<IncomingCall | null>(null);
+  const acceptedRef = useRef(false);
+
+  useEffect(() => {
+    incomingRef.current = incoming;
+  }, [incoming]);
+
+  useEffect(() => {
+    acceptedRef.current = accepted;
+  }, [accepted]);
 
   useEffect(() => {
     if (!user) return;
@@ -24,19 +35,21 @@ const IncomingCallOverlay = () => {
       .channel("incoming-calls-global")
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "call_signals",
-          filter: `callee_id=eq.${user.id}`,
-        },
+        { event: "INSERT", schema: "public", table: "call_signals" },
         async (payload) => {
-          const signal = payload.new as {
-            signal_type: string;
-            caller_id: string;
-          };
+          const signal = payload.new as CallSignalRow;
+          if (signal.callee_id !== user.id) return;
+
+          if (signal.signal_type === "hangup") {
+            if (incomingRef.current?.callerId === signal.caller_id) {
+              setIncoming(null);
+              setAccepted(false);
+            }
+            return;
+          }
+
           if (signal.signal_type !== "offer" && signal.signal_type !== "audio-offer") return;
-          if (incoming || accepted) return;
+          if (incomingRef.current || acceptedRef.current) return;
 
           const { data: profile } = await supabase
             .from("profiles")
@@ -49,14 +62,14 @@ const IncomingCallOverlay = () => {
             callerName: profile?.display_name || "Quelqu'un",
             isAudioOnly: signal.signal_type === "audio-offer",
           });
-        }
+        },
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, incoming, accepted]);
+  }, [user]);
 
   const handleAccept = useCallback(() => {
     if (!incoming) return;
@@ -65,13 +78,12 @@ const IncomingCallOverlay = () => {
 
   const handleReject = useCallback(async () => {
     if (!incoming || !user) return;
-    // Send hangup signal
-    await supabase.from("call_signals").insert({
-      caller_id: user.id,
-      callee_id: incoming.callerId,
-      signal_type: "hangup",
-      signal_data: {},
-    } as any);
+    await insertCallSignal({
+      callerId: user.id,
+      calleeId: incoming.callerId,
+      signalType: "hangup",
+      signalData: {},
+    });
     setIncoming(null);
     setAccepted(false);
   }, [incoming, user]);
@@ -81,7 +93,6 @@ const IncomingCallOverlay = () => {
     setAccepted(false);
   }, []);
 
-  // Show VideoCall when accepted
   if (accepted && incoming) {
     if (incoming.isAudioOnly) {
       return (
@@ -103,13 +114,11 @@ const IncomingCallOverlay = () => {
     );
   }
 
-  // Show ringing UI
   if (!incoming) return null;
 
   return (
     <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center">
       <div className="text-center">
-        {/* Animated rings */}
         <div className="relative w-28 h-28 mx-auto mb-8">
           <div className="absolute inset-0 rounded-full border-2 border-green-400/30 animate-ping" />
           <div className="absolute inset-3 rounded-full border-2 border-green-400/40 animate-pulse" />
@@ -124,7 +133,6 @@ const IncomingCallOverlay = () => {
         </p>
 
         <div className="flex items-center justify-center gap-8">
-          {/* Reject */}
           <button
             onClick={handleReject}
             className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center hover:bg-red-600 transition-colors active:scale-95 shadow-lg shadow-red-500/30"
@@ -132,7 +140,6 @@ const IncomingCallOverlay = () => {
             <PhoneOff size={26} className="text-white" />
           </button>
 
-          {/* Accept */}
           <button
             onClick={handleAccept}
             className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-600 transition-colors active:scale-95 shadow-lg shadow-green-500/30"
