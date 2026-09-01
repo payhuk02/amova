@@ -8,13 +8,15 @@ import {
   MessageCircle,
   MapPin,
   User,
-  ShieldCheck,
   ArrowLeft,
   Calendar,
+  UserX,
 } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import BadgesDisplay from "@/components/BadgesDisplay";
-import { isOnline, formatLastSeen } from "@/hooks/useOnlineStatus";
+import EmptyState from "@/components/ui/empty-state";
+import { TrustBadge, OnlineStatus, InterestTag } from "@/components/TrustBadge";
+import { isOnline } from "@/hooks/useOnlineStatus";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -150,18 +152,19 @@ const ProfilePage = () => {
   if (!profile) {
     return (
       <AppShell>
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-muted-foreground">Profil introuvable</p>
-        </div>
+        <main className="container max-w-2xl py-8 px-4">
+          <EmptyState
+            icon={UserX}
+            title="Profil introuvable"
+            description="Ce profil n'existe plus ou a été supprimé."
+            action={{ label: "Retour", onClick: () => navigate(-1), variant: "hero-outline" }}
+          />
+        </main>
       </AppShell>
     );
   }
 
   const online = isOnline(profile.last_seen);
-  const allImages = [
-    ...(profile.avatar_url ? [profile.avatar_url] : []),
-    ...photos.map((p) => p.photo_url),
-  ];
 
   return (
     <AppShell>
@@ -205,23 +208,15 @@ const ProfilePage = () => {
               </div>
             )}
 
-            {/* Online badge */}
             <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
-              <div
-                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-medium backdrop-blur-sm ${
-                  online
-                    ? "bg-emerald-500/20 text-emerald-300"
-                    : "bg-background/60 text-muted-foreground"
-                }`}
-              >
-                <div
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    online ? "bg-emerald-400 animate-pulse" : "bg-muted-foreground/50"
-                  }`}
-                />
-                {formatLastSeen(profile.last_seen)}
-              </div>
+              <OnlineStatus online={online} compact />
             </div>
+
+            {profile.is_verified && (
+              <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+                <TrustBadge variant="verified" />
+              </div>
+            )}
 
             <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-card to-transparent" />
           </div>
@@ -229,7 +224,6 @@ const ProfilePage = () => {
           <div className="p-4 sm:p-6 -mt-4 sm:-mt-6 relative">
             <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-medium mb-0.5 sm:mb-1 flex items-center gap-1.5 sm:gap-2 flex-wrap">
               {profile.display_name}
-              {profile.is_verified && <ShieldCheck size={18} className="text-emerald-500" />}
               {profile.age && (
                 <span className="text-muted-foreground font-light">, {profile.age}</span>
               )}
@@ -268,12 +262,7 @@ const ProfilePage = () => {
             {profile.interests && profile.interests.length > 0 && (
               <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-3 sm:mb-4">
                 {profile.interests.map((interest) => (
-                  <span
-                    key={interest}
-                    className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-primary/10 text-[10px] sm:text-xs font-medium text-foreground/80"
-                  >
-                    {interest}
-                  </span>
+                  <InterestTag key={interest}>{interest}</InterestTag>
                 ))}
               </div>
             )}
@@ -316,7 +305,7 @@ const ProfilePage = () => {
                 </Button>
                 {isMatch && (
                   <Button
-                    variant="hero-outline"
+                    variant="trust"
                     size="lg"
                     className="touch-manipulation h-11 sm:h-12"
                     onClick={() => navigate(`/messages?with=${userId}`)}

@@ -432,7 +432,7 @@ const Discover = () => {
               <SuperLikeButton onClick={() => handleSwipe("right", true)} disabled={!!swiping} />
               <button
                 onClick={() => setShowCompatibility(true)}
-                className="w-10 h-10 rounded-full border border-border/30 flex items-center justify-center text-muted-foreground/50 hover:text-copper hover:border-copper/30 transition-all duration-200 active:scale-95"
+                className="w-10 h-10 rounded-full border border-border/30 flex items-center justify-center text-muted-foreground/50 hover:text-champagne hover:border-champagne/30 transition-all duration-200 active:scale-95"
                 title="Compatibilité"
               >
                 <BarChart3 size={16} />
@@ -446,7 +446,7 @@ const Discover = () => {
               <button
                 onClick={() => handleSwipe("right")}
                 disabled={!!swiping}
-                className="w-[72px] h-[72px] rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:shadow-lg hover:shadow-primary/25 transition-all duration-200 active:scale-95"
+                className="w-[72px] h-[72px] rounded-full bg-champagne flex items-center justify-center text-primary-foreground shadow-premium hover:bg-champagne/90 transition-all duration-200 active:scale-95"
               >
                 <Heart size={30} strokeWidth={2} />
               </button>

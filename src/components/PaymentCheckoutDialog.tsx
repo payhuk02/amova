@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import type { PlanType } from "@/hooks/useSubscription";
 import { PLAN_LABELS, PLAN_PRICES } from "@/lib/plans";
+import PaymentReassurance from "@/components/PaymentReassurance";
 
 interface PaymentCheckoutDialogProps {
   plan: Exclude<PlanType, "free"> | null;
@@ -80,11 +81,13 @@ export default function PaymentCheckoutDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md rounded-2xl">
         <DialogHeader>
-          <DialogTitle>Paiement {PLAN_LABELS[plan]}</DialogTitle>
+          <DialogTitle className="font-display text-xl">
+            Paiement {PLAN_LABELS[plan]}
+          </DialogTitle>
           <DialogDescription>
-            {PLAN_PRICES[plan].toLocaleString("fr-FR")} FCFA / mois via Moneyfusion (Orange Money, MTN, Wave…)
+            {PLAN_PRICES[plan].toLocaleString("fr-FR")} FCFA / mois
           </DialogDescription>
         </DialogHeader>
 
@@ -96,7 +99,7 @@ export default function PaymentCheckoutDialog({
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
               placeholder="Votre nom"
-              className="mt-1.5"
+              className="mt-1.5 bg-secondary/30"
             />
           </div>
           <div>
@@ -107,10 +110,13 @@ export default function PaymentCheckoutDialog({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="07 XX XX XX XX"
-              className="mt-1.5"
+              className="mt-1.5 bg-secondary/30"
             />
           </div>
-          <Button className="w-full" onClick={handlePay} disabled={loading}>
+
+          <PaymentReassurance compact />
+
+          <Button variant="hero" className="w-full" onClick={handlePay} disabled={loading}>
             {loading ? "Redirection..." : "Payer maintenant"}
           </Button>
         </div>
