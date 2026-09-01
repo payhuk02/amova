@@ -15,6 +15,7 @@ const AuthPage = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,6 +25,10 @@ const AuthPage = () => {
     try {
       if (!isLogin && password.length < 8) {
         throw new Error("Le mot de passe doit contenir au moins 8 caractères.");
+      }
+
+      if (!isLogin && !acceptedTerms) {
+        throw new Error("Veuillez accepter les conditions d'utilisation.");
       }
 
       if (isLogin) {
@@ -102,6 +107,23 @@ const AuthPage = () => {
           <Button variant="hero" size="xl" className="w-full touch-manipulation" disabled={loading}>
             {loading ? "Chargement..." : isLogin ? "Se connecter" : "Créer mon compte"}
           </Button>
+
+          {!isLogin && (
+            <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-0.5 rounded border-border"
+              />
+              <span>
+                J&apos;accepte les{" "}
+                <Link to="/conditions" className="text-champagne hover:underline">conditions</Link>
+                {" "}et la{" "}
+                <Link to="/confidentialite" className="text-champagne hover:underline">politique de confidentialité</Link>.
+              </span>
+            </label>
+          )}
         </form>
 
         <div className="relative my-6 sm:my-8">

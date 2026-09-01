@@ -6,6 +6,7 @@ import { LogOut, Menu, X, Shield } from "lucide-react";
 import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
 import TrustBar from "@/components/TrustBar";
+import SubscriptionBanner from "@/components/SubscriptionBanner";
 import { useNotificationCount } from "@/hooks/useNotifications";
 import { useTrackOnlineStatus } from "@/hooks/useOnlineStatus";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
@@ -167,6 +168,7 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <SubscriptionBanner />
         <header className="lg:hidden border-b border-border/40 bg-background/90 backdrop-blur-xl sticky top-0 z-40 safe-area-top">
           <div className="flex h-14 items-center justify-between px-4">
             <div className="flex items-center gap-2">

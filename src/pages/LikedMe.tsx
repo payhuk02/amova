@@ -14,7 +14,8 @@ import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 
 interface LikerProfile {
-  user_id: string;
+  like_id: string;
+  user_id: string | null;
   display_name: string | null;
   avatar_url: string | null;
   age: number | null;
@@ -25,6 +26,7 @@ interface LikerProfile {
   last_seen: string | null;
   liked_at: string;
   is_super: boolean;
+  is_revealed: boolean;
 }
 
 const LikedMe = () => {
@@ -36,57 +38,42 @@ const LikedMe = () => {
   const [likedBackIds, setLikedBackIds] = useState<Set<string>>(new Set());
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [revealed, setRevealed] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user) return;
 
     const load = async () => {
-      const { data: incomingLikes } = await supabase
-        .from("likes")
-        .select("from_user_id, created_at, is_super")
-        .eq("to_user_id", user.id)
-        .order("created_at", { ascending: false });
+      const { data: incomingLikers, error } = await supabase.rpc("get_incoming_likers");
 
-      if (!incomingLikes || incomingLikes.length === 0) {
+      if (error) {
+        toast.error("Impossible de charger les likes");
         setLoading(false);
         return;
       }
 
-      const likerIds = incomingLikes.map((l) => l.from_user_id);
+      if (!incomingLikers || incomingLikers.length === 0) {
+        setLoading(false);
+        return;
+      }
 
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, display_name, avatar_url, age, city, bio, interests, is_verified, last_seen")
-        .in("user_id", likerIds);
+      const revealedLikers = incomingLikers.filter((l) => l.user_id);
+      const likerIds = revealedLikers.map((l) => l.user_id!);
 
-      const { data: myLikes } = await supabase
-        .from("likes")
-        .select("to_user_id")
-        .eq("from_user_id", user.id)
-        .in("to_user_id", likerIds);
+      let likedBack = new Set<string>();
+      if (likerIds.length > 0) {
+        const { data: myLikes } = await supabase
+          .from("likes")
+          .select("to_user_id")
+          .eq("from_user_id", user.id)
+          .in("to_user_id", likerIds);
 
-      const likedBack = new Set((myLikes || []).map((l) => l.to_user_id));
+        likedBack = new Set((myLikes || []).map((l) => l.to_user_id));
+      }
+
       setLikedBackIds(likedBack);
+      setMatchedIds(new Set(likedBack));
 
-      const matched = new Set<string>();
-      likedBack.forEach((id) => matched.add(id));
-      setMatchedIds(matched);
-
-      const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
-      const result: LikerProfile[] = incomingLikes
-        .map((like) => {
-          const profile = profileMap.get(like.from_user_id);
-          if (!profile) return null;
-          return {
-            ...profile,
-            liked_at: like.created_at,
-            is_super: like.is_super,
-          } as LikerProfile;
-        })
-        .filter(Boolean) as LikerProfile[];
-
-      setLikers(result);
+      setLikers(incomingLikers as LikerProfile[]);
       setLoading(false);
     };
 
@@ -159,13 +146,14 @@ const LikedMe = () => {
         ) : (
           <div className="space-y-2 sm:space-y-3">
             {likers.map((liker, i) => {
-              const isLikedBack = likedBackIds.has(liker.user_id);
-              const isMatch = matchedIds.has(liker.user_id);
-              const isRevealed = revealed.has(liker.user_id) || canSeeWhoLiked;
+              const likerUserId = liker.user_id;
+              const isLikedBack = likerUserId ? likedBackIds.has(likerUserId) : false;
+              const isMatch = likerUserId ? matchedIds.has(likerUserId) : false;
+              const isRevealed = liker.is_revealed;
               const online = isOnline(liker.last_seen);
 
               return (
-                <ScrollReveal key={liker.user_id} delay={i * 60}>
+                <ScrollReveal key={liker.like_id} delay={i * 60}>
                   <div
                     className={`glass-card rounded-xl p-3 sm:p-4 md:p-5 transition-all duration-300 ${
                       liker.is_super ? "border-gold-soft/40 ring-1 ring-gold-soft/20" : ""
@@ -174,8 +162,9 @@ const LikedMe = () => {
                     <div className="flex items-start gap-2.5 sm:gap-3 md:gap-4">
                       {/* Avatar */}
                       <button
-                        onClick={() => navigate(`/profile/${liker.user_id}`)}
-                        className="relative shrink-0 touch-manipulation"
+                        onClick={() => likerUserId && navigate(`/profile/${likerUserId}`)}
+                        disabled={!likerUserId}
+                        className="relative shrink-0 touch-manipulation disabled:cursor-default"
                       >
                         <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-primary/15 flex items-center justify-center overflow-hidden">
                           {liker.avatar_url ? (
@@ -204,14 +193,13 @@ const LikedMe = () => {
                             <Sparkles size={13} className="text-gold-soft shrink-0" />
                           )}
                           <button
-                            onClick={() => navigate(`/profile/${liker.user_id}`)}
-                            className={`font-display text-sm sm:text-base md:text-lg font-medium truncate hover:text-primary transition-colors touch-manipulation ${
-                              !isRevealed && !isLikedBack ? "blur-sm select-none" : ""
+                            onClick={() => likerUserId && navigate(`/profile/${likerUserId}`)}
+                            disabled={!likerUserId}
+                            className={`font-display text-sm sm:text-base md:text-lg font-medium truncate transition-colors touch-manipulation disabled:cursor-default ${
+                              isRevealed ? "hover:text-primary" : "blur-sm select-none"
                             }`}
                           >
-                            {isRevealed || isLikedBack
-                              ? liker.display_name
-                              : "••••••"}
+                            {isRevealed ? liker.display_name || "Membre" : "••••••"}
                           </button>
                           {liker.is_verified && (
                             <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
@@ -256,32 +244,28 @@ const LikedMe = () => {
 
                         {/* Actions */}
                         <div className="flex items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-2">
-                          {!isLikedBack ? (
-                            <>
-                              <Button
-                                variant="default"
-                                size="sm"
-                                onClick={() => handleLikeBack(liker.user_id)}
-                                className="touch-manipulation h-8 text-xs"
-                              >
-                                <Heart size={13} />
-                                <span className="hidden sm:inline">Aimer aussi</span>
-                                <span className="sm:hidden">Aimer</span>
-                              </Button>
-                              {!isRevealed && canSeeWhoLiked && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="border-border/50 touch-manipulation h-8 text-xs"
-                                  onClick={() =>
-                                    setRevealed((prev) => new Set(prev).add(liker.user_id))
-                                  }
-                                >
-                                  <Eye size={13} />
-                                  Révéler
-                                </Button>
-                              )}
-                            </>
+                          {!isRevealed ? (
+                            <Button
+                              variant="hero"
+                              size="sm"
+                              onClick={() => navigate("/premium")}
+                              className="touch-manipulation h-8 text-xs"
+                            >
+                              <Eye size={13} />
+                              Débloquer Premium
+                            </Button>
+                          ) : !isLikedBack ? (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => likerUserId && handleLikeBack(likerUserId)}
+                              disabled={!likerUserId}
+                              className="touch-manipulation h-8 text-xs"
+                            >
+                              <Heart size={13} />
+                              <span className="hidden sm:inline">Aimer aussi</span>
+                              <span className="sm:hidden">Aimer</span>
+                            </Button>
                           ) : (
                             <>
                               <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-emerald-500">
@@ -291,9 +275,8 @@ const LikedMe = () => {
                               <Button
                                 variant="hero-outline"
                                 size="sm"
-                                onClick={() =>
-                                  navigate(`/messages?with=${liker.user_id}`)
-                                }
+                                onClick={() => likerUserId && navigate(`/messages?with=${likerUserId}`)}
+                                disabled={!likerUserId}
                                 className="touch-manipulation h-8 text-xs"
                               >
                                 <MessageCircle size={13} />

@@ -18,10 +18,26 @@ interface DiscoverFiltersProps {
   filters: DiscoverFiltersState;
   onChange: (filters: DiscoverFiltersState) => void;
   availableInterests: string[];
+  canUseAdvancedFilters?: boolean;
+  onPremiumRequired?: () => void;
 }
 
-const DiscoverFilters = ({ filters, onChange, availableInterests }: DiscoverFiltersProps) => {
+const DiscoverFilters = ({
+  filters,
+  onChange,
+  availableInterests,
+  canUseAdvancedFilters = false,
+  onPremiumRequired,
+}: DiscoverFiltersProps) => {
   const update = (partial: Partial<DiscoverFiltersState>) => onChange({ ...filters, ...partial });
+
+  const requirePremium = (action: () => void) => {
+    if (canUseAdvancedFilters) {
+      action();
+      return;
+    }
+    onPremiumRequired?.();
+  };
 
   const toggleInterest = (interest: string) => {
     const current = filters.hasInterests;
@@ -120,8 +136,11 @@ const DiscoverFilters = ({ filters, onChange, availableInterests }: DiscoverFilt
         </div>
       </div>
 
-      {/* Toggle switches */}
-      <div className="space-y-2">
+      {/* Advanced filters — Premium */}
+      <div className="space-y-2 pt-2 border-t border-border/30">
+        <p className="text-[10px] uppercase tracking-wider text-champagne/80 font-medium">
+          Filtres avancés {!canUseAdvancedFilters && "· Premium"}
+        </p>
         <div className="flex items-center justify-between py-1">
           <label className="text-xs text-muted-foreground flex items-center gap-1.5">
             <ShieldCheck size={13} className="text-emerald-500" />
@@ -129,7 +148,7 @@ const DiscoverFilters = ({ filters, onChange, availableInterests }: DiscoverFilt
           </label>
           <Switch
             checked={filters.verifiedOnly}
-            onCheckedChange={(v) => update({ verifiedOnly: v })}
+            onCheckedChange={(v) => requirePremium(() => update({ verifiedOnly: v }))}
           />
         </div>
         <div className="flex items-center justify-between py-1">
@@ -139,7 +158,7 @@ const DiscoverFilters = ({ filters, onChange, availableInterests }: DiscoverFilt
           </label>
           <Switch
             checked={filters.onlineOnly}
-            onCheckedChange={(v) => update({ onlineOnly: v })}
+            onCheckedChange={(v) => requirePremium(() => update({ onlineOnly: v }))}
           />
         </div>
       </div>
@@ -148,13 +167,16 @@ const DiscoverFilters = ({ filters, onChange, availableInterests }: DiscoverFilt
       {availableInterests.length > 0 && (
         <div>
           <label className="text-xs text-muted-foreground mb-1.5 block flex items-center gap-1">
-            <Sparkles size={12} /> Centres d'intérêt
+            <Sparkles size={12} /> Centres d&apos;intérêt
+            {!canUseAdvancedFilters && (
+              <span className="text-[10px] text-champagne/70 ml-1">Premium</span>
+            )}
           </label>
           <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto no-scrollbar">
             {availableInterests.slice(0, 20).map((interest) => (
               <button
                 key={interest}
-                onClick={() => toggleInterest(interest)}
+                onClick={() => requirePremium(() => toggleInterest(interest))}
                 className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all active:scale-[0.97] ${
                   filters.hasInterests.includes(interest)
                     ? "bg-primary/20 text-foreground border border-primary/30"

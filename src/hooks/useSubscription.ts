@@ -67,8 +67,24 @@ export function useSubscription() {
     enabled: !!user,
   });
 
-  const currentPlan: PlanType = (subscription?.plan as PlanType) || "free";
+  const effectivePlan: PlanType = (() => {
+    if (!subscription || subscription.status !== "active") return "free";
+    if (
+      subscription.plan !== "free" &&
+      subscription.expires_at &&
+      new Date(subscription.expires_at) < new Date()
+    ) {
+      return "free";
+    }
+    return subscription.plan as PlanType;
+  })();
+
+  const currentPlan: PlanType = effectivePlan;
   const limits = PLAN_LIMITS[currentPlan];
+  const isExpired =
+    subscription?.plan !== "free" &&
+    subscription?.expires_at != null &&
+    new Date(subscription.expires_at) < new Date();
 
   const upgrade = (newPlan: PlanType) => {
     if (newPlan === currentPlan || newPlan === "free") return;
@@ -80,6 +96,7 @@ export function useSubscription() {
     currentPlan,
     limits,
     isLoading,
+    isExpired,
     upgrade,
     isUpgrading: false,
   };

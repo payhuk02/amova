@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import {
   ArrowLeft, User, Bell, Shield, Trash2, MapPin,
-  Eye, EyeOff, Lock, Mail, LogOut, ChevronRight, AlertTriangle
+  Eye, EyeOff, Lock, Mail, LogOut, ChevronRight, AlertTriangle, Download,
 } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { useAdmin } from "@/hooks/useAdmin";
@@ -26,7 +26,7 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleteInput, setDeleteInput] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   const [settings, setSettings] = useState({
     incognito_mode: false,
@@ -45,7 +45,7 @@ const Settings = () => {
     const load = async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("incognito_mode, latitude, longitude")
+        .select("incognito_mode, latitude, longitude, notif_matches, notif_messages, notif_likes, notif_events")
         .eq("user_id", user.id)
         .single();
 
@@ -54,20 +54,53 @@ const Settings = () => {
           incognito_mode: data.incognito_mode || false,
           has_location: data.latitude != null,
         });
+        setNotifPrefs({
+          matches: data.notif_matches ?? true,
+          messages: data.notif_messages ?? true,
+          likes: data.notif_likes ?? true,
+          events: data.notif_events ?? true,
+        });
       }
-
-      // Load notif prefs from localStorage
-      const stored = localStorage.getItem(`notif_prefs_${user.id}`);
-      if (stored) setNotifPrefs(JSON.parse(stored));
 
       setLoading(false);
     };
     load();
   }, [user]);
 
-  const saveNotifPrefs = (prefs: typeof notifPrefs) => {
+  const saveNotifPrefs = async (prefs: typeof notifPrefs) => {
     setNotifPrefs(prefs);
-    if (user) localStorage.setItem(`notif_prefs_${user.id}`, JSON.stringify(prefs));
+    if (!user) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        notif_matches: prefs.matches,
+        notif_messages: prefs.messages,
+        notif_likes: prefs.likes,
+        notif_events: prefs.events,
+      } satisfies ProfileUpdate)
+      .eq("user_id", user.id);
+    if (error) toast.error("Impossible d'enregistrer les préférences");
+  };
+
+  const handleExportData = async () => {
+    if (!user) return;
+    setExporting(true);
+    try {
+      const { data, error } = await supabase.rpc("export_my_data");
+      if (error) throw error;
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `amova-export-${user.id.slice(0, 8)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Export téléchargé");
+    } catch {
+      toast.error("Impossible d'exporter vos données");
+    } finally {
+      setExporting(false);
+    }
   };
 
   const toggleIncognito = async (checked: boolean) => {
@@ -283,6 +316,21 @@ const Settings = () => {
                 disabled={geoLoading}
               />
             </div>
+
+            <button
+              onClick={handleExportData}
+              disabled={exporting}
+              className="w-full flex items-center justify-between p-3.5 rounded-xl hover:bg-secondary/50 transition-colors touch-manipulation"
+            >
+              <div className="flex items-center gap-3">
+                <Download size={18} className="text-muted-foreground" />
+                <div>
+                  <span className="text-sm font-medium block">Exporter mes données</span>
+                  <span className="text-xs text-muted-foreground">Conformité RGPD</span>
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-muted-foreground" />
+            </button>
           </div>
         </section>
 

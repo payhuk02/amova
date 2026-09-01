@@ -19,6 +19,7 @@ import type { ProfileRow } from "@/types/profile";
 import { useCheckAndAwardBadges } from "@/hooks/useBadges";
 import { getLimitErrorMessage } from "@/lib/limits";
 import type { LikeInsert } from "@/lib/supabase-helpers";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface Profile {
   id: string;
@@ -54,6 +55,8 @@ const Discover = () => {
   const [myProfile, setMyProfile] = useState<ProfileRow | null>(null);
   const { blockedIds, reload: reloadBlocked } = useBlockedUsers();
   const { checkBadges } = useCheckAndAwardBadges();
+  const { limits } = useSubscription();
+  const canUseAdvancedFilters = limits.canSeeWhoLiked;
   const [filters, setFilters] = useState<DiscoverFiltersState>({
     city: "",
     ageMin: "18",
@@ -150,11 +153,13 @@ const Discover = () => {
     if (filters.ageMax && p.age && p.age > parseInt(filters.ageMax)) return false;
     if (filters.gender && p.gender !== filters.gender) return false;
     if (filters.lookingFor && p.looking_for !== filters.lookingFor) return false;
-    if (filters.verifiedOnly && !p.is_verified) return false;
-    if (filters.onlineOnly && !isOnline(p.last_seen)) return false;
-    if (filters.hasInterests.length > 0) {
-      const pInterests = p.interests || [];
-      if (!filters.hasInterests.some((fi) => pInterests.includes(fi))) return false;
+    if (canUseAdvancedFilters) {
+      if (filters.verifiedOnly && !p.is_verified) return false;
+      if (filters.onlineOnly && !isOnline(p.last_seen)) return false;
+      if (filters.hasInterests.length > 0) {
+        const pInterests = p.interests || [];
+        if (!filters.hasInterests.some((fi) => pInterests.includes(fi))) return false;
+      }
     }
     return true;
   });
@@ -302,6 +307,11 @@ const Discover = () => {
             filters={filters}
             onChange={setFilters}
             availableInterests={availableInterests}
+            canUseAdvancedFilters={canUseAdvancedFilters}
+            onPremiumRequired={() => {
+              toast.error("Les filtres avancés sont réservés aux membres Premium.");
+              navigate("/premium");
+            }}
           />
         )}
 

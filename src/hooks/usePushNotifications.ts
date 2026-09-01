@@ -8,6 +8,29 @@ const NOTIFICATION_ICONS: Record<string, string> = {
   message: "💬",
   call: "📞",
   super_like: "⭐",
+  event: "📅",
+};
+
+const TYPE_TO_PREF: Record<string, keyof NotifPrefs> = {
+  match: "matches",
+  like: "likes",
+  super_like: "likes",
+  message: "messages",
+  event: "events",
+};
+
+interface NotifPrefs {
+  matches: boolean;
+  messages: boolean;
+  likes: boolean;
+  events: boolean;
+}
+
+const DEFAULT_PREFS: NotifPrefs = {
+  matches: true,
+  messages: true,
+  likes: true,
+  events: true,
 };
 
 function getNotificationTitle(type: string, fallback: string): string {
@@ -18,6 +41,7 @@ function getNotificationTitle(type: string, fallback: string): string {
 export function usePushNotifications() {
   const { user } = useAuth();
   const permissionRef = useRef<NotificationPermission>("default");
+  const prefsRef = useRef<NotifPrefs>(DEFAULT_PREFS);
 
   const requestPermission = useCallback(async () => {
     if (!("Notification" in window)) return false;
@@ -35,12 +59,12 @@ export function usePushNotifications() {
   const showNotification = useCallback(
     (title: string, options?: NotificationOptions) => {
       if (permissionRef.current !== "granted") return;
-      if (document.visibilityState === "visible") return; // Don't notify if app is focused
+      if (document.visibilityState === "visible") return;
 
       try {
         const n = new Notification(title, {
-          icon: "/placeholder.svg",
-          badge: "/placeholder.svg",
+          icon: "/icon.png",
+          badge: "/icon.png",
           tag: options?.tag || "default",
           ...options,
         });
@@ -48,7 +72,6 @@ export function usePushNotifications() {
           window.focus();
           n.close();
         };
-        // Auto-close after 5s
         setTimeout(() => n.close(), 5000);
       } catch {
         // Notification constructor may fail in some contexts
@@ -57,12 +80,33 @@ export function usePushNotifications() {
     []
   );
 
+  const shouldNotify = useCallback((type: string) => {
+    const prefKey = TYPE_TO_PREF[type];
+    if (!prefKey) return true;
+    return prefsRef.current[prefKey];
+  }, []);
+
   useEffect(() => {
     if (!user) return;
     requestPermission();
+
+    supabase
+      .from("profiles")
+      .select("notif_matches, notif_messages, notif_likes, notif_events")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          prefsRef.current = {
+            matches: data.notif_matches ?? true,
+            messages: data.notif_messages ?? true,
+            likes: data.notif_likes ?? true,
+            events: data.notif_events ?? true,
+          };
+        }
+      });
   }, [user, requestPermission]);
 
-  // Listen for new notifications (messages, matches, likes)
   useEffect(() => {
     if (!user) return;
 
@@ -82,6 +126,7 @@ export function usePushNotifications() {
             title: string;
             body: string | null;
           };
+          if (!shouldNotify(notif.type)) return;
           showNotification(getNotificationTitle(notif.type, notif.title), {
             body: notif.body || undefined,
             tag: `notif-${notif.type}`,
@@ -93,9 +138,8 @@ export function usePushNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, showNotification]);
+  }, [user, showNotification, shouldNotify]);
 
-  // Listen for incoming calls
   useEffect(() => {
     if (!user) return;
 
@@ -115,8 +159,8 @@ export function usePushNotifications() {
             caller_id: string;
           };
           if (signal.signal_type !== "offer") return;
+          if (!prefsRef.current.messages) return;
 
-          // Fetch caller name
           const { data: profile } = await supabase
             .from("profiles")
             .select("display_name")

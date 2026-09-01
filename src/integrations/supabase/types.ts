@@ -329,6 +329,10 @@ export type Database = {
           user_id: string
           verification_photo_url: string | null
           verification_status: string
+          notif_matches: boolean
+          notif_messages: boolean
+          notif_likes: boolean
+          notif_events: boolean
         }
         Insert: {
           age?: number | null
@@ -350,6 +354,10 @@ export type Database = {
           user_id: string
           verification_photo_url?: string | null
           verification_status?: string
+          notif_matches?: boolean
+          notif_messages?: boolean
+          notif_likes?: boolean
+          notif_events?: boolean
         }
         Update: {
           age?: number | null
@@ -371,6 +379,10 @@ export type Database = {
           user_id?: string
           verification_photo_url?: string | null
           verification_status?: string
+          notif_matches?: boolean
+          notif_messages?: boolean
+          notif_likes?: boolean
+          notif_events?: boolean
         }
         Relationships: []
       }
@@ -641,6 +653,25 @@ export type Database = {
       }
       fulfill_payment_by_token: { Args: { p_token: string }; Returns: boolean }
       is_user_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
+      get_incoming_likers: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          like_id: string
+          user_id: string | null
+          display_name: string | null
+          avatar_url: string | null
+          age: number | null
+          city: string | null
+          bio: string | null
+          interests: string[] | null
+          is_verified: boolean
+          last_seen: string | null
+          liked_at: string
+          is_super: boolean
+          is_revealed: boolean
+        }[]
+      }
+      export_my_data: { Args: Record<PropertyKey, never>; Returns: Json }
     }
     Enums: {
       subscription_plan: "free" | "premium" | "vip"

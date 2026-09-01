@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Logo from "@/components/Logo";
 
 const Footer = () => (
@@ -8,10 +9,10 @@ const Footer = () => (
           <Logo variant="compact" className="h-10" />
         </div>
         <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-sm text-muted-foreground">
-          <a href="#" className="hover:text-foreground transition-colors">Confidentialité</a>
-          <a href="#" className="hover:text-foreground transition-colors">Conditions</a>
-          <a href="#" className="hover:text-foreground transition-colors">Contact</a>
-          <a href="#" className="hover:text-foreground transition-colors">FAQ</a>
+          <Link to="/confidentialite" className="hover:text-foreground transition-colors">Confidentialité</Link>
+          <Link to="/conditions" className="hover:text-foreground transition-colors">Conditions</Link>
+          <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
+          <Link to="/faq" className="hover:text-foreground transition-colors">FAQ</Link>
         </div>
         <p className="text-xs text-muted-foreground/50">© 2026 Amova. Tous droits réservés.</p>
       </div>

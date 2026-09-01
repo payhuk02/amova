@@ -35,6 +35,11 @@ import AdminModeration from "./pages/admin/Moderation.tsx";
 import AdminEvents from "./pages/admin/Events.tsx";
 import AdminNotifications from "./pages/admin/Notifications.tsx";
 import AdminAdmins from "./pages/admin/Admins.tsx";
+import PrivacyPage from "./pages/legal/PrivacyPage.tsx";
+import TermsPage from "./pages/legal/TermsPage.tsx";
+import FAQPage from "./pages/legal/FAQPage.tsx";
+import ContactPage from "./pages/legal/ContactPage.tsx";
+import CookieConsent from "@/components/CookieConsent";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +52,10 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/confidentialite" element={<PrivacyPage />} />
+            <Route path="/conditions" element={<TermsPage />} />
+            <Route path="/faq" element={<FAQPage />} />
+            <Route path="/contact" element={<ContactPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/profile-setup" element={<ProtectedRoute><ProfileSetup /></ProtectedRoute>} />
             <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
@@ -79,6 +88,7 @@ const App = () => (
 
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <CookieConsent />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
