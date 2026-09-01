@@ -10,12 +10,12 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchAutoHide: true,
-      backgroundColor: "#0F1114",
+      backgroundColor: "#100A14",
       showSpinner: false,
     },
     StatusBar: {
       style: "DARK",
-      backgroundColor: "#0F1114",
+      backgroundColor: "#100A14",
     },
   },
 };

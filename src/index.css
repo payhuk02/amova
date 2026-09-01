@@ -6,56 +6,59 @@
 
 @layer base {
   :root {
-    /* Amova Trust — dark (default) */
-    --background: 220 13% 7%;
-    --foreground: 40 20% 94%;
+    /* Amova — deep plum + magenta/violet (logo) */
+    --background: 285 28% 6%;
+    --foreground: 300 15% 94%;
 
-    --card: 220 12% 11%;
-    --card-foreground: 40 20% 94%;
+    --card: 285 24% 10%;
+    --card-foreground: 300 15% 94%;
 
-    --popover: 215 12% 14%;
-    --popover-foreground: 40 20% 94%;
+    --popover: 285 22% 12%;
+    --popover-foreground: 300 15% 94%;
 
-    --primary: 42 48% 58%;
-    --primary-foreground: 220 13% 7%;
+    --primary: 330 85% 58%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 215 12% 14%;
-    --secondary-foreground: 215 10% 65%;
+    --secondary: 285 20% 14%;
+    --secondary-foreground: 285 12% 68%;
 
-    --muted: 215 11% 19%;
-    --muted-foreground: 215 10% 46%;
+    --muted: 285 18% 16%;
+    --muted-foreground: 285 10% 52%;
 
-    --accent: 205 28% 60%;
-    --accent-foreground: 220 13% 7%;
+    --accent: 285 62% 52%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 8 62% 65%;
-    --destructive-foreground: 40 20% 98%;
+    --destructive-foreground: 300 15% 98%;
 
     --success: 152 60% 62%;
-    --success-foreground: 220 13% 7%;
+    --success-foreground: 285 28% 6%;
 
-    --border: 215 11% 19%;
-    --input: 215 11% 19%;
-    --ring: 42 48% 58%;
+    --border: 285 18% 18%;
+    --input: 285 18% 18%;
+    --ring: 330 85% 58%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 220 12% 9%;
-    --sidebar-foreground: 215 10% 65%;
-    --sidebar-primary: 42 48% 58%;
-    --sidebar-primary-foreground: 220 13% 7%;
-    --sidebar-accent: 215 12% 14%;
-    --sidebar-accent-foreground: 40 20% 94%;
-    --sidebar-border: 215 11% 19%;
-    --sidebar-ring: 42 48% 58%;
+    --sidebar-background: 285 26% 8%;
+    --sidebar-foreground: 285 12% 68%;
+    --sidebar-primary: 330 85% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 285 20% 14%;
+    --sidebar-accent-foreground: 300 15% 94%;
+    --sidebar-border: 285 18% 18%;
+    --sidebar-ring: 330 85% 58%;
 
-    /* Brand tokens */
-    --champagne: 42 48% 58%;
-    --champagne-light: 42 40% 72%;
-    --champagne-dark: 42 45% 48%;
-    --trust: 205 28% 60%;
-    --trust-muted: 205 20% 45%;
-    --elevated: 215 12% 14%;
+    /* Brand tokens — logo gradient */
+    --champagne: 330 85% 58%;
+    --champagne-light: 340 90% 72%;
+    --champagne-dark: 285 65% 45%;
+    --trust: 285 62% 52%;
+    --trust-muted: 285 30% 42%;
+    --elevated: 285 22% 12%;
+    --magenta: 330 85% 58%;
+    --violet: 285 65% 45%;
+    --plum: 285 28% 6%;
 
     /* Legacy aliases (backward compat) */
     --copper: var(--champagne);
@@ -65,25 +68,25 @@
   }
 
   .light {
-    --background: 40 20% 97%;
-    --foreground: 220 13% 12%;
+    --background: 300 20% 97%;
+    --foreground: 285 30% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 13% 12%;
+    --card-foreground: 285 30% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 12%;
+    --popover-foreground: 285 30% 12%;
 
-    --primary: 42 45% 48%;
+    --primary: 330 75% 48%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 215 15% 93%;
-    --secondary-foreground: 220 10% 30%;
+    --secondary: 285 18% 93%;
+    --secondary-foreground: 285 20% 30%;
 
-    --muted: 215 12% 92%;
-    --muted-foreground: 215 10% 42%;
+    --muted: 285 15% 92%;
+    --muted-foreground: 285 12% 42%;
 
-    --accent: 205 30% 48%;
+    --accent: 285 50% 45%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 8 58% 52%;
@@ -92,25 +95,28 @@
     --success: 152 50% 40%;
     --success-foreground: 0 0% 100%;
 
-    --border: 215 12% 88%;
-    --input: 215 12% 88%;
-    --ring: 42 45% 48%;
+    --border: 285 15% 88%;
+    --input: 285 15% 88%;
+    --ring: 330 75% 48%;
 
-    --sidebar-background: 40 15% 96%;
-    --sidebar-foreground: 220 10% 30%;
-    --sidebar-primary: 42 45% 48%;
+    --sidebar-background: 300 18% 96%;
+    --sidebar-foreground: 285 20% 30%;
+    --sidebar-primary: 330 75% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 15% 93%;
-    --sidebar-accent-foreground: 220 10% 30%;
-    --sidebar-border: 215 12% 88%;
-    --sidebar-ring: 42 45% 48%;
+    --sidebar-accent: 285 18% 93%;
+    --sidebar-accent-foreground: 285 20% 30%;
+    --sidebar-border: 285 15% 88%;
+    --sidebar-ring: 330 75% 48%;
 
-    --champagne: 42 45% 48%;
-    --champagne-light: 42 38% 58%;
-    --champagne-dark: 42 42% 38%;
-    --trust: 205 30% 48%;
-    --trust-muted: 205 18% 55%;
+    --champagne: 330 75% 48%;
+    --champagne-light: 340 80% 58%;
+    --champagne-dark: 285 55% 38%;
+    --trust: 285 50% 45%;
+    --trust-muted: 285 18% 55%;
     --elevated: 0 0% 100%;
+    --magenta: 330 75% 48%;
+    --violet: 285 55% 38%;
+    --plum: 300 20% 97%;
 
     --copper: var(--champagne);
     --copper-light: var(--champagne-light);
@@ -142,28 +148,37 @@
 
 @layer components {
   .text-gradient-copper,
-  .text-gradient-champagne {
+  .text-gradient-champagne,
+  .text-gradient-brand {
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(
       135deg,
       hsl(var(--champagne-light)),
       hsl(var(--champagne)),
-      hsl(var(--champagne-dark))
+      hsl(var(--violet))
     );
+  }
+
+  .hero-overlay {
+    background:
+      linear-gradient(to right, hsl(var(--plum) / 0.92) 0%, hsl(var(--plum) / 0.55) 45%, hsl(var(--plum) / 0.15) 100%),
+      linear-gradient(to top, hsl(var(--plum)) 0%, transparent 50%, hsl(var(--plum) / 0.25) 100%),
+      radial-gradient(ellipse 80% 60% at 15% 50%, hsl(var(--magenta) / 0.18), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 85% 30%, hsl(var(--violet) / 0.14), transparent 55%);
   }
 
   .glass-card {
     @apply bg-card/80 backdrop-blur-xl border border-border/60;
     box-shadow:
-      0 4px 24px hsla(220, 13%, 4%, 0.45),
-      inset 0 1px 0 hsla(40, 20%, 94%, 0.04);
+      0 4px 24px hsla(285, 28%, 4%, 0.5),
+      inset 0 1px 0 hsla(300, 15%, 94%, 0.04);
   }
 
   .glow-copper,
   .glow-champagne {
     box-shadow:
-      0 4px 20px hsla(42, 48%, 58%, 0.18),
-      0 1px 3px hsla(220, 13%, 4%, 0.2);
+      0 4px 24px hsla(330, 85%, 58%, 0.22),
+      0 1px 3px hsla(285, 28%, 6%, 0.3);
   }
 }
 

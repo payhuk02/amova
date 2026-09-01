@@ -26,7 +26,7 @@ const buttonVariants = cva(
         hero:
           "bg-primary text-primary-foreground font-display text-base tracking-wide shadow-premium hover:bg-primary/90 hover:shadow-premium",
         "hero-outline":
-          "border border-foreground/15 bg-transparent text-foreground font-display text-base tracking-wide hover:bg-secondary/40 hover:border-foreground/25",
+          "border border-champagne/25 bg-transparent text-foreground font-display text-base tracking-wide hover:bg-champagne/10 hover:border-champagne/40",
       },
       size: {
         default: "h-10 px-5 py-2",

@@ -4,8 +4,8 @@
   "description": "Rencontres sincères, histoires vraies. Profils vérifiés et connexions authentiques.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0F1114",
-  "theme_color": "#0F1114",
+  "background_color": "#100A14",
+  "theme_color": "#100A14",
   "lang": "fr",
   "icons": [
     {
