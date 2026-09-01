@@ -7,6 +7,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeToggle from "@/components/ThemeToggle";
 import { STATUS_LABELS, statusBadgeClass } from "@/lib/admin";
+import Logo from "@/components/Logo";
 
 const navItems = [
   { path: "/admin", icon: LayoutDashboard, label: "Tableau de bord", exact: true },
@@ -61,8 +62,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex h-screen overflow-hidden bg-background">
       <aside className="w-64 border-r border-border/50 bg-secondary/30 flex-col hidden md:flex">
         <div className="p-5 border-b border-border/50 flex items-center gap-3">
-          <img src="/logo.png" alt="Amova" className="h-8 w-8 object-contain" />
-          <span className="font-display font-semibold text-lg tracking-wide">Amova Admin</span>
+          <Logo variant="mark" />
+          <span className="font-display font-semibold text-lg tracking-wide">Admin</span>
         </div>
 
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">

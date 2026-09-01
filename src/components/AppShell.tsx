@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { LogOut, Menu, X, Shield } from "lucide-react";
+import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
 import TrustBar from "@/components/TrustBar";
 import { useNotificationCount } from "@/hooks/useNotifications";
@@ -132,10 +133,10 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
         <div className="flex items-center h-16 px-5 border-b border-border/40">
           <button
             onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-2.5 font-display text-xl font-semibold tracking-wide text-foreground hover:opacity-80 transition-opacity"
+            className="hover:opacity-80 transition-opacity"
+            aria-label="Amova — Accueil"
           >
-            <img src="/logo.png" alt="Amova" className="h-7 w-7 object-contain" />
-            Amova
+            <Logo variant="compact" />
           </button>
         </div>
 
@@ -178,10 +179,9 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
               </button>
               <button
                 onClick={() => navigate("/dashboard")}
-                className="flex items-center gap-2 font-display text-lg font-semibold tracking-wide"
+                aria-label="Amova — Accueil"
               >
-                <img src="/logo.png" alt="Amova" className="h-6 w-6 object-contain" />
-                Amova
+                <Logo variant="mark" />
               </button>
             </div>
             <ThemeToggle />
@@ -198,7 +198,7 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
             >
               <div className="flex items-center justify-between px-4 h-14 border-b border-border/40">
                 <span className="flex items-center gap-2 font-display text-lg font-semibold">
-                  <img src="/logo.png" alt="Amova" className="h-6 w-6 object-contain" />
+                  <Logo variant="mark" className="h-7 w-7" />
                   Menu
                 </span>
                 <button

@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import TrustBar from "@/components/TrustBar";
+import Logo from "@/components/Logo";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
@@ -22,9 +23,8 @@ const Navbar = () => {
     <>
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/30 bg-background/80 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between">
-        <a href="/" className="flex items-center gap-2 font-display text-2xl font-semibold tracking-wide text-foreground">
-          <img src="/logo.png" alt="Amova" className="h-8 w-8 object-contain" />
-          Amova
+        <a href="/" className="flex items-center text-foreground hover:opacity-90 transition-opacity">
+          <Logo variant="compact" />
         </a>
 
         <div className="hidden lg:flex items-center gap-8">

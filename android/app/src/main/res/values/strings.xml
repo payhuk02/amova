@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Amova</string>
+    <string name="title_activity_main">Amova</string>
+    <string name="package_name">com.amova.space</string>
+    <string name="custom_url_scheme">com.amova.space</string>
+</resources>
