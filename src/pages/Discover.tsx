@@ -17,6 +17,7 @@ import EmptyState from "@/components/ui/empty-state";
 import { TrustBadge, OnlineStatus, InterestTag } from "@/components/TrustBadge";
 import type { ProfileRow } from "@/types/profile";
 import { useCheckAndAwardBadges } from "@/hooks/useBadges";
+import BadgesDisplay from "@/components/BadgesDisplay";
 import { getLimitErrorMessage } from "@/lib/limits";
 import type { LikeInsert } from "@/lib/supabase-helpers";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -85,49 +86,43 @@ const Discover = () => {
         .eq("user_id", user.id)
         .single();
 
-      if (!myProfile?.display_name) {
-        navigate("/profile-setup");
-        return;
-      }
+      if (!myProfile) return;
       setMyProfile(myProfile);
 
-      const { data: myLikes } = await supabase
-        .from("likes")
-        .select("to_user_id")
-        .eq("from_user_id", user.id);
+      const { data: discovered, error } = await supabase.rpc("get_discover_profiles", {
+        p_limit: 50,
+        p_city: filters.city || null,
+        p_age_min: parseInt(filters.ageMin, 10) || null,
+        p_age_max: parseInt(filters.ageMax, 10) || null,
+        p_gender: filters.gender || null,
+        p_looking_for: filters.lookingFor || null,
+        p_verified_only: filters.verifiedOnly,
+        p_online_only: filters.onlineOnly,
+        p_interests: filters.hasInterests.length > 0 ? filters.hasInterests : null,
+      });
 
-      const likedIds = (myLikes || []).map((l) => l.to_user_id);
-
-      let query = supabase
-        .from("profiles")
-        .select("*")
-        .neq("user_id", user.id)
-        .not("display_name", "is", null);
-
-      if (myProfile.looking_for && myProfile.looking_for !== "les deux") {
-        query = query.eq("gender", myProfile.looking_for);
+      if (error) {
+        toast.error("Impossible de charger les profils");
+        setLoading(false);
+        return;
       }
 
-      const { data: otherProfiles } = await query.limit(50);
-
-      const filtered = (otherProfiles || []).filter(
-        (p) => !likedIds.includes(p.user_id)
-      ) as Profile[];
+      const filtered = (discovered || []) as Profile[];
 
       try {
-        const { data: scoreData, error } = await supabase.functions.invoke("ai-match", {
+        const { data: scoreData, error: aiError } = await supabase.functions.invoke("ai-match", {
           body: { userProfile: myProfile, candidates: filtered.slice(0, 20) },
         });
 
-        if (!error && scoreData?.scored) {
+        if (!aiError && scoreData?.scored) {
           const scored = scoreData.scored as Array<{ user_id: string; score: number }>;
           const scoreMap = new Map(scored.map((s) => [s.user_id, s.score]));
-          const withScores = filtered.map((p) => ({
-            ...p,
-            compatibility: scoreMap.get(p.user_id) || Math.floor(Math.random() * 30 + 50),
-          }));
-          withScores.sort((a, b) => (b.compatibility || 0) - (a.compatibility || 0));
-          setProfiles(withScores);
+          setProfiles(
+            filtered.map((p) => ({
+              ...p,
+              compatibility: scoreMap.get(p.user_id),
+            })),
+          );
         } else {
           setProfiles(filtered);
         }
@@ -136,31 +131,20 @@ const Discover = () => {
       }
 
       setLoading(false);
-
-      // Check badges on load
       checkBadges();
     };
 
-    loadProfiles();
-  }, [user, navigate]);
+    void loadProfiles();
+  }, [user, filters, checkBadges]);
 
-  // Apply filters + blocked
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [filters]);
+
+  // Server applies filters; keep swipe index + blocked guard client-side
   const visibleProfiles = profiles.filter((p, i) => {
     if (i < currentIndex) return false;
     if (blockedIds.has(p.user_id)) return false;
-    if (filters.city && p.city && !p.city.toLowerCase().includes(filters.city.toLowerCase())) return false;
-    if (filters.ageMin && p.age && p.age < parseInt(filters.ageMin)) return false;
-    if (filters.ageMax && p.age && p.age > parseInt(filters.ageMax)) return false;
-    if (filters.gender && p.gender !== filters.gender) return false;
-    if (filters.lookingFor && p.looking_for !== filters.lookingFor) return false;
-    if (canUseAdvancedFilters) {
-      if (filters.verifiedOnly && !p.is_verified) return false;
-      if (filters.onlineOnly && !isOnline(p.last_seen)) return false;
-      if (filters.hasInterests.length > 0) {
-        const pInterests = p.interests || [];
-        if (!filters.hasInterests.some((fi) => pInterests.includes(fi))) return false;
-      }
-    }
     return true;
   });
 
@@ -177,12 +161,9 @@ const Discover = () => {
           .insert({ from_user_id: user.id, to_user_id: currentProfile.user_id, is_super: isSuper } satisfies LikeInsert);
 
         if (!error) {
-          const { data: reverse } = await supabase
-            .from("likes")
-            .select("id")
-            .eq("from_user_id", currentProfile.user_id)
-            .eq("to_user_id", user.id)
-            .maybeSingle();
+          const { data: reverse } = await supabase.rpc("has_liked_me", {
+            p_user_id: currentProfile.user_id,
+          });
 
           if (reverse) {
             setMatchAnimation(currentProfile.display_name || "quelqu'un");

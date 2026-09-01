@@ -32,7 +32,7 @@ serve(async (req) => {
     const supabase = getServiceClient();
     const { data: order } = await supabase
       .from("payment_orders")
-      .select("status, plan")
+      .select("status, plan, amount")
       .eq("token_pay", token)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -44,26 +44,31 @@ serve(async (req) => {
       });
     }
 
-    if (order.status === "paid") {
-      return new Response(
-        JSON.stringify({ status: "paid", plan: order.plan }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
     const remote = await checkMoneyfusionPayment(token);
     const paid = isPaymentSuccessful(remote.data?.statut);
 
-    if (paid) {
-      await supabase.rpc("fulfill_payment_by_token", { p_token: token });
+    if (!paid) {
       return new Response(
-        JSON.stringify({ status: "paid", plan: order.plan }),
+        JSON.stringify({ status: remote.data?.statut || "pending" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
+    const remoteAmount = remote.data?.Montant;
+    if (remoteAmount != null && remoteAmount !== order.amount) {
+      return new Response(JSON.stringify({ error: "Montant de paiement invalide" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    await supabase.rpc("fulfill_payment_by_token", {
+      p_token: token,
+      p_expected_amount: order.amount,
+    });
+
     return new Response(
-      JSON.stringify({ status: remote.data?.statut || "pending" }),
+      JSON.stringify({ status: "paid", plan: order.plan }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {

@@ -30,3 +30,6 @@ supabase/.temp
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright auth state
+e2e/.auth/

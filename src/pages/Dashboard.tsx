@@ -68,20 +68,16 @@ const Dashboard = () => {
     setLikedIds(likedSet);
 
     if (likedSet.size > 0) {
-      const { data: mutualLikes } = await supabase
-        .from("likes")
-        .select("from_user_id")
-        .eq("to_user_id", user.id)
-        .in("from_user_id", Array.from(likedSet));
-
-      setMatchedIds(new Set((mutualLikes || []).map((l) => l.from_user_id)));
+      const { data: mutualIds } = await supabase.rpc("get_mutual_match_user_ids");
+      setMatchedIds(new Set((mutualIds as string[] | null) ?? []));
     }
 
     let query = supabase
       .from("profiles")
       .select("*")
       .neq("user_id", user.id)
-      .not("display_name", "is", null);
+      .not("display_name", "is", null)
+      .or("incognito_mode.is.null,incognito_mode.eq.false");
 
     if (myProfile.looking_for && myProfile.looking_for !== "les deux") {
       query = query.eq("gender", myProfile.looking_for);
@@ -109,8 +105,9 @@ const Dashboard = () => {
       if (error) return;
       setLikedIds((prev) => new Set(prev).add(toUserId));
 
-      const { data: reverse } = await supabase
-        .from("likes").select("id").eq("from_user_id", toUserId).eq("to_user_id", user.id).maybeSingle();
+      const { data: reverse } = await supabase.rpc("has_liked_me", {
+        p_user_id: toUserId,
+      });
 
       if (reverse) {
         setMatchedIds((prev) => new Set(prev).add(toUserId));

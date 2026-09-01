@@ -11,9 +11,12 @@ import {
   ArrowLeft,
   Calendar,
   UserX,
+  ShieldAlert,
 } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import BadgesDisplay from "@/components/BadgesDisplay";
+import BlockReportDialog from "@/components/BlockReportDialog";
+import { useBlockedUsers } from "@/hooks/useBlockedUsers";
 import EmptyState from "@/components/ui/empty-state";
 import { TrustBadge, OnlineStatus, InterestTag } from "@/components/TrustBadge";
 import { isOnline } from "@/hooks/useOnlineStatus";
@@ -53,6 +56,8 @@ const ProfilePage = () => {
   const [isMatch, setIsMatch] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [stats, setStats] = useState({ likes: 0, matches: 0 });
+  const [showBlockReport, setShowBlockReport] = useState(false);
+  const { blockedIds } = useBlockedUsers();
 
   useEffect(() => {
     if (!userId || !user) return;
@@ -81,34 +86,17 @@ const ProfilePage = () => {
       setLiked(!!myLike);
 
       if (myLike) {
-        const { data: rev } = await supabase
-          .from("likes")
-          .select("id")
-          .eq("from_user_id", userId)
-          .eq("to_user_id", user.id)
-          .maybeSingle();
+        const { data: rev } = await supabase.rpc("has_liked_me", { p_user_id: userId });
         setIsMatch(!!rev);
       }
 
-      const { count: likeCount } = await supabase
-        .from("likes")
-        .select("*", { count: "exact", head: true })
-        .eq("to_user_id", userId);
-
-      const { data: userLikes } = await supabase
-        .from("likes")
-        .select("to_user_id")
-        .eq("from_user_id", userId);
-
-      if (userLikes && userLikes.length > 0) {
-        const { data: mutuals } = await supabase
-          .from("likes")
-          .select("from_user_id")
-          .eq("to_user_id", userId)
-          .in("from_user_id", userLikes.map((l) => l.to_user_id));
-        setStats({ likes: likeCount || 0, matches: mutuals?.length || 0 });
+      const { data: stats } = await supabase.rpc("get_public_profile_stats", {
+        p_user_id: userId,
+      });
+      if (stats && stats.length > 0) {
+        setStats({ likes: Number(stats[0].like_count) || 0, matches: Number(stats[0].match_count) || 0 });
       } else {
-        setStats({ likes: likeCount || 0, matches: 0 });
+        setStats({ likes: 0, matches: 0 });
       }
 
       setLoading(false);
@@ -126,12 +114,7 @@ const ProfilePage = () => {
     } else {
       await supabase.from("likes").insert({ from_user_id: user.id, to_user_id: userId });
       setLiked(true);
-      const { data: rev } = await supabase
-        .from("likes")
-        .select("id")
-        .eq("from_user_id", userId)
-        .eq("to_user_id", user.id)
-        .maybeSingle();
+      const { data: rev } = await supabase.rpc("has_liked_me", { p_user_id: userId });
       if (rev) {
         setIsMatch(true);
         toast.success("C'est un match ! 🎉");
@@ -299,11 +282,12 @@ const ProfilePage = () => {
                   size="lg"
                   className="flex-1 touch-manipulation h-11 sm:h-12"
                   onClick={handleLike}
+                  disabled={blockedIds.has(userId!)}
                 >
                   <Heart size={16} className={liked ? "fill-current" : ""} />
                   {liked ? "Aimé" : "J'aime"}
                 </Button>
-                {isMatch && (
+                {isMatch && !blockedIds.has(userId!) && (
                   <Button
                     variant="trust"
                     size="lg"
@@ -314,6 +298,15 @@ const ProfilePage = () => {
                     <span className="hidden sm:inline">Message</span>
                   </Button>
                 )}
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="touch-manipulation h-11 sm:h-12 px-3"
+                  onClick={() => setShowBlockReport(true)}
+                  title="Bloquer ou signaler"
+                >
+                  <ShieldAlert size={16} />
+                </Button>
               </div>
             )}
           </div>
@@ -341,6 +334,16 @@ const ProfilePage = () => {
           </div>
         )}
       </main>
+
+      {profile && userId && userId !== user?.id && (
+        <BlockReportDialog
+          open={showBlockReport}
+          onClose={() => setShowBlockReport(false)}
+          targetUserId={userId}
+          targetName={profile.display_name || "Utilisateur"}
+          onBlocked={() => navigate(-1)}
+        />
+      )}
     </AppShell>
   );
 };

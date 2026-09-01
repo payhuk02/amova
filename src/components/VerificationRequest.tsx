@@ -4,6 +4,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Camera, Clock, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import SumsubVerification from "@/components/SumsubVerification";
+
+const SUMSUB_ENABLED = import.meta.env.VITE_SUMSUB_ENABLED === "true";
 
 interface VerificationRequestProps {
   currentStatus: string;
@@ -20,6 +23,7 @@ const VerificationRequest = ({ currentStatus, avatarUrl }: VerificationRequestPr
   const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  const [useSumsub, setUseSumsub] = useState(SUMSUB_ENABLED);
   const fileInput = useRef<HTMLInputElement>(null);
   const poseChallenge = useMemo(
     () => POSE_CHALLENGES[Math.floor(Math.random() * POSE_CHALLENGES.length)],
@@ -30,10 +34,10 @@ const VerificationRequest = ({ currentStatus, avatarUrl }: VerificationRequestPr
     if (!user) return;
     setUploading(true);
 
-    const ext = file.name.split(".").pop();
-    const path = `${user.id}/${Date.now()}.${ext}`;
+    const ext = file.name.split(".").pop() || "jpg";
+    const storagePath = `${user.id}/${Date.now()}.${ext}`;
 
-    const { error: upErr } = await supabase.storage.from("verifications").upload(path, file, {
+    const { error: upErr } = await supabase.storage.from("verifications").upload(storagePath, file, {
       contentType: file.type,
     });
 
@@ -43,13 +47,11 @@ const VerificationRequest = ({ currentStatus, avatarUrl }: VerificationRequestPr
       return;
     }
 
-    const { data: url } = supabase.storage.from("verifications").getPublicUrl(path);
-
     const { data: request, error } = await supabase
       .from("verification_requests")
       .insert({
         user_id: user.id,
-        selfie_url: url.publicUrl,
+        selfie_url: storagePath,
         pose_challenge: poseChallenge,
         status: "pending",
         auto_review_status: "processing",
@@ -67,7 +69,7 @@ const VerificationRequest = ({ currentStatus, avatarUrl }: VerificationRequestPr
       .from("profiles")
       .update({
         verification_status: "pending",
-        verification_photo_url: url.publicUrl,
+        verification_photo_url: storagePath,
       } as never)
       .eq("user_id", user.id);
 
@@ -78,7 +80,7 @@ const VerificationRequest = ({ currentStatus, avatarUrl }: VerificationRequestPr
       const { data, error: verifyError } = await supabase.functions.invoke("verify-identity", {
         body: {
           requestId: request.id,
-          selfieUrl: url.publicUrl,
+          storagePath,
           avatarUrl: avatarUrl || undefined,
           poseChallenge,
         },
@@ -122,6 +124,21 @@ const VerificationRequest = ({ currentStatus, avatarUrl }: VerificationRequestPr
     );
   }
 
+  if (useSumsub && SUMSUB_ENABLED) {
+    return (
+      <div className="space-y-3">
+        <SumsubVerification />
+        <button
+          type="button"
+          onClick={() => setUseSumsub(false)}
+          className="text-xs text-muted-foreground hover:text-foreground underline w-full text-center"
+        >
+          Utiliser la vérification par selfie IA à la place
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-secondary/50 border border-border/30">
@@ -136,6 +153,15 @@ const VerificationRequest = ({ currentStatus, avatarUrl }: VerificationRequestPr
           </p>
         </div>
       </div>
+      {SUMSUB_ENABLED && (
+        <button
+          type="button"
+          onClick={() => setUseSumsub(true)}
+          className="text-xs text-muted-foreground hover:text-foreground underline w-full text-center"
+        >
+          Préférer la vérification Sumsub (pièce d&apos;identité)
+        </button>
+      )}
       <Button
         variant="outline"
         onClick={() => fileInput.current?.click()}

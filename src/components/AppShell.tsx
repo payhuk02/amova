@@ -10,6 +10,7 @@ import SubscriptionBanner from "@/components/SubscriptionBanner";
 import { useNotificationCount } from "@/hooks/useNotifications";
 import { useTrackOnlineStatus } from "@/hooks/useOnlineStatus";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useWebPush } from "@/hooks/useWebPush";
 import { useNativePush } from "@/hooks/useNativePush";
 import { useAdmin } from "@/hooks/useAdmin";
 import IncomingCallOverlay from "@/components/IncomingCallOverlay";
@@ -115,6 +116,7 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
 
   useTrackOnlineStatus();
   usePushNotifications();
+  useWebPush();
   useNativePush();
 
   const handleSignOut = async () => {

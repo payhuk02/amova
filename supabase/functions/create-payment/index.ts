@@ -86,7 +86,7 @@ serve(async (req) => {
       .eq("id", order.id);
 
     return new Response(
-      JSON.stringify({ url: payment.url, token: payment.token }),
+      JSON.stringify({ url: payment.url }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/auth.ts";
 import { getServiceClient } from "../_shared/moneyfusion.ts";
+import { buildSubscription, sendWebPush } from "../_shared/web-push.ts";
 
 async function sendFcm(token: string, title: string, body: string): Promise<boolean> {
   const serverKey = Deno.env.get("FCM_SERVER_KEY");
@@ -38,7 +39,12 @@ serve(async (req) => {
 
   try {
     const supabase = getServiceClient();
-    const results = { pushSent: 0, pushFailed: 0, renewalReminders: 0 };
+    const results = {
+      pushSent: 0,
+      pushFailed: 0,
+      renewalReminders: 0,
+      cleanup: null as Record<string, unknown> | null,
+    };
 
     const { data: queue } = await supabase
       .from("push_queue")
@@ -50,12 +56,28 @@ serve(async (req) => {
     for (const item of queue ?? []) {
       const { data: devices } = await supabase
         .from("push_devices")
-        .select("token")
+        .select("token, platform, endpoint, p256dh, auth_key")
         .eq("user_id", item.user_id);
 
+      if (!devices || devices.length === 0) {
+        results.pushFailed++;
+        continue;
+      }
+
       let sent = false;
-      for (const device of devices ?? []) {
-        const ok = await sendFcm(device.token, item.title, item.body ?? "");
+      for (const device of devices) {
+        let ok = false;
+        if (device.platform === "web") {
+          const subscription = buildSubscription(device);
+          if (subscription) {
+            ok = await sendWebPush(subscription, {
+              title: item.title,
+              body: item.body ?? "",
+            });
+          }
+        } else {
+          ok = await sendFcm(device.token, item.title, item.body ?? "");
+        }
         if (ok) {
           sent = true;
           results.pushSent++;
@@ -64,18 +86,16 @@ serve(async (req) => {
         }
       }
 
-      await supabase
-        .from("push_queue")
-        .update({ processed: true })
-        .eq("id", item.id);
-
-      if (!sent && (devices?.length ?? 0) === 0) {
-        results.pushFailed++;
+      if (sent) {
+        await supabase.from("push_queue").update({ processed: true }).eq("id", item.id);
       }
     }
 
     const { data: reminderCount } = await supabase.rpc("send_subscription_renewal_reminders");
     results.renewalReminders = typeof reminderCount === "number" ? reminderCount : 0;
+
+    const { data: cleanup } = await supabase.rpc("cleanup_expired_platform_data");
+    results.cleanup = (cleanup as Record<string, unknown>) ?? null;
 
     return new Response(JSON.stringify({ ok: true, ...results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

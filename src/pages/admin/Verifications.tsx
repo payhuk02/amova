@@ -8,6 +8,7 @@ interface VerificationRequest {
   id: string;
   user_id: string;
   selfie_url: string;
+  selfie_display_url?: string;
   status: string;
   created_at: string;
   display_name?: string;
@@ -16,6 +17,22 @@ interface VerificationRequest {
   auto_review_status?: string | null;
   pose_challenge?: string | null;
   rejection_reason?: string | null;
+}
+
+function extractStoragePath(selfieRef: string): string {
+  if (selfieRef.startsWith("http")) {
+    const parts = selfieRef.split("/verifications/");
+    return parts[parts.length - 1].split("?")[0];
+  }
+  return selfieRef;
+}
+
+async function resolveSelfieUrl(selfieRef: string): Promise<string> {
+  if (selfieRef.startsWith("http")) return selfieRef;
+  const { data } = await supabase.storage
+    .from("verifications")
+    .createSignedUrl(extractStoragePath(selfieRef), 3600);
+  return data?.signedUrl ?? "";
 }
 
 export default function AdminVerifications() {
@@ -49,12 +66,15 @@ export default function AdminVerifications() {
 
     const nameMap = Object.fromEntries((profiles || []).map((p) => [p.user_id, p.display_name]));
 
-    setRequests(
-      data.map((r) => ({
+    const withUrls = await Promise.all(
+      data.map(async (r) => ({
         ...r,
         display_name: nameMap[r.user_id] || "Anonyme",
+        selfie_display_url: await resolveSelfieUrl(r.selfie_url),
       })),
     );
+
+    setRequests(withUrls);
     setLoading(false);
   }
 
@@ -119,9 +139,13 @@ export default function AdminVerifications() {
                 <tr key={r.id} className="hover:bg-secondary/20">
                   <td className="px-6 py-4 font-medium">{r.display_name}</td>
                   <td className="px-6 py-4">
-                    <a href={r.selfie_url} target="_blank" rel="noopener noreferrer">
-                      <img src={r.selfie_url} alt="Selfie" className="w-16 h-16 rounded-lg object-cover border border-border/50" />
-                    </a>
+                    {r.selfie_display_url ? (
+                      <a href={r.selfie_display_url} target="_blank" rel="noopener noreferrer">
+                        <img src={r.selfie_display_url} alt="Selfie" className="w-16 h-16 rounded-lg object-cover border border-border/50" />
+                      </a>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Indisponible</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-xs text-muted-foreground">
                     {r.liveness_score != null && (

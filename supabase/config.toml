@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.platform-cron]
 verify_jwt = false
+
+[functions.sumsub-webhook]
+verify_jwt = false

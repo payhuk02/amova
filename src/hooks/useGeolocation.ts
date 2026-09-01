@@ -66,7 +66,6 @@ export const useSmartMatches = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.rpc("get_smart_matches", {
-        p_user_id: user.id,
         p_max_distance: maxDistance,
         p_limit: 50,
       });

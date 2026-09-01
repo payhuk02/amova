@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { encodeBase64 } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 import { corsHeaders, requireAuth } from "../_shared/auth.ts";
 import { getServiceClient } from "../_shared/moneyfusion.ts";
 import { getAiSettings, getModelForFeature, openRouterChatJson } from "../_shared/openrouter.ts";
@@ -9,6 +10,34 @@ interface KycResult {
   is_live_person: boolean;
   same_person: boolean;
   rejection_reason?: string;
+}
+
+function extractStoragePath(selfieRef: string): string {
+  if (selfieRef.includes("/verifications/")) {
+    const parts = selfieRef.split("/verifications/");
+    return parts[parts.length - 1].split("?")[0];
+  }
+  return selfieRef;
+}
+
+function mimeFromPath(path: string): string {
+  if (path.endsWith(".png")) return "image/png";
+  if (path.endsWith(".webp")) return "image/webp";
+  return "image/jpeg";
+}
+
+async function loadSelfieDataUrl(
+  supabase: ReturnType<typeof getServiceClient>,
+  selfieRef: string,
+): Promise<string> {
+  const path = extractStoragePath(selfieRef);
+  const { data, error } = await supabase.storage.from("verifications").download(path);
+  if (error || !data) {
+    throw new Error("Impossible de charger le selfie de vérification");
+  }
+  const bytes = new Uint8Array(await data.arrayBuffer());
+  const base64 = encodeBase64(bytes);
+  return `data:${mimeFromPath(path)};base64,${base64}`;
 }
 
 serve(async (req) => {
@@ -26,10 +55,11 @@ serve(async (req) => {
   }
 
   try {
-    const { requestId, selfieUrl, avatarUrl, poseChallenge } = await req.json();
+    const { requestId, selfieUrl, storagePath, avatarUrl, poseChallenge } = await req.json();
+    const selfieRef = storagePath || selfieUrl;
 
-    if (!requestId || !selfieUrl) {
-      return new Response(JSON.stringify({ error: "requestId et selfieUrl requis" }), {
+    if (!requestId || !selfieRef) {
+      return new Response(JSON.stringify({ error: "requestId et storagePath requis" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -51,6 +81,7 @@ serve(async (req) => {
       });
     }
 
+    const selfieDataUrl = await loadSelfieDataUrl(supabase, selfieRef);
     const profileAvatar = avatarUrl as string | undefined;
     const challenge = poseChallenge || "sourire naturel";
     const settings = await getAiSettings();
@@ -69,7 +100,7 @@ Défi demandé à l'utilisateur: "${challenge}".
 
 Réponds UNIQUEMENT en JSON valide.`,
       },
-      { type: "image_url", image_url: { url: selfieUrl } },
+      { type: "image_url", image_url: { url: selfieDataUrl } },
     ];
 
     if (profileAvatar) {
@@ -125,6 +156,11 @@ Réponds UNIQUEMENT en JSON valide.`,
         title: "Profil vérifié",
         body: "Félicitations ! Votre identité a été confirmée.",
       });
+
+      await supabase.from("badges").upsert(
+        { user_id: user.id, badge_type: "verified" },
+        { onConflict: "user_id,badge_type", ignoreDuplicates: true },
+      );
     }
 
     return new Response(

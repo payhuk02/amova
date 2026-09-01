@@ -9,11 +9,8 @@ export function useBlockedUsers() {
 
   const reload = async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("blocked_users")
-      .select("blocked_id")
-      .eq("blocker_id", user.id);
-    setBlockedIds(new Set((data || []).map((b: any) => b.blocked_id)));
+    const { data } = await supabase.rpc("get_blocked_relationship_ids");
+    setBlockedIds(new Set((data as string[] | null) ?? []));
     setLoading(false);
   };
 

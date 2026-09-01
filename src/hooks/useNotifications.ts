@@ -106,7 +106,19 @@ export function useNotificationCount() {
         },
         () => {
           setCount((prev) => prev + 1);
-        }
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          void load();
+        },
       )
       .subscribe();
 

@@ -20,6 +20,11 @@ const projectRef =
 
 const pending = [
   "20260901100000_push_kyc_renewals.sql",
+  "20260901170000_p0_security_fixes.sql",
+  "20260901180000_p1_features_fixes.sql",
+  "20260901190000_p2_features_fixes.sql",
+  "20260901200000_p3_features_fixes.sql",
+  "20260901210000_optional_features.sql",
 ];
 
 if (!token) {
@@ -51,6 +56,14 @@ for (const file of pending) {
 
   if (!res.ok) {
     const body = await res.text();
+    // Continue if objects already exist (migration partially/fully applied)
+    if (
+      res.status === 400 &&
+      /already exists|duplicate|does not exist/i.test(body)
+    ) {
+      console.warn(`Skipped ${file} (likely already applied): ${body.slice(0, 200)}`);
+      continue;
+    }
     console.error(`Failed ${file}: ${res.status} ${body}`);
     process.exit(1);
   }

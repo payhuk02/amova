@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Camera, Loader2 } from "lucide-react";
 const ProfileSetup = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -92,6 +94,7 @@ const ProfileSetup = () => {
       }
 
       if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ["profile-complete"] });
       toast.success("Profil créé avec succès !");
       navigate("/dashboard");
     } catch (error: any) {

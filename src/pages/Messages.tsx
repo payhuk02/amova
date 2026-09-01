@@ -18,8 +18,11 @@ import {
   Reply,
   Trash2,
   Copy,
+  ShieldAlert,
 } from "lucide-react";
 import AppShell from "@/components/AppShell";
+import BlockReportDialog from "@/components/BlockReportDialog";
+import { useBlockedUsers } from "@/hooks/useBlockedUsers";
 import MessageReactions from "@/components/MessageReactions";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import AudioPlayer from "@/components/AudioPlayer";
@@ -87,6 +90,8 @@ const Messages = () => {
   const [conversationMeta, setConversationMeta] = useState<Record<string, ConversationMeta>>({});
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [longPressMsg, setLongPressMsg] = useState<string | null>(null);
+  const [showBlockReport, setShowBlockReport] = useState(false);
+  const { blockedIds, reload: reloadBlocked } = useBlockedUsers();
   const messagesEnd = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -155,13 +160,8 @@ const Messages = () => {
     let matchedIds: string[] = [];
 
     if (likedIds.length > 0) {
-      const { data: mutualLikes } = await supabase
-        .from("likes")
-        .select("from_user_id")
-        .eq("to_user_id", user.id)
-        .in("from_user_id", likedIds);
-
-      matchedIds = mutualLikes?.map((l) => l.from_user_id) ?? [];
+      const { data: mutualIds } = await supabase.rpc("get_mutual_match_user_ids");
+      matchedIds = (mutualIds as string[] | null) ?? [];
     }
 
     setMutualMatchIds(new Set(matchedIds));
@@ -199,7 +199,9 @@ const Messages = () => {
     const meta = await buildConversationMeta(partnerIds);
     setConversationMeta(meta);
 
-    const sorted = (profiles || []).sort((a, b) => {
+    const sorted = (profiles || [])
+      .filter((p) => !blockedIds.has(p.user_id))
+      .sort((a, b) => {
       const tA = meta[a.user_id]?.lastMessageTime || "";
       const tB = meta[b.user_id]?.lastMessageTime || "";
       return tB.localeCompare(tA);
@@ -207,7 +209,7 @@ const Messages = () => {
 
     setMatches(sorted as Match[]);
     setLoadingMatches(false);
-  }, [user, buildConversationMeta]);
+  }, [user, buildConversationMeta, blockedIds]);
 
   // Load conversations list
   useEffect(() => {
@@ -376,6 +378,10 @@ const Messages = () => {
 
   const handleMessagingError = (error: unknown) => {
     const message = getErrorMessage(error);
+    if (message.includes("blocked_user")) {
+      toast.error("Vous ne pouvez pas envoyer de message à cet utilisateur");
+      return;
+    }
     if (message.includes("row-level security") || message.includes("matches")) {
       toast.error("Vous devez matcher pour envoyer un message");
       return;
@@ -385,6 +391,10 @@ const Messages = () => {
 
   const handleSend = async () => {
     if (!newMessage.trim() || !user || !selectedUserId || sending) return;
+    if (blockedIds.has(selectedUserId)) {
+      toast.error("Cette conversation est bloquée");
+      return;
+    }
     if (!mutualMatchIds.has(selectedUserId)) {
       toast.error("Vous devez matcher pour envoyer un message");
       return;
@@ -420,6 +430,11 @@ const Messages = () => {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user || !selectedUserId) return;
+
+    if (blockedIds.has(selectedUserId)) {
+      toast.error("Cette conversation est bloquée");
+      return;
+    }
 
     if (!mutualMatchIds.has(selectedUserId)) {
       toast.error("Vous devez matcher pour envoyer un message");
@@ -468,6 +483,11 @@ const Messages = () => {
 
   const handleVoiceRecorded = async (blob: Blob, durationMs: number) => {
     if (!user || !selectedUserId) return;
+
+    if (blockedIds.has(selectedUserId)) {
+      toast.error("Cette conversation est bloquée");
+      return;
+    }
 
     if (!mutualMatchIds.has(selectedUserId)) {
       toast.error("Vous devez matcher pour envoyer un message");
@@ -528,7 +548,9 @@ const Messages = () => {
   };
 
   const selectedMatch = matches.find((m) => m.user_id === selectedUserId);
-  const canMessageSelected = selectedUserId ? mutualMatchIds.has(selectedUserId) : false;
+  const isBlockedSelected = selectedUserId ? blockedIds.has(selectedUserId) : false;
+  const canMessageSelected =
+    selectedUserId ? mutualMatchIds.has(selectedUserId) && !isBlockedSelected : false;
 
   const formatDateSeparator = (date: Date) => {
     if (isToday(date)) return "Aujourd'hui";
@@ -545,11 +567,12 @@ const Messages = () => {
   };
 
   const filteredMatches = useMemo(() => {
-    if (!searchQuery.trim() || selectedUserId) return matches;
-    return matches.filter((m) =>
+    const visible = matches.filter((m) => !blockedIds.has(m.user_id));
+    if (!searchQuery.trim() || selectedUserId) return visible;
+    return visible.filter((m) =>
       m.display_name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [matches, searchQuery, selectedUserId]);
+  }, [matches, searchQuery, selectedUserId, blockedIds]);
 
   const messagesWithSeparators = useMemo(() => {
     const result: Array<{ type: "separator"; date: string } | { type: "message"; message: Message }> = [];
@@ -755,6 +778,13 @@ const Messages = () => {
                     <Search size={16} />
                   </button>
                   <button
+                    onClick={() => setShowBlockReport(true)}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors active:scale-95"
+                    title="Bloquer ou signaler"
+                  >
+                    <ShieldAlert size={16} />
+                  </button>
+                  <button
                     onClick={() => setInCall(true)}
                     className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors active:scale-95"
                   >
@@ -767,7 +797,13 @@ const Messages = () => {
                 </div>
               )}
 
-              {!canMessageSelected && selectedMatch && (
+              {isBlockedSelected && selectedMatch && (
+                <div className="px-3 py-2 bg-destructive/10 border-b border-destructive/20 text-xs text-destructive">
+                  Cette conversation est bloquée. Vous ne pouvez plus échanger de messages.
+                </div>
+              )}
+
+              {!canMessageSelected && selectedMatch && !isBlockedSelected && (
                 <div className="px-3 py-2 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-200">
                   Likez mutuellement ce profil pour débloquer la messagerie.
                 </div>
@@ -1059,6 +1095,20 @@ const Messages = () => {
           )}
         </main>
       </div>
+
+      {selectedMatch && (
+        <BlockReportDialog
+          open={showBlockReport}
+          onClose={() => setShowBlockReport(false)}
+          targetUserId={selectedMatch.user_id}
+          targetName={selectedMatch.display_name || "Utilisateur"}
+          onBlocked={() => {
+            void reloadBlocked();
+            void loadConversations();
+            navigate("/messages");
+          }}
+        />
+      )}
     </AppShell>
   );
 };

@@ -417,6 +417,7 @@ export type Database = {
           notif_messages: boolean
           notif_likes: boolean
           notif_events: boolean
+          sumsub_applicant_id: string | null
         }
         Insert: {
           age?: number | null
@@ -442,6 +443,7 @@ export type Database = {
           notif_messages?: boolean
           notif_likes?: boolean
           notif_events?: boolean
+          sumsub_applicant_id?: string | null
         }
         Update: {
           age?: number | null
@@ -467,6 +469,7 @@ export type Database = {
           notif_messages?: boolean
           notif_likes?: boolean
           notif_events?: boolean
+          sumsub_applicant_id?: string | null
         }
         Relationships: []
       }
@@ -629,6 +632,8 @@ export type Database = {
           selfie_url: string
           status: string
           user_id: string
+          provider: string | null
+          external_id: string | null
         }
         Insert: {
           auto_review_status?: string | null
@@ -642,6 +647,8 @@ export type Database = {
           selfie_url: string
           status?: string
           user_id: string
+          provider?: string | null
+          external_id?: string | null
         }
         Update: {
           auto_review_status?: string | null
@@ -655,6 +662,8 @@ export type Database = {
           selfie_url?: string
           status?: string
           user_id?: string
+          provider?: string | null
+          external_id?: string | null
         }
         Relationships: []
       }
@@ -708,6 +717,9 @@ export type Database = {
           token: string
           updated_at: string
           user_id: string
+          endpoint: string | null
+          p256dh: string | null
+          auth_key: string | null
         }
         Insert: {
           created_at?: string
@@ -716,6 +728,9 @@ export type Database = {
           token: string
           updated_at?: string
           user_id: string
+          endpoint?: string | null
+          p256dh?: string | null
+          auth_key?: string | null
         }
         Update: {
           created_at?: string
@@ -724,6 +739,9 @@ export type Database = {
           token?: string
           updated_at?: string
           user_id?: string
+          endpoint?: string | null
+          p256dh?: string | null
+          auth_key?: string | null
         }
         Relationships: []
       }
@@ -767,7 +785,7 @@ export type Database = {
         Returns: number
       }
       get_smart_matches: {
-        Args: { p_limit?: number; p_max_distance?: number; p_user_id: string }
+        Args: { p_limit?: number; p_max_distance?: number }
         Returns: {
           age: number
           avatar_url: string
@@ -780,12 +798,25 @@ export type Database = {
           interests: string[]
           is_verified: boolean
           last_seen: string
-          latitude: number
-          longitude: number
           looking_for: string
           user_id: string
         }[]
       }
+      get_discover_profiles: {
+        Args: {
+          p_limit?: number
+          p_city?: string | null
+          p_age_min?: number | null
+          p_age_max?: number | null
+          p_gender?: string | null
+          p_looking_for?: string | null
+          p_verified_only?: boolean
+          p_online_only?: boolean
+          p_interests?: string[] | null
+        }
+        Returns: Database["public"]["Tables"]["profiles"]["Row"][]
+      }
+      cleanup_expired_platform_data: { Args: Record<PropertyKey, never>; Returns: Json }
       get_user_plan: { Args: { p_user_id: string }; Returns: string }
       check_and_award_badges: { Args: Record<PropertyKey, never>; Returns: undefined }
       notify_story_like: { Args: { p_story_id: string }; Returns: undefined }
@@ -837,7 +868,28 @@ export type Database = {
         Args: { p_title: string; p_body: string; p_user_id?: string | null }
         Returns: number
       }
-      fulfill_payment_by_token: { Args: { p_token: string }; Returns: boolean }
+      fulfill_payment_by_token: {
+        Args: { p_token: string; p_expected_amount?: number | null }
+        Returns: boolean
+      }
+      get_mutual_match_user_ids: { Args: Record<PropertyKey, never>; Returns: string[] }
+      has_liked_me: { Args: { p_user_id: string }; Returns: boolean }
+      get_public_profile_stats: {
+        Args: { p_user_id: string }
+        Returns: { like_count: number; match_count: number }[]
+      }
+      join_speed_dating_queue: {
+        Args: Record<PropertyKey, never>
+        Returns: { status: string; queue_id: string; partner_id?: string }
+      }
+      get_active_boosted_user_ids: { Args: Record<PropertyKey, never>; Returns: string[] }
+      get_vip_user_ids: { Args: { p_user_ids: string[] }; Returns: string[] }
+      get_blocked_relationship_ids: { Args: Record<PropertyKey, never>; Returns: string[] }
+      get_my_blocked_users: {
+        Args: Record<PropertyKey, never>
+        Returns: { user_id: string; display_name: string | null; avatar_url: string | null }[]
+      }
+      are_mutual_matches: { Args: { p_user_a: string; p_user_b: string }; Returns: boolean }
       is_user_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
       get_incoming_likers: {
         Args: Record<PropertyKey, never>
@@ -859,7 +911,21 @@ export type Database = {
       }
       export_my_data: { Args: Record<PropertyKey, never>; Returns: Json }
       register_push_device: {
-        Args: { p_token: string; p_platform: string }
+        Args: {
+          p_token: string
+          p_platform: string
+          p_endpoint?: string | null
+          p_p256dh?: string | null
+          p_auth_key?: string | null
+        }
+        Returns: undefined
+      }
+      complete_identity_verification: {
+        Args: {
+          p_user_id: string
+          p_provider?: string
+          p_external_id?: string | null
+        }
         Returns: undefined
       }
       send_subscription_renewal_reminders: { Args: Record<PropertyKey, never>; Returns: number }

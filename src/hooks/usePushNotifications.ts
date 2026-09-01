@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { registerServiceWorker, showServiceWorkerNotification } from "@/lib/register-sw";
 
 const NOTIFICATION_ICONS: Record<string, string> = {
   match: "💘",
@@ -57,9 +58,18 @@ export function usePushNotifications() {
   }, []);
 
   const showNotification = useCallback(
-    (title: string, options?: NotificationOptions) => {
+    async (title: string, options?: NotificationOptions & { url?: string }) => {
       if (permissionRef.current !== "granted") return;
       if (document.visibilityState === "visible") return;
+
+      const swShown = await showServiceWorkerNotification(title, {
+        icon: "/icon.png",
+        badge: "/icon.png",
+        tag: options?.tag || "default",
+        url: options?.url || "/notifications",
+        ...options,
+      });
+      if (swShown) return;
 
       try {
         const n = new Notification(title, {
@@ -70,6 +80,7 @@ export function usePushNotifications() {
         });
         n.onclick = () => {
           window.focus();
+          if (options?.url) window.location.href = options.url;
           n.close();
         };
         setTimeout(() => n.close(), 5000);
@@ -77,7 +88,7 @@ export function usePushNotifications() {
         // Notification constructor may fail in some contexts
       }
     },
-    []
+    [],
   );
 
   const shouldNotify = useCallback((type: string) => {
@@ -88,6 +99,7 @@ export function usePushNotifications() {
 
   useEffect(() => {
     if (!user) return;
+    void registerServiceWorker();
     requestPermission();
 
     supabase
@@ -130,6 +142,7 @@ export function usePushNotifications() {
           showNotification(getNotificationTitle(notif.type, notif.title), {
             body: notif.body || undefined,
             tag: `notif-${notif.type}`,
+            url: "/notifications",
           });
         }
       )

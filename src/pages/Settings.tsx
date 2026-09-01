@@ -8,12 +8,13 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import {
   ArrowLeft, User, Bell, Shield, Trash2, MapPin,
-  Eye, EyeOff, Lock, Mail, LogOut, ChevronRight, AlertTriangle, Download,
+  Eye, EyeOff, Lock, Mail, LogOut, ChevronRight, AlertTriangle, Download, Ban,
 } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useBlockedUsers } from "@/hooks/useBlockedUsers";
 import { getLimitErrorMessage } from "@/lib/limits";
 import type { ProfileUpdate } from "@/lib/supabase-helpers";
 
@@ -23,10 +24,20 @@ const Settings = () => {
   const { position, loading: geoLoading, requestLocation } = useGeolocation();
   const { limits } = useSubscription();
   const { isAdmin } = useAdmin();
+  const { unblock } = useBlockedUsers();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteInput, setDeleteInput] = useState("");
   const [exporting, setExporting] = useState(false);
+  const [blockedUsers, setBlockedUsers] = useState<
+    Array<{ user_id: string; display_name: string | null; avatar_url: string | null }>
+  >([]);
+
+  const loadBlockedUsers = async () => {
+    const { data } = await supabase.rpc("get_my_blocked_users");
+    setBlockedUsers((data as typeof blockedUsers) ?? []);
+  };
 
   const [settings, setSettings] = useState({
     incognito_mode: false,
@@ -63,9 +74,16 @@ const Settings = () => {
       }
 
       setLoading(false);
+      await loadBlockedUsers();
     };
     load();
   }, [user]);
+
+  const handleUnblock = async (blockedId: string, name: string | null) => {
+    await unblock(blockedId);
+    setBlockedUsers((prev) => prev.filter((u) => u.user_id !== blockedId));
+    toast.success(`${name || "Utilisateur"} débloqué`);
+  };
 
   const saveNotifPrefs = async (prefs: typeof notifPrefs) => {
     setNotifPrefs(prefs);
@@ -331,6 +349,43 @@ const Settings = () => {
               </div>
               <ChevronRight size={16} className="text-muted-foreground" />
             </button>
+
+            {blockedUsers.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-border/30">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3.5">
+                  Utilisateurs bloqués
+                </p>
+                <div className="space-y-1">
+                  {blockedUsers.map((blocked) => (
+                    <div
+                      key={blocked.user_id}
+                      className="flex items-center justify-between p-3.5 rounded-xl"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0">
+                          {blocked.avatar_url ? (
+                            <img src={blocked.avatar_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <Ban size={14} className="text-muted-foreground" />
+                          )}
+                        </div>
+                        <span className="text-sm font-medium truncate">
+                          {blocked.display_name || "Utilisateur"}
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0 h-8 text-xs"
+                        onClick={() => void handleUnblock(blocked.user_id, blocked.display_name)}
+                      >
+                        Débloquer
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 

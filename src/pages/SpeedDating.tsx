@@ -115,38 +115,22 @@ const SpeedDating = () => {
     setPartner(null);
     setTimeLeft(SESSION_DURATION);
 
-    const { data: waiting } = await supabase
-      .from("speed_dating_queue")
-      .select("*")
-      .eq("status", "waiting")
-      .neq("user_id", user.id)
-      .order("joined_at", { ascending: true })
-      .limit(1);
+    const { data, error } = await supabase.rpc("join_speed_dating_queue");
 
-    if (waiting && waiting.length > 0) {
-      const other = waiting[0];
-      await supabase
-        .from("speed_dating_queue")
-        .update({ status: "matched", matched_with: user.id, session_started_at: new Date().toISOString() } as any)
-        .eq("id", other.id);
+    if (error) {
+      toast.error("Impossible de rejoindre la file d'attente");
+      setStatus("idle");
+      return;
+    }
 
-      const { data: myEntry } = await supabase
-        .from("speed_dating_queue")
-        .insert({
-          user_id: user.id,
-          status: "matched",
-          matched_with: other.user_id,
-          session_started_at: new Date().toISOString(),
-        } as any)
-        .select()
-        .single();
+    const result = data as { status: string; queue_id: string; partner_id?: string };
+    setQueueId(result.queue_id);
 
-      if (myEntry) setQueueId(myEntry.id);
-
+    if (result.status === "matched" && result.partner_id) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("user_id, display_name, avatar_url, age, city, bio, interests")
-        .eq("user_id", other.user_id)
+        .eq("user_id", result.partner_id)
         .single();
 
       if (profile) {
@@ -154,14 +138,6 @@ const SpeedDating = () => {
         setStatus("active");
         toast.success("Partenaire trouvé ! 🎉");
       }
-    } else {
-      const { data: entry } = await supabase
-        .from("speed_dating_queue")
-        .insert({ user_id: user.id, status: "waiting" } as any)
-        .select()
-        .single();
-
-      if (entry) setQueueId(entry.id);
     }
   };
 
