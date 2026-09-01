@@ -22,6 +22,8 @@ export const STATUS_LABELS: Record<string, string> = {
   rejected: "Rejeté",
   resolved: "Résolu",
   active: "Actif",
+  exhausted: "Crédits épuisés",
+  error: "Erreur",
   waiting: "En attente",
   matched: "Matché",
 };
@@ -37,6 +39,9 @@ export function statusBadgeClass(status: string): string {
     case "active":
     case "matched":
       return "bg-emerald-500/20 text-emerald-500";
+    case "exhausted":
+      return "bg-amber-500/20 text-amber-500";
+    case "error":
     case "failed":
     case "rejected":
     case "cancelled":

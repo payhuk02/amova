@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders, requireAuth } from "../_shared/auth.ts";
+import { getAiSettings, getModelForFeature, openRouterChat } from "../_shared/openrouter.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -10,9 +11,6 @@ serve(async (req) => {
   if (authError) return authError;
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-
     const { userProfile, candidates } = await req.json();
 
     if (!userProfile || !candidates || candidates.length === 0) {
@@ -21,62 +19,56 @@ serve(async (req) => {
       });
     }
 
+    const settings = await getAiSettings();
     const userSummary = `Name: ${userProfile.display_name}, Age: ${userProfile.age}, City: ${userProfile.city}, Gender: ${userProfile.gender}, Looking for: ${userProfile.looking_for}, Bio: ${userProfile.bio || "none"}`;
 
-    const candidateSummaries = candidates.map((c: any) => ({
+    const candidateSummaries = candidates.map((c: { user_id: string; display_name: string; age: number; city: string; gender: string; bio?: string }) => ({
       user_id: c.user_id,
       summary: `Name: ${c.display_name}, Age: ${c.age}, City: ${c.city}, Gender: ${c.gender}, Bio: ${c.bio || "none"}`,
     }));
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a dating compatibility scorer. Given a user profile and candidate profiles, score each candidate 0-100 on compatibility. Consider age proximity, same city, complementary bios. Return ONLY a JSON array like [{user_id, score}]. No explanation.",
-          },
-          {
-            role: "user",
-            content: `User: ${userSummary}\n\nCandidates:\n${candidateSummaries.map((c: any) => `${c.user_id}: ${c.summary}`).join("\n")}`,
-          },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "return_scores",
-              description: "Return compatibility scores for candidates",
-              parameters: {
-                type: "object",
-                properties: {
-                  scores: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        user_id: { type: "string" },
-                        score: { type: "number" },
-                      },
-                      required: ["user_id", "score"],
-                      additionalProperties: false,
+    const response = await openRouterChat({
+      model: getModelForFeature(settings, "match"),
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a dating compatibility scorer. Given a user profile and candidate profiles, score each candidate 0-100 on compatibility. Consider age proximity, same city, complementary bios. Return ONLY a JSON array like [{user_id, score}]. No explanation.",
+        },
+        {
+          role: "user",
+          content: `User: ${userSummary}\n\nCandidates:\n${candidateSummaries.map((c) => `${c.user_id}: ${c.summary}`).join("\n")}`,
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "return_scores",
+            description: "Return compatibility scores for candidates",
+            parameters: {
+              type: "object",
+              properties: {
+                scores: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      user_id: { type: "string" },
+                      score: { type: "number" },
                     },
+                    required: ["user_id", "score"],
+                    additionalProperties: false,
                   },
                 },
-                required: ["scores"],
-                additionalProperties: false,
               },
+              required: ["scores"],
+              additionalProperties: false,
             },
           },
-        ],
-        tool_choice: { type: "function", function: { name: "return_scores" } },
-      }),
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "return_scores" } },
     });
 
     if (!response.ok) {
@@ -86,7 +78,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
+      if (response.status === 402 || response.status === 503) {
         return new Response(JSON.stringify({ error: "Credits exhausted" }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -119,7 +111,7 @@ serve(async (req) => {
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      },
     );
   }
 });

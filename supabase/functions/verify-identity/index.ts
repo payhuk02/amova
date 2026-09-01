@@ -1,12 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders, requireAuth } from "../_shared/auth.ts";
 import { getServiceClient } from "../_shared/moneyfusion.ts";
-
-const POSE_CHALLENGES = [
-  "sourire naturel",
-  "tête légèrement inclinée à gauche",
-  "main près du menton",
-];
+import { getAiSettings, getModelForFeature, openRouterChatJson } from "../_shared/openrouter.ts";
 
 interface KycResult {
   liveness_score: number;
@@ -40,9 +35,6 @@ serve(async (req) => {
       });
     }
 
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
-
     const supabase = getServiceClient();
 
     const { data: request } = await supabase
@@ -61,6 +53,7 @@ serve(async (req) => {
 
     const profileAvatar = avatarUrl as string | undefined;
     const challenge = poseChallenge || "sourire naturel";
+    const settings = await getAiSettings();
 
     const contentParts: Array<Record<string, unknown>> = [
       {
@@ -83,24 +76,12 @@ Réponds UNIQUEMENT en JSON valide.`,
       contentParts.push({ type: "image_url", image_url: { url: profileAvatar } });
     }
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [{ role: "user", content: contentParts }],
-        response_format: { type: "json_object" },
-      }),
-    });
+    const aiData = await openRouterChatJson({
+      model: getModelForFeature(settings, "kyc"),
+      messages: [{ role: "user", content: contentParts }],
+      response_format: { type: "json_object" },
+    }) as { choices?: Array<{ message?: { content?: string } }> };
 
-    if (!aiRes.ok) {
-      throw new Error(`Analyse IA échouée: ${aiRes.status}`);
-    }
-
-    const aiData = await aiRes.json();
     const raw = aiData.choices?.[0]?.message?.content ?? "{}";
     const parsed = JSON.parse(raw) as KycResult;
 

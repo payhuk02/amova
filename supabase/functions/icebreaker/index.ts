@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders, requireAuth } from "../_shared/auth.ts";
+import { getAiSettings, getModelForFeature, openRouterChat } from "../_shared/openrouter.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -10,9 +11,6 @@ serve(async (req) => {
   if (authError) return authError;
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-
     const { userProfile, targetProfile } = await req.json();
 
     if (!userProfile || !targetProfile) {
@@ -22,55 +20,50 @@ serve(async (req) => {
       });
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          {
-            role: "system",
-            content:
-              "Tu es un expert en séduction et premiers messages sur une app de rencontre. Génère 3 premiers messages créatifs, drôles et personnalisés basés sur les profils des deux personnes. Sois original, évite les clichés. Les messages doivent être courts (1-2 phrases max), engageants et donner envie de répondre. Réponds en français.",
-          },
-          {
-            role: "user",
-            content: `Mon profil: ${userProfile.display_name}, ${userProfile.age} ans, ${userProfile.city}, Bio: ${userProfile.bio || "aucune"}, Intérêts: ${(userProfile.interests || []).join(", ") || "aucun"}\n\nProfil cible: ${targetProfile.display_name}, ${targetProfile.age} ans, ${targetProfile.city}, Bio: ${targetProfile.bio || "aucune"}, Intérêts: ${(targetProfile.interests || []).join(", ") || "aucun"}`,
-          },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "return_icebreakers",
-              description: "Return 3 icebreaker messages",
-              parameters: {
-                type: "object",
-                properties: {
-                  messages: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        text: { type: "string" },
-                        emoji: { type: "string" },
-                      },
-                      required: ["text", "emoji"],
-                      additionalProperties: false,
+    const settings = await getAiSettings();
+
+    const response = await openRouterChat({
+      model: getModelForFeature(settings, "icebreaker"),
+      messages: [
+        {
+          role: "system",
+          content:
+            "Tu es un expert en séduction et premiers messages sur une app de rencontre. Génère 3 premiers messages créatifs, drôles et personnalisés basés sur les profils des deux personnes. Sois original, évite les clichés. Les messages doivent être courts (1-2 phrases max), engageants et donner envie de répondre. Réponds en français.",
+        },
+        {
+          role: "user",
+          content: `Mon profil: ${userProfile.display_name}, ${userProfile.age} ans, ${userProfile.city}, Bio: ${userProfile.bio || "aucune"}, Intérêts: ${(userProfile.interests || []).join(", ") || "aucun"}\n\nProfil cible: ${targetProfile.display_name}, ${targetProfile.age} ans, ${targetProfile.city}, Bio: ${targetProfile.bio || "aucune"}, Intérêts: ${(targetProfile.interests || []).join(", ") || "aucun"}`,
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "return_icebreakers",
+            description: "Return 3 icebreaker messages",
+            parameters: {
+              type: "object",
+              properties: {
+                messages: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      text: { type: "string" },
+                      emoji: { type: "string" },
                     },
+                    required: ["text", "emoji"],
+                    additionalProperties: false,
                   },
                 },
-                required: ["messages"],
-                additionalProperties: false,
               },
+              required: ["messages"],
+              additionalProperties: false,
             },
           },
-        ],
-        tool_choice: { type: "function", function: { name: "return_icebreakers" } },
-      }),
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "return_icebreakers" } },
     });
 
     if (!response.ok) {
@@ -80,7 +73,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
+      if (response.status === 402 || response.status === 503) {
         return new Response(JSON.stringify({ error: "Credits exhausted" }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -110,7 +103,7 @@ serve(async (req) => {
     console.error("icebreaker error:", e);
     return new Response(
       JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error", messages: [] }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });

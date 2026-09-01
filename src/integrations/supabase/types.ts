@@ -14,6 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_api_keys: {
+        Row: {
+          api_key: string
+          created_at: string
+          id: string
+          is_active: boolean
+          key_prefix: string
+          label: string
+          last_error_at: string | null
+          last_error_message: string | null
+          last_used_at: string | null
+          priority: number
+          status: string
+          updated_at: string
+          usage_count: number
+        }
+        Insert: {
+          api_key: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_prefix: string
+          label?: string
+          last_error_at?: string | null
+          last_error_message?: string | null
+          last_used_at?: string | null
+          priority?: number
+          status?: string
+          updated_at?: string
+          usage_count?: number
+        }
+        Update: {
+          api_key?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_prefix?: string
+          label?: string
+          last_error_at?: string | null
+          last_error_message?: string | null
+          last_used_at?: string | null
+          priority?: number
+          status?: string
+          updated_at?: string
+          usage_count?: number
+        }
+        Relationships: []
+      }
+      ai_settings: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          model_coach: string
+          model_compatibility: string
+          model_icebreaker: string
+          model_kyc: string
+          model_match: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          model_coach?: string
+          model_compatibility?: string
+          model_icebreaker?: string
+          model_kyc?: string
+          model_match?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          model_coach?: string
+          model_compatibility?: string
+          model_icebreaker?: string
+          model_kyc?: string
+          model_match?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       badges: {
         Row: {
           badge_type: string
@@ -710,6 +794,33 @@ export type Database = {
           p_user_id: string
           p_plan: Database["public"]["Enums"]["subscription_plan"]
           p_expires_at?: string | null
+        }
+        Returns: undefined
+      }
+      admin_get_ai_config: { Args: Record<PropertyKey, never>; Returns: Json }
+      admin_add_ai_key: {
+        Args: { p_label: string; p_api_key: string; p_priority?: number }
+        Returns: string
+      }
+      admin_update_ai_key: {
+        Args: {
+          p_id: string
+          p_label?: string | null
+          p_priority?: number | null
+          p_is_active?: boolean | null
+        }
+        Returns: undefined
+      }
+      admin_reset_ai_key: { Args: { p_id: string }; Returns: undefined }
+      admin_delete_ai_key: { Args: { p_id: string }; Returns: undefined }
+      admin_update_ai_settings: {
+        Args: {
+          p_enabled: boolean
+          p_model_match: string
+          p_model_compatibility: string
+          p_model_icebreaker: string
+          p_model_coach: string
+          p_model_kyc: string
         }
         Returns: undefined
       }

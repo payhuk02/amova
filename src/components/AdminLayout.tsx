@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Users, Flag, LayoutDashboard, LogOut, ShieldCheck, CreditCard,
-  Crown, MessageSquare, Calendar, Bell, Shield, Menu, X,
+  Crown, MessageSquare, Calendar, Bell, Shield, Menu, X, Bot,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -20,6 +20,7 @@ const navItems = [
   { path: "/admin/moderation", icon: MessageSquare, label: "Modération" },
   { path: "/admin/events", icon: Calendar, label: "Événements" },
   { path: "/admin/notifications", icon: Bell, label: "Notifications" },
+  { path: "/admin/ai", icon: Bot, label: "Intelligence IA" },
 ];
 
 function isNavActive(pathname: string, path: string, exact?: boolean) {

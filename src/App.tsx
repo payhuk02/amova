@@ -34,6 +34,7 @@ import AdminPayments from "./pages/admin/Payments.tsx";
 import AdminModeration from "./pages/admin/Moderation.tsx";
 import AdminEvents from "./pages/admin/Events.tsx";
 import AdminNotifications from "./pages/admin/Notifications.tsx";
+import AdminAI from "./pages/admin/AI.tsx";
 import AdminAdmins from "./pages/admin/Admins.tsx";
 import PrivacyPage from "./pages/legal/PrivacyPage.tsx";
 import TermsPage from "./pages/legal/TermsPage.tsx";
@@ -85,6 +86,7 @@ const App = () => (
             <Route path="/admin/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
             <Route path="/admin/events" element={<AdminRoute><AdminEvents /></AdminRoute>} />
             <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
+            <Route path="/admin/ai" element={<AdminRoute><AdminAI /></AdminRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

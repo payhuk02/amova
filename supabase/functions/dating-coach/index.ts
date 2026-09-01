@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders, requireAuth } from "../_shared/auth.ts";
+import { getAiSettings, getModelForFeature, openRouterChat } from "../_shared/openrouter.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -10,32 +11,24 @@ serve(async (req) => {
   if (authError) return authError;
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-
     const { messages, userProfile } = await req.json();
 
     const profileContext = userProfile
       ? `L'utilisateur s'appelle ${userProfile.display_name || "inconnu"}, a ${userProfile.age || "?"} ans, habite à ${userProfile.city || "?"}, cherche ${userProfile.looking_for || "?"}. Bio: ${userProfile.bio || "aucune"}. Intérêts: ${(userProfile.interests || []).join(", ") || "aucun"}.`
       : "";
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          {
-            role: "system",
-            content: `Tu es un coach de rencontres bienveillant et expert sur l'app Amova. Tu donnes des conseils personnalisés, encourageants et concrets pour aider l'utilisateur dans sa vie amoureuse. Tu peux conseiller sur : les profils, les premiers messages, les rendez-vous, la confiance en soi, gérer le rejet, etc. Sois chaleureux, utilise des emojis avec parcimonie, et reste concis (2-4 phrases max par réponse). ${profileContext}`,
-          },
-          ...messages,
-        ],
-        stream: true,
-      }),
+    const settings = await getAiSettings();
+
+    const response = await openRouterChat({
+      model: getModelForFeature(settings, "coach"),
+      messages: [
+        {
+          role: "system",
+          content: `Tu es un coach de rencontres bienveillant et expert sur l'app Amova. Tu donnes des conseils personnalisés, encourageants et concrets pour aider l'utilisateur dans sa vie amoureuse. Tu peux conseiller sur : les profils, les premiers messages, les rendez-vous, la confiance en soi, gérer le rejet, etc. Sois chaleureux, utilise des emojis avec parcimonie, et reste concis (2-4 phrases max par réponse). ${profileContext}`,
+        },
+        ...messages,
+      ],
+      stream: true,
     });
 
     if (!response.ok) {
@@ -45,7 +38,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
+      if (response.status === 402 || response.status === 503) {
         return new Response(JSON.stringify({ error: "Credits exhausted" }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -69,7 +62,7 @@ serve(async (req) => {
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      },
     );
   }
 });
