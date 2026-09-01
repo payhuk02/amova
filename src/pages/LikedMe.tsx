@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, User, MapPin, MessageCircle, ShieldCheck, Eye, Sparkles, Check } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import ScrollReveal from "@/components/ScrollReveal";
+import EmptyState from "@/components/ui/empty-state";
 import { isOnline, formatLastSeen } from "@/hooks/useOnlineStatus";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -144,18 +145,16 @@ const LikedMe = () => {
 
         {likers.length === 0 ? (
           <ScrollReveal>
-            <div className="glass-card rounded-xl p-8 sm:p-10 md:p-12 text-center">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-accent/15 flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <Heart className="w-6 h-6 sm:w-7 sm:h-7 text-accent" strokeWidth={1.5} />
-              </div>
-              <h3 className="font-display text-lg sm:text-xl mb-2">Pas encore de likes</h3>
-              <p className="text-muted-foreground text-xs sm:text-sm mb-4 sm:mb-6">
-                Complétez votre profil et soyez actif pour attirer plus de monde !
-              </p>
-              <Button variant="hero-outline" onClick={() => navigate("/discover")} className="touch-manipulation">
-                Découvrir des profils
-              </Button>
-            </div>
+            <EmptyState
+              icon={Heart}
+              title="Pas encore de likes"
+              description="Complétez votre profil et restez actif pour attirer des connexions authentiques."
+              action={{
+                label: "Découvrir des profils",
+                onClick: () => navigate("/discover"),
+                variant: "hero-outline",
+              }}
+            />
           </ScrollReveal>
         ) : (
           <div className="space-y-2 sm:space-y-3">

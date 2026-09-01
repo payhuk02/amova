@@ -21,9 +21,9 @@ const BadgesDisplay = ({ userId, compact = false }: BadgesDisplayProps) => {
           <Tooltip key={badge.badge_type}>
             <TooltipTrigger asChild>
               <span
-                className={`inline-flex items-center gap-1 rounded-full border border-border/50 bg-secondary/50 ${
+                className={`inline-flex items-center gap-1 rounded-full border font-medium backdrop-blur-sm ${
                   compact ? "px-1.5 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs"
-                } font-medium text-foreground/80 cursor-default transition-colors hover:bg-primary/10 hover:border-primary/30`}
+                } border-border/50 bg-secondary/60 text-foreground/80 cursor-default transition-colors hover:bg-champagne/10 hover:border-champagne/25`}
               >
                 <span>{config.emoji}</span>
                 {!compact && <span>{config.label}</span>}

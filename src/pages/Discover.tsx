@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Heart, X, User, MapPin, MessageCircle, Sparkles, SlidersHorizontal, Shield, Star, ShieldCheck, BarChart3 } from "lucide-react";
+import { Heart, X, User, MapPin, MessageCircle, Sparkles, SlidersHorizontal, Shield, Star, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import AppShell from "@/components/AppShell";
 import BlockReportDialog from "@/components/BlockReportDialog";
@@ -13,6 +13,8 @@ import SuperLikeButton from "@/components/SuperLikeButton";
 import BoostButton from "@/components/BoostButton";
 import CompatibilityModal from "@/components/CompatibilityModal";
 import DiscoverFilters, { type DiscoverFiltersState } from "@/components/DiscoverFilters";
+import EmptyState from "@/components/ui/empty-state";
+import { TrustBadge, OnlineStatus, InterestTag } from "@/components/TrustBadge";
 import type { ProfileRow } from "@/types/profile";
 import { useCheckAndAwardBadges } from "@/hooks/useBadges";
 import { getLimitErrorMessage } from "@/lib/limits";
@@ -304,20 +306,17 @@ const Discover = () => {
         )}
 
         {!currentProfile ? (
-          <div className="text-center max-w-sm">
-            <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-6">
-              <Sparkles className="w-7 h-7 text-copper" strokeWidth={1.5} />
-            </div>
-            <h2 className="font-display text-2xl font-light mb-3">
-              Plus de profils pour le moment
-            </h2>
-            <p className="text-muted-foreground text-sm mb-8">
-              Revenez plus tard pour découvrir de nouvelles personnes.
-            </p>
-            <Button variant="hero-outline" onClick={() => navigate("/dashboard")}>
-              Retour au tableau de bord
-            </Button>
-          </div>
+          <EmptyState
+            icon={Sparkles}
+            title="Plus de profils pour le moment"
+            description="Revenez plus tard pour découvrir de nouvelles personnes sélectionnées pour vous."
+            action={{
+              label: "Retour au tableau de bord",
+              onClick: () => navigate("/dashboard"),
+              variant: "hero-outline",
+            }}
+            className="max-w-sm"
+          />
         ) : (
           <>
             {/* Card */}
@@ -349,7 +348,7 @@ const Discover = () => {
                 Passer
               </div>
 
-              <div className="glass-card rounded-2xl overflow-hidden">
+              <div className="glass-card rounded-2xl overflow-hidden shadow-premium border border-border/50">
                 {/* Photo */}
                 <div className="aspect-[3/4] bg-secondary/30 relative">
                   {currentProfile.avatar_url ? (
@@ -360,31 +359,26 @@ const Discover = () => {
                     </div>
                   )}
 
-                  {/* Online status */}
+                  {/* Status */}
                   <div className="absolute top-4 left-4">
-                    <div
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium backdrop-blur-sm ${
-                        isOnline(currentProfile.last_seen)
-                          ? "bg-emerald-500/20 text-emerald-300"
-                          : "bg-background/60 text-muted-foreground"
-                      }`}
-                    >
-                      <div
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          isOnline(currentProfile.last_seen) ? "bg-emerald-400 animate-pulse" : "bg-muted-foreground/50"
-                        }`}
-                      />
-                      {formatLastSeen(currentProfile.last_seen)}
-                    </div>
+                    <OnlineStatus
+                      online={isOnline(currentProfile.last_seen)}
+                      label={formatLastSeen(currentProfile.last_seen)}
+                      compact
+                    />
                   </div>
 
-                  {/* Compatibility badge */}
-                  {currentProfile.compatibility && (
-                    <div className="absolute top-4 right-4 bg-background/80 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1.5">
-                      <Sparkles size={12} className="text-copper" />
-                      <span className="text-xs font-medium tabular-nums">{currentProfile.compatibility}%</span>
-                    </div>
-                  )}
+                  {/* Compatibility + verified */}
+                  <div className="absolute top-4 right-4 flex flex-col items-end gap-1.5">
+                    {currentProfile.is_verified && <TrustBadge variant="verified" compact />}
+                    {currentProfile.compatibility && (
+                      <TrustBadge
+                        variant="compatibility"
+                        label={`${currentProfile.compatibility}%`}
+                        compact
+                      />
+                    )}
+                  </div>
 
                   <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-card to-transparent" />
                 </div>
@@ -395,7 +389,7 @@ const Discover = () => {
                     <button onClick={() => navigate(`/profile/${currentProfile.user_id}`)} className="hover:text-primary transition-colors">
                       {currentProfile.display_name}
                     </button>
-                    {currentProfile.is_verified && <ShieldCheck size={18} className="text-emerald-500" />}
+                    {currentProfile.is_verified && <TrustBadge variant="verified" compact className="shrink-0" />}
                     {currentProfile.age && (
                       <span className="text-muted-foreground font-light">, {currentProfile.age}</span>
                     )}
@@ -415,12 +409,7 @@ const Discover = () => {
                   {currentProfile.interests && currentProfile.interests.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       {currentProfile.interests.slice(0, 5).map((interest) => (
-                        <span
-                          key={interest}
-                          className="px-2.5 py-1 rounded-full bg-primary/10 text-[11px] font-medium text-foreground/80"
-                        >
-                          {interest}
-                        </span>
+                        <InterestTag key={interest}>{interest}</InterestTag>
                       ))}
                     </div>
                   )}

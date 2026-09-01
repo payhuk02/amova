@@ -5,9 +5,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
-  MapPin, User, Heart, Navigation, Loader2, Sparkles, ArrowLeft
+  MapPin, User, Heart, Navigation, Loader2, ArrowLeft
 } from "lucide-react";
 import AppShell from "@/components/AppShell";
+import EmptyState from "@/components/ui/empty-state";
+import { TrustBadge } from "@/components/TrustBadge";
 import { useGeolocation, useSmartMatches } from "@/hooks/useGeolocation";
 import { toast } from "sonner";
 
@@ -138,13 +140,11 @@ const NearbyMap = () => {
               <Loader2 className="w-8 h-8 text-primary animate-spin" />
             </div>
           ) : matches.length === 0 ? (
-            <div className="text-center py-16">
-              <MapPin className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-              <h3 className="font-display text-lg mb-2">Aucun profil à proximité</h3>
-              <p className="text-muted-foreground text-sm">
-                Essayez d'augmenter la distance de recherche
-              </p>
-            </div>
+            <EmptyState
+              icon={MapPin}
+              title="Aucun profil à proximité"
+              description="Élargissez votre rayon de recherche ou activez votre localisation pour découvrir des membres près de chez vous."
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {matches.map((m) => (
@@ -163,11 +163,8 @@ const NearbyMap = () => {
                     )}
 
                     {/* Compatibility badge */}
-                    <div className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm rounded-full px-2.5 py-1 flex items-center gap-1.5">
-                      <Sparkles size={11} className="text-copper" />
-                      <span className="text-xs font-semibold tabular-nums">
-                        {m.compatibility_score}%
-                      </span>
+                    <div className="absolute top-3 right-3">
+                      <TrustBadge variant="compatibility" label={`${m.compatibility_score}%`} compact />
                     </div>
 
                     {/* Distance badge */}

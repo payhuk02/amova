@@ -3,6 +3,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { Button } from "@/components/ui/button";
 import AppShell from "@/components/AppShell";
 import ScrollReveal from "@/components/ScrollReveal";
+import EmptyState from "@/components/ui/empty-state";
 import { Heart, MessageCircle, Sparkles, Bell, CheckCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -54,13 +55,11 @@ const Notifications = () => {
           </div>
         ) : notifications.length === 0 ? (
           <ScrollReveal>
-            <div className="glass-card rounded-xl p-8 sm:p-12 text-center">
-              <Bell className="w-10 h-10 sm:w-12 sm:h-12 text-copper mx-auto mb-3 sm:mb-4" strokeWidth={1.5} />
-              <h3 className="font-display text-lg sm:text-xl mb-2">Aucune activité</h3>
-              <p className="text-muted-foreground text-xs sm:text-sm">
-                Vos likes, matchs et messages apparaîtront ici.
-              </p>
-            </div>
+            <EmptyState
+              icon={Bell}
+              title="Aucune activité"
+              description="Vos likes, matchs et messages apparaîtront ici dès qu'une interaction aura lieu."
+            />
           </ScrollReveal>
         ) : (
           <div className="space-y-1.5 sm:space-y-2">
