@@ -159,6 +159,8 @@ const Stories = () => {
     if (!error) {
       toast.success("Réponse envoyée !");
       setReplyText("");
+    } else {
+      toast.error("Likez mutuellement ce profil pour répondre à la story");
     }
   };
 

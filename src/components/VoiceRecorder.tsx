@@ -4,9 +4,10 @@ import { Mic, Square, Loader2 } from "lucide-react";
 interface VoiceRecorderProps {
   onRecorded: (blob: Blob, durationMs: number) => void;
   disabled?: boolean;
+  onError?: () => void;
 }
 
-const VoiceRecorder = ({ onRecorded, disabled }: VoiceRecorderProps) => {
+const VoiceRecorder = ({ onRecorded, disabled, onError }: VoiceRecorderProps) => {
   const [recording, setRecording] = useState(false);
   const [duration, setDuration] = useState(0);
   const mediaRecorder = useRef<MediaRecorder | null>(null);
@@ -44,9 +45,9 @@ const VoiceRecorder = ({ onRecorded, disabled }: VoiceRecorderProps) => {
         setDuration(Date.now() - startTimeRef.current);
       }, 100);
     } catch {
-      // Permission denied or not supported
+      onError?.();
     }
-  }, [onRecorded]);
+  }, [onRecorded, onError]);
 
   const stopRecording = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);

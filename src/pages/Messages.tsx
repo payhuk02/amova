@@ -29,6 +29,8 @@ import { formatDistanceToNow, format, isToday, isYesterday } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { isOnline } from "@/hooks/useOnlineStatus";
+import type { MessageInsert } from "@/lib/supabase-helpers";
+import { getErrorMessage } from "@/lib/supabase-helpers";
 
 interface Match {
   user_id: string;
@@ -68,6 +70,8 @@ const Messages = () => {
   const selectedUserId = searchParams.get("with");
 
   const [matches, setMatches] = useState<Match[]>([]);
+  const [mutualMatchIds, setMutualMatchIds] = useState<Set<string>>(new Set());
+  const [loadingMatches, setLoadingMatches] = useState(true);
   const [myProfile, setMyProfile] = useState<any>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -87,83 +91,177 @@ const Messages = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout>>();
 
-  // Load matches + conversation metadata
-  useEffect(() => {
+  const buildConversationMeta = useCallback(
+    async (partnerIds: string[]) => {
+      if (!user || partnerIds.length === 0) return {} as Record<string, ConversationMeta>;
+
+      const meta: Record<string, ConversationMeta> = {};
+      await Promise.all(
+        partnerIds.map(async (partnerId) => {
+          const { data: lastMsg } = await supabase
+            .from("messages")
+            .select("content, created_at, message_type")
+            .or(
+              `and(sender_id.eq.${user.id},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${user.id})`,
+            )
+            .order("created_at", { ascending: false })
+            .limit(1);
+
+          const { count: unread } = await supabase
+            .from("messages")
+            .select("*", { count: "exact", head: true })
+            .eq("sender_id", partnerId)
+            .eq("receiver_id", user.id)
+            .eq("read", false);
+
+          meta[partnerId] = {
+            lastMessage: lastMsg?.[0]
+              ? lastMsg[0].message_type === "audio"
+                ? "🎤 Message vocal"
+                : lastMsg[0].message_type === "image"
+                  ? "📷 Photo"
+                  : lastMsg[0].content
+              : "",
+            lastMessageTime: lastMsg?.[0]?.created_at || "",
+            unreadCount: unread || 0,
+          };
+        }),
+      );
+      return meta;
+    },
+    [user],
+  );
+
+  const loadConversations = useCallback(async () => {
     if (!user) return;
-    const loadMatches = async () => {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-      if (profile) setMyProfile(profile);
+    setLoadingMatches(true);
 
-      const { data: myLikes } = await supabase
-        .from("likes")
-        .select("to_user_id")
-        .eq("from_user_id", user.id);
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
+    if (profile) setMyProfile(profile);
 
-      if (!myLikes?.length) return;
-      const likedIds = myLikes.map((l) => l.to_user_id);
+    const { data: myLikes } = await supabase
+      .from("likes")
+      .select("to_user_id")
+      .eq("from_user_id", user.id);
 
+    const likedIds = myLikes?.map((l) => l.to_user_id) ?? [];
+    let matchedIds: string[] = [];
+
+    if (likedIds.length > 0) {
       const { data: mutualLikes } = await supabase
         .from("likes")
         .select("from_user_id")
         .eq("to_user_id", user.id)
         .in("from_user_id", likedIds);
 
-      if (!mutualLikes?.length) return;
-      const matchedIds = mutualLikes.map((l) => l.from_user_id);
+      matchedIds = mutualLikes?.map((l) => l.from_user_id) ?? [];
+    }
 
-      const { data: profiles } = await supabase
+    setMutualMatchIds(new Set(matchedIds));
+
+    const { data: sentMsgs } = await supabase
+      .from("messages")
+      .select("receiver_id")
+      .eq("sender_id", user.id);
+
+    const { data: receivedMsgs } = await supabase
+      .from("messages")
+      .select("sender_id")
+      .eq("receiver_id", user.id);
+
+    const partnerIds = Array.from(
+      new Set([
+        ...matchedIds,
+        ...(sentMsgs?.map((m) => m.receiver_id) ?? []),
+        ...(receivedMsgs?.map((m) => m.sender_id) ?? []),
+      ]),
+    );
+
+    if (partnerIds.length === 0) {
+      setMatches([]);
+      setConversationMeta({});
+      setLoadingMatches(false);
+      return;
+    }
+
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, display_name, avatar_url, last_seen")
+      .in("user_id", partnerIds);
+
+    const meta = await buildConversationMeta(partnerIds);
+    setConversationMeta(meta);
+
+    const sorted = (profiles || []).sort((a, b) => {
+      const tA = meta[a.user_id]?.lastMessageTime || "";
+      const tB = meta[b.user_id]?.lastMessageTime || "";
+      return tB.localeCompare(tA);
+    });
+
+    setMatches(sorted as Match[]);
+    setLoadingMatches(false);
+  }, [user, buildConversationMeta]);
+
+  // Load conversations list
+  useEffect(() => {
+    void loadConversations();
+  }, [loadConversations]);
+
+  // Open chat from ?with= even if not yet in sidebar list
+  useEffect(() => {
+    if (!user || !selectedUserId) return;
+    let cancelled = false;
+
+    const ensurePartner = async () => {
+      const { data: partner } = await supabase
         .from("profiles")
         .select("user_id, display_name, avatar_url, last_seen")
-        .in("user_id", matchedIds);
+        .eq("user_id", selectedUserId)
+        .maybeSingle();
 
-      const meta: Record<string, ConversationMeta> = {};
-      for (const m of profiles || []) {
-        const { data: lastMsg } = await supabase
-          .from("messages")
-          .select("content, created_at, message_type")
-          .or(
-            `and(sender_id.eq.${user.id},receiver_id.eq.${m.user_id}),and(sender_id.eq.${m.user_id},receiver_id.eq.${user.id})`
-          )
-          .order("created_at", { ascending: false })
-          .limit(1);
+      if (!partner || cancelled) return;
 
-        const { count: unread } = await supabase
-          .from("messages")
-          .select("*", { count: "exact", head: true })
-          .eq("sender_id", m.user_id)
-          .eq("receiver_id", user.id)
-          .eq("read", false);
-
-        meta[m.user_id] = {
-          lastMessage: lastMsg?.[0]
-            ? lastMsg[0].message_type === "audio"
-              ? "🎤 Message vocal"
-              : lastMsg[0].message_type === "image"
-              ? "📷 Photo"
-              : lastMsg[0].content
-            : "",
-          lastMessageTime: lastMsg?.[0]?.created_at || "",
-          unreadCount: unread || 0,
-        };
-      }
-      setConversationMeta(meta);
-
-      const sorted = (profiles || []).sort((a, b) => {
-        const tA = meta[a.user_id]?.lastMessageTime || "";
-        const tB = meta[b.user_id]?.lastMessageTime || "";
-        return tB.localeCompare(tA);
-      });
-
-      setMatches(sorted as Match[]);
+      const meta = await buildConversationMeta([selectedUserId]);
+      setConversationMeta((prev) => ({ ...prev, ...meta }));
+      setMatches((prev) =>
+        prev.some((m) => m.user_id === selectedUserId) ? prev : [partner as Match, ...prev],
+      );
     };
-    loadMatches();
-  }, [user]);
+
+    void ensurePartner();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, selectedUserId, buildConversationMeta]);
+
+  // Refresh sidebar when new messages arrive
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel("messages-sidebar")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        (payload) => {
+          const msg = payload.new as Message;
+          if (msg.sender_id !== user.id && msg.receiver_id !== user.id) return;
+          void loadConversations();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, loadConversations]);
 
   // Load messages + realtime
   useEffect(() => {
@@ -225,15 +323,16 @@ const Messages = () => {
 
     const presenceChannel = supabase.channel(
       `typing-${[user.id, selectedUserId].sort().join("-")}`,
-      { config: { presence: { key: user.id } } }
+      { config: { presence: { key: user.id } } },
     );
+    typingChannelRef.current = presenceChannel;
 
     presenceChannel
       .on("presence", { event: "sync" }, () => {
         const state = presenceChannel.presenceState();
         const otherPresence = state[selectedUserId];
         setIsTyping(
-          Array.isArray(otherPresence) && otherPresence.some((p: any) => p.typing === true)
+          Array.isArray(otherPresence) && otherPresence.some((p: { typing?: boolean }) => p.typing === true),
         );
       })
       .subscribe();
@@ -241,6 +340,7 @@ const Messages = () => {
     return () => {
       supabase.removeChannel(channel);
       supabase.removeChannel(presenceChannel);
+      typingChannelRef.current = null;
     };
   }, [user, selectedUserId]);
 
@@ -248,42 +348,70 @@ const Messages = () => {
     messagesEnd.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
+  const updateConversationPreview = useCallback(
+    (partnerId: string, content: string, messageType: string) => {
+      const preview =
+        messageType === "audio" ? "🎤 Message vocal" : messageType === "image" ? "📷 Photo" : content;
+      setConversationMeta((prev) => ({
+        ...prev,
+        [partnerId]: {
+          lastMessage: preview,
+          lastMessageTime: new Date().toISOString(),
+          unreadCount: prev[partnerId]?.unreadCount ?? 0,
+        },
+      }));
+    },
+    [],
+  );
+
   const broadcastTyping = useCallback(() => {
-    if (!user || !selectedUserId) return;
-    const channelName = `typing-${[user.id, selectedUserId].sort().join("-")}`;
-    const ch = supabase.channel(channelName, {
-      config: { presence: { key: user.id } },
-    });
-    ch.subscribe(async (status) => {
-      if (status === "SUBSCRIBED") {
-        await ch.track({ typing: true });
-        if (typingTimeout.current) clearTimeout(typingTimeout.current);
-        typingTimeout.current = setTimeout(async () => {
-          await ch.track({ typing: false });
-        }, 2000);
-      }
-    });
-  }, [user, selectedUserId]);
+    const channel = typingChannelRef.current;
+    if (!channel) return;
+    void channel.track({ typing: true });
+    if (typingTimeout.current) clearTimeout(typingTimeout.current);
+    typingTimeout.current = setTimeout(() => {
+      void channel.track({ typing: false });
+    }, 2000);
+  }, []);
+
+  const handleMessagingError = (error: unknown) => {
+    const message = getErrorMessage(error);
+    if (message.includes("row-level security") || message.includes("matches")) {
+      toast.error("Vous devez matcher pour envoyer un message");
+      return;
+    }
+    toast.error("Impossible d'envoyer le message");
+  };
 
   const handleSend = async () => {
     if (!newMessage.trim() || !user || !selectedUserId || sending) return;
+    if (!mutualMatchIds.has(selectedUserId)) {
+      toast.error("Vous devez matcher pour envoyer un message");
+      return;
+    }
+
     setSending(true);
-    
+
     let content = newMessage.trim();
     if (replyTo) {
       const replyPreview = replyTo.content.length > 40 ? replyTo.content.slice(0, 40) + "…" : replyTo.content;
       content = `↩️ ${replyPreview}\n\n${content}`;
     }
-    
-    const { error } = await supabase.from("messages").insert({
+
+    const payload: MessageInsert = {
       sender_id: user.id,
       receiver_id: selectedUserId,
       content,
       message_type: "text",
-    } as any);
-    if (!error) {
+    };
+
+    const { error } = await supabase.from("messages").insert(payload);
+    if (error) {
+      handleMessagingError(error);
+    } else {
       setNewMessage("");
       setReplyTo(null);
+      updateConversationPreview(selectedUserId, content, "text");
     }
     setShowEmoji(false);
     setSending(false);
@@ -292,6 +420,11 @@ const Messages = () => {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user || !selectedUserId) return;
+
+    if (!mutualMatchIds.has(selectedUserId)) {
+      toast.error("Vous devez matcher pour envoyer un message");
+      return;
+    }
 
     if (!file.type.startsWith("image/")) {
       toast.error("Seules les images sont acceptées");
@@ -318,13 +451,16 @@ const Messages = () => {
 
     const { data: publicUrl } = supabase.storage.from("voice-messages").getPublicUrl(fileName);
 
-    await supabase.from("messages").insert({
+    const { error } = await supabase.from("messages").insert({
       sender_id: user.id,
       receiver_id: selectedUserId,
       content: "📷 Photo",
       message_type: "image",
       audio_url: publicUrl.publicUrl,
-    } as any);
+    } satisfies MessageInsert);
+
+    if (error) handleMessagingError(error);
+    else updateConversationPreview(selectedUserId, "📷 Photo", "image");
 
     setUploadingImage(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -332,6 +468,12 @@ const Messages = () => {
 
   const handleVoiceRecorded = async (blob: Blob, durationMs: number) => {
     if (!user || !selectedUserId) return;
+
+    if (!mutualMatchIds.has(selectedUserId)) {
+      toast.error("Vous devez matcher pour envoyer un message");
+      return;
+    }
+
     setUploadingVoice(true);
 
     const fileName = `${user.id}/${Date.now()}.webm`;
@@ -347,14 +489,18 @@ const Messages = () => {
 
     const { data: publicUrl } = supabase.storage.from("voice-messages").getPublicUrl(fileName);
     const durationSec = Math.ceil(durationMs / 1000);
+    const label = `🎤 Message vocal (${durationSec}s)`;
 
-    await supabase.from("messages").insert({
+    const { error } = await supabase.from("messages").insert({
       sender_id: user.id,
       receiver_id: selectedUserId,
-      content: `🎤 Message vocal (${durationSec}s)`,
+      content: label,
       message_type: "audio",
       audio_url: publicUrl.publicUrl,
-    } as any);
+    } satisfies MessageInsert);
+
+    if (error) handleMessagingError(error);
+    else updateConversationPreview(selectedUserId, label, "audio");
 
     setUploadingVoice(false);
   };
@@ -382,6 +528,7 @@ const Messages = () => {
   };
 
   const selectedMatch = matches.find((m) => m.user_id === selectedUserId);
+  const canMessageSelected = selectedUserId ? mutualMatchIds.has(selectedUserId) : false;
 
   const formatDateSeparator = (date: Date) => {
     if (isToday(date)) return "Aujourd'hui";
@@ -470,7 +617,9 @@ const Messages = () => {
             </div>
           </div>
           <div className="flex-1 overflow-y-auto">
-            {filteredMatches.length === 0 ? (
+            {loadingMatches ? (
+              <div className="p-6 text-center text-sm text-muted-foreground">Chargement...</div>
+            ) : filteredMatches.length === 0 ? (
               <div className="p-6 text-center text-sm text-muted-foreground">
                 {matches.length === 0 ? (
                   <div>
@@ -562,7 +711,7 @@ const Messages = () => {
           ) : (
             <>
               {/* Header */}
-              {selectedMatch && (
+              {selectedMatch ? (
                 <div className="p-3 border-b border-border/30 flex items-center gap-3 bg-background/80 backdrop-blur-sm">
                   <button
                     onClick={() => navigate("/messages")}
@@ -611,6 +760,16 @@ const Messages = () => {
                   >
                     <Video size={16} />
                   </button>
+                </div>
+              ) : (
+                <div className="p-3 border-b border-border/30 text-sm text-muted-foreground">
+                  Chargement du profil...
+                </div>
+              )}
+
+              {!canMessageSelected && selectedMatch && (
+                <div className="px-3 py-2 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-200">
+                  Likez mutuellement ce profil pour débloquer la messagerie.
                 </div>
               )}
 
@@ -833,7 +992,7 @@ const Messages = () => {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingImage || sending}
+                    disabled={uploadingImage || sending || !canMessageSelected}
                     className="h-10 w-10 rounded-xl bg-secondary/50 border border-border/50 flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all active:scale-95 disabled:opacity-50 shrink-0 touch-manipulation"
                   >
                     {uploadingImage ? (
@@ -843,7 +1002,11 @@ const Messages = () => {
                     )}
                   </button>
 
-                  <VoiceRecorder onRecorded={handleVoiceRecorded} disabled={uploadingVoice || sending} />
+                  <VoiceRecorder
+                    onRecorded={handleVoiceRecorded}
+                    disabled={uploadingVoice || sending || !canMessageSelected}
+                    onError={() => toast.error("Autorisez le micro pour envoyer un vocal")}
+                  />
 
                   <button
                     type="button"
@@ -864,12 +1027,13 @@ const Messages = () => {
                     }}
                     placeholder={replyTo ? "Répondre..." : "Message..."}
                     className="flex-1 h-10 bg-secondary/50 border-border/50 text-sm"
+                    disabled={!canMessageSelected}
                   />
                   <Button
                     type="submit"
                     size="icon"
                     className="h-10 w-10 shrink-0"
-                    disabled={sending || !newMessage.trim()}
+                    disabled={sending || !newMessage.trim() || !canMessageSelected}
                   >
                     <Send size={16} />
                   </Button>

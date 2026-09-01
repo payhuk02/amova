@@ -12,6 +12,7 @@ export type EventAttendeeInsert = TablesInsert<"event_attendees">;
 export type MessageReactionInsert = TablesInsert<"message_reactions">;
 export type MessageReactionUpdate = TablesUpdate<"message_reactions">;
 export type VerificationRequestInsert = TablesInsert<"verification_requests">;
+export type MessageInsert = TablesInsert<"messages">;
 export type CallSignalInsert = TablesInsert<"call_signals">;
 export type SpeedDatingQueueInsert = TablesInsert<"speed_dating_queue">;
 export type SpeedDatingQueueUpdate = TablesUpdate<"speed_dating_queue">;
