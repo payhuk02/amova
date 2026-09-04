@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
+import { getLimitErrorMessage } from "@/lib/limits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -19,6 +21,7 @@ interface Photo {
 const EditProfile = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { limits } = useSubscription();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -129,6 +132,10 @@ const EditProfile = () => {
 
   const handleSave = async () => {
     if (!user) return;
+    if (form.incognito_mode && !limits.incognitoMode) {
+      toast.error("Le mode incognito est réservé au plan VIP.");
+      return;
+    }
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
@@ -141,12 +148,15 @@ const EditProfile = () => {
         bio: form.bio,
         avatar_url: form.avatar_url || null,
         interests: form.interests,
-        incognito_mode: form.incognito_mode,
+        incognito_mode: form.incognito_mode && limits.incognitoMode,
       } as any)
       .eq("user_id", user.id);
 
-    if (error) toast.error("Erreur de sauvegarde");
-    else toast.success("Profil mis à jour !");
+    if (error) {
+      toast.error(getLimitErrorMessage(error) || "Erreur de sauvegarde");
+    } else {
+      toast.success("Profil mis à jour !");
+    }
     setSaving(false);
   };
 
@@ -314,7 +324,14 @@ const EditProfile = () => {
             </div>
             <Switch
               checked={form.incognito_mode}
-              onCheckedChange={(checked) => setForm(f => ({ ...f, incognito_mode: checked }))}
+              onCheckedChange={(checked) => {
+                if (checked && !limits.incognitoMode) {
+                  toast.error("Le mode incognito est réservé au plan VIP.");
+                  navigate("/premium");
+                  return;
+                }
+                setForm((f) => ({ ...f, incognito_mode: checked }));
+              }}
             />
           </div>
 

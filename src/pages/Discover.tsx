@@ -21,6 +21,7 @@ import BadgesDisplay from "@/components/BadgesDisplay";
 import { getLimitErrorMessage } from "@/lib/limits";
 import type { LikeInsert, PassInsert } from "@/lib/supabase-helpers";
 import { useSubscription } from "@/hooks/useSubscription";
+import { sortDiscoverProfiles } from "@/lib/discover-sort";
 
 interface Profile {
   id: string;
@@ -57,6 +58,7 @@ const Discover = () => {
   const { checkBadges } = useCheckAndAwardBadges();
   const { limits } = useSubscription();
   const canUseAdvancedFilters = limits.canSeeWhoLiked;
+  const aiCandidateLimit = limits.priorityMatching ? 40 : 20;
   const [filters, setFilters] = useState<DiscoverFiltersState>({
     city: "",
     ageMin: "18",
@@ -107,26 +109,43 @@ const Discover = () => {
       }
 
       const filtered = (discovered || []) as Profile[];
+      const candidateIds = filtered.map((p) => p.user_id);
+
+      const [{ data: boostedRaw }, { data: vipRaw }] = await Promise.all([
+        supabase.rpc("get_active_boosted_user_ids"),
+        candidateIds.length > 0
+          ? supabase.rpc("get_vip_user_ids", { p_user_ids: candidateIds })
+          : Promise.resolve({ data: [] as string[] }),
+      ]);
+      const boostedIds = new Set((boostedRaw as string[] | null) ?? []);
+      const vipIds = new Set((vipRaw as string[] | null) ?? []);
 
       try {
         const { data: scoreData, error: aiError } = await supabase.functions.invoke("ai-match", {
-          body: { userProfile: myProfile, candidates: filtered.slice(0, 20) },
+          body: { userProfile: myProfile, candidates: filtered.slice(0, aiCandidateLimit) },
         });
 
+        let withScores = filtered;
         if (!aiError && scoreData?.scored) {
           const scored = scoreData.scored as Array<{ user_id: string; score: number }>;
           const scoreMap = new Map(scored.map((s) => [s.user_id, s.score]));
-          setProfiles(
-            filtered.map((p) => ({
-              ...p,
-              compatibility: scoreMap.get(p.user_id),
-            })),
-          );
-        } else {
-          setProfiles(filtered);
+          withScores = filtered.map((p) => ({
+            ...p,
+            compatibility: scoreMap.get(p.user_id),
+          }));
         }
+
+        setProfiles(
+          sortDiscoverProfiles(withScores, boostedIds, vipIds, {
+            viewerPriority: limits.priorityMatching,
+          }),
+        );
       } catch {
-        setProfiles(filtered);
+        setProfiles(
+          sortDiscoverProfiles(filtered, boostedIds, vipIds, {
+            viewerPriority: limits.priorityMatching,
+          }),
+        );
       }
 
       setLoading(false);
@@ -134,7 +153,7 @@ const Discover = () => {
     };
 
     void loadProfiles();
-  }, [user, filters, checkBadges]);
+  }, [user, filters, checkBadges, aiCandidateLimit, limits.priorityMatching]);
 
   useEffect(() => {
     setCurrentIndex(0);

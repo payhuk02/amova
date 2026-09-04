@@ -15,9 +15,11 @@ const TermsPage = () => (
     </ul>
     <h2 className="font-display text-xl text-foreground mt-8 mb-3">Abonnements</h2>
     <p>
-      Les formules Premium et VIP sont facturées mensuellement via Moneyfusion. Les avantages
-      (likes illimités, boosts, mode incognito, etc.) sont détaillés sur la page Tarifs. Aucun
-      remboursement n&apos;est dû pour une période déjà entamée, sauf disposition légale contraire.
+      Les formules Plus, Premium et VIP sont facturées via Moneyfusion (mensuel, trimestriel ou
+      annuel). Un essai Premium payant de courte durée peut être proposé une seule fois. Des
+      passes ponctuelles (likes, boost, spotlight) sont également disponibles. Les avantages sont
+      détaillés sur la page Abonnements. Aucun remboursement n&apos;est dû pour une période déjà
+      entamée, sauf disposition légale contraire.
     </p>
     <h2 className="font-display text-xl text-foreground mt-8 mb-3">Suspension et résiliation</h2>
     <p>

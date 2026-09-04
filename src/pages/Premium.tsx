@@ -10,6 +10,8 @@ import PaymentCheckoutDialog from "@/components/PaymentCheckoutDialog";
 import PaymentReassurance from "@/components/PaymentReassurance";
 import AppShell from "@/components/AppShell";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { getLimitErrorMessage } from "@/lib/limits";
 import {
   CONSUMABLE_PRICES,
   BILLING_PERIODS,
@@ -28,6 +30,7 @@ const comparisonRows = [
   { label: "Voir qui vous aime", free: false, plus: true, premium: true, vip: true },
   { label: "Filtres avancés", free: false, plus: true, premium: true, vip: true },
   { label: "Boosts / jour", free: "—", plus: "—", premium: "1", vip: "3" },
+  { label: "Spotlight gratuit / sem.", free: false, plus: false, premium: false, vip: true },
   { label: "Mode incognito", free: false, plus: false, premium: false, vip: true },
   { label: "Matching prioritaire", free: false, plus: false, premium: false, vip: true },
   { label: "Support prioritaire", free: false, plus: false, premium: false, vip: true },
@@ -63,6 +66,40 @@ export default function Premium() {
     },
     enabled: !!user && currentPlan === "free" && !isExpired,
   });
+
+  const { data: vipSpotlightAvailable, refetch: refetchVipSpotlight } = useQuery({
+    queryKey: ["vip-weekly-spotlight", user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data } = await supabase
+        .from("user_entitlements")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("sku", "vip_weekly_spotlight")
+        .gt("expires_at", new Date().toISOString())
+        .limit(1)
+        .maybeSingle();
+      return !data;
+    },
+    enabled: !!user && currentPlan === "vip",
+  });
+
+  const [claimingSpotlight, setClaimingSpotlight] = useState(false);
+
+  const claimVipSpotlight = async () => {
+    setClaimingSpotlight(true);
+    try {
+      const { error } = await supabase.rpc("claim_vip_weekly_spotlight");
+      if (error) {
+        toast.error(getLimitErrorMessage(error) || error.message);
+        return;
+      }
+      toast.success("Spotlight VIP activé pour 24 h");
+      void refetchVipSpotlight();
+    } finally {
+      setClaimingSpotlight(false);
+    }
+  };
 
   const periodMeta = BILLING_PERIODS[billingPeriod];
   const priceSuffix =
@@ -212,6 +249,34 @@ export default function Premium() {
             <Button variant="default" onClick={openTrial} className="shrink-0">
               Essayer — {formatFcfa(PAID_TRIAL.price)}
             </Button>
+          </div>
+        )}
+
+        {currentPlan === "vip" && (
+          <div className="mb-8 glass-card rounded-2xl p-5 sm:p-6 border border-champagne/25 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+            <div>
+              <p className="font-display text-lg font-medium">Avantages VIP</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Matching prioritaire actif. Spotlight gratuit 1×/semaine
+                {vipSpotlightAvailable ? " disponible." : " déjà utilisé cette semaine."}
+              </p>
+              <a
+                href="mailto:contact@amova.space?subject=Support%20VIP%20Amova"
+                className="text-xs text-champagne hover:underline mt-2 inline-block"
+              >
+                Contacter le support prioritaire
+              </a>
+            </div>
+            {vipSpotlightAvailable && (
+              <Button
+                variant="default"
+                onClick={() => void claimVipSpotlight()}
+                disabled={claimingSpotlight}
+                className="shrink-0"
+              >
+                {claimingSpotlight ? "Activation…" : "Activer Spotlight gratuit"}
+              </Button>
+            )}
           </div>
         )}
 

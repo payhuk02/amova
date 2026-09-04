@@ -970,6 +970,10 @@ export type Database = {
         Args: { p_user_id?: string }
         Returns: boolean
       }
+      claim_vip_weekly_spotlight: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_mutual_match_user_ids: { Args: Record<PropertyKey, never>; Returns: string[] }
       has_liked_me: { Args: { p_user_id: string }; Returns: boolean }
       get_public_profile_stats: {

@@ -34,6 +34,7 @@ const pending = [
   "20260904170100_plus_plan_entitlements.sql",
   "20260904180000_billing_periods.sql",
   "20260904190000_paid_trial.sql",
+  "20260904200000_vip_priority_spotlight.sql",
 ];
 
 if (!token) {

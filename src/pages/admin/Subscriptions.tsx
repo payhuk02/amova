@@ -94,7 +94,7 @@ export default function AdminSubscriptions() {
     <AdminLayout>
       <AdminPageHeader
         title="Abonnements"
-        description="Gérez les abonnements Premium et VIP"
+        description="Gérez les abonnements Plus, Premium et VIP"
       />
 
       <div className="flex gap-2 mb-6 flex-wrap">

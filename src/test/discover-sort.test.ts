@@ -23,6 +23,16 @@ describe("sortDiscoverProfiles", () => {
     expect(sorted[0].user_id).toBe("c");
     expect(sorted[1].user_id).toBe("b");
   });
+
+  it("weights compatibility higher for VIP viewers", () => {
+    const sorted = sortDiscoverProfiles(
+      profiles,
+      new Set(),
+      new Set(),
+      { viewerPriority: true },
+    );
+    expect(sorted[0].user_id).toBe("b");
+  });
 });
 
 describe("filterDiscoverCandidates", () => {
