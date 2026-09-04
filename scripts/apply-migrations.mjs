@@ -38,6 +38,7 @@ const pending = [
   "20260904210000_profile_dob_identity_locks.sql",
   "20260904220000_audit_export_plus_age_lock.sql",
   "20260904230000_hetero_match_and_profile_rls.sql",
+  "20260904240000_hotfix_admin_mass_and_hetero.sql",
 ];
 
 if (!token) {

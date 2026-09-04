@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 /**
  * Client admin check via SECURITY DEFINER RPC `is_user_admin`.
- * Fail closed on any error / unexpected payload.
+ * Fail closed: only exact boolean true grants admin UI.
  */
 export function useAdmin() {
   const { user } = useAuth();
@@ -25,16 +25,16 @@ export function useAdmin() {
 
       if (!cancelled) setLoading(true);
 
-      const { data, error } = await supabase.rpc("is_user_admin");
-
-      if (cancelled) return;
-
-      if (error || data !== true) {
-        setIsAdmin(false);
-      } else {
-        setIsAdmin(true);
+      try {
+        const { data, error } = await supabase.rpc("is_user_admin");
+        if (cancelled) return;
+        // Strict equality — never treat truthy strings / null as admin
+        setIsAdmin(!error && data === true);
+      } catch {
+        if (!cancelled) setIsAdmin(false);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      setLoading(false);
     }
 
     void checkAdmin();
@@ -42,7 +42,7 @@ export function useAdmin() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user?.id]);
 
   return { isAdmin, loading };
 }
