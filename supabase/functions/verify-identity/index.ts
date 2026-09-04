@@ -71,7 +71,7 @@ serve(async (req) => {
     const { data: request } = await supabase
       .from("verification_requests")
       .select(
-        "id, user_id, status, selfie_url, id_document_url, recent_photo_1_url, recent_photo_2_url, pose_challenge, document_type",
+        "id, user_id, status, selfie_url, id_document_url, id_document_verso_url, recent_photo_1_url, recent_photo_2_url, pose_challenge, document_type",
       )
       .eq("id", requestId)
       .eq("user_id", user.id)
@@ -90,6 +90,7 @@ serve(async (req) => {
     }
 
     const idDataUrl = await loadDataUrl(supabase, request.id_document_url || "");
+    const idVersoDataUrl = await loadDataUrl(supabase, request.id_document_verso_url || "");
     const photo1DataUrl = await loadDataUrl(supabase, request.recent_photo_1_url || "");
     const photo2DataUrl = await loadDataUrl(supabase, request.recent_photo_2_url || "");
 
@@ -107,8 +108,10 @@ serve(async (req) => {
         type: "text",
         text: `Tu es un assistant de pré-analyse KYC pour une plateforme de rencontres professionnelle.
 Tu ne décides PAS de l'approbation — un humain valide toujours.
-Documents fournis: pièce d'identité (${request.document_type || "cni"}), selfie live, 2 photos récentes.
+Documents fournis: pièce d'identité recto + verso (${request.document_type || "cni"}), selfie live caméra, 2 photos récentes.
 Défi selfie: "${challenge}".
+
+Vérifie aussi la lisibilité: texte et photo de la pièce doivent être visibles/lisibles sur recto et verso.
 
 Évalue et réponds UNIQUEMENT en JSON:
 {
@@ -122,13 +125,17 @@ Défi selfie: "${challenge}".
   "admin_summary": "2 phrases max pour l'admin"
 }`,
       },
-      { type: "text", text: "Selfie de vérification:" },
+      { type: "text", text: "Selfie de vérification (caméra live):" },
       { type: "image_url", image_url: { url: selfieDataUrl } },
     ];
 
     if (idDataUrl) {
-      contentParts.push({ type: "text", text: "Pièce d'identité:" });
+      contentParts.push({ type: "text", text: "Pièce d'identité — RECTO:" });
       contentParts.push({ type: "image_url", image_url: { url: idDataUrl } });
+    }
+    if (idVersoDataUrl) {
+      contentParts.push({ type: "text", text: "Pièce d'identité — VERSO:" });
+      contentParts.push({ type: "image_url", image_url: { url: idVersoDataUrl } });
     }
     if (photo1DataUrl) {
       contentParts.push({ type: "text", text: "Photo récente 1:" });

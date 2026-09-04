@@ -28,6 +28,7 @@ const pending = [
   "20260901220000_fix_openrouter_models.sql",
   "20260904130000_profile_passes.sql",
   "20260904140000_professional_kyc.sql",
+  "20260904150000_kyc_id_recto_verso.sql",
 ];
 
 if (!token) {

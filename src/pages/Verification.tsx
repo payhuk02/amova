@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import AppShell from "@/components/AppShell";
+import SelfieCamera from "@/components/SelfieCamera";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   ArrowLeft,
-  Camera,
   CheckCircle2,
   Clock,
   FileText,
@@ -34,7 +34,7 @@ const DOC_TYPES = [
   { value: "other", label: "Autre pièce officielle" },
 ] as const;
 
-type SlotKey = "id_document" | "selfie" | "recent_1" | "recent_2";
+type SlotKey = "id_recto" | "id_verso" | "selfie" | "recent_1" | "recent_2";
 
 interface SlotState {
   file: File | null;
@@ -57,7 +57,8 @@ export default function VerificationPage() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [documentType, setDocumentType] = useState("cni");
   const [slots, setSlots] = useState<Record<SlotKey, SlotState>>({
-    id_document: emptySlot(),
+    id_recto: emptySlot(),
+    id_verso: emptySlot(),
     selfie: emptySlot(),
     recent_1: emptySlot(),
     recent_2: emptySlot(),
@@ -70,8 +71,8 @@ export default function VerificationPage() {
     [],
   );
 
-  const idRef = useRef<HTMLInputElement>(null);
-  const selfieRef = useRef<HTMLInputElement>(null);
+  const idRectoRef = useRef<HTMLInputElement>(null);
+  const idVersoRef = useRef<HTMLInputElement>(null);
   const recent1Ref = useRef<HTMLInputElement>(null);
   const recent2Ref = useRef<HTMLInputElement>(null);
 
@@ -104,13 +105,13 @@ export default function VerificationPage() {
     void load();
   }, [user]);
 
-  const setSlotFile = (key: SlotKey, file: File | null) => {
+  const setSlotFile = (key: SlotKey, file: File | null, previewUrl?: string | null) => {
     setSlots((prev) => {
       if (prev[key].preview) URL.revokeObjectURL(prev[key].preview!);
       return {
         ...prev,
         [key]: file
-          ? { file, preview: URL.createObjectURL(file) }
+          ? { file, preview: previewUrl ?? URL.createObjectURL(file) }
           : emptySlot(),
       };
     });
@@ -127,7 +128,7 @@ export default function VerificationPage() {
     setSlotFile(key, file);
   };
 
-  const uploadSlot = async (key: SlotKey, file: File) => {
+  const uploadSlot = async (key: string, file: File) => {
     if (!user) throw new Error("Non authentifié");
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
     const path = `${user.id}/${key}-${Date.now()}.${ext}`;
@@ -141,16 +142,21 @@ export default function VerificationPage() {
 
   const handleSubmit = async () => {
     if (!user) return;
-    const missing = (Object.keys(slots) as SlotKey[]).filter((k) => !slots[k].file);
+    const required: SlotKey[] = ["id_recto", "id_verso", "selfie", "recent_1", "recent_2"];
+    const missing = required.filter((k) => !slots[k].file);
     if (missing.length) {
-      toast.error("Veuillez fournir la pièce d'identité, le selfie et deux photos récentes");
+      toast.error(
+        "Fournissez le recto et le verso de la pièce, un selfie caméra, et deux photos récentes",
+      );
       return;
     }
 
     setSubmitting(true);
     try {
-      setProgress("Envoi de la pièce d'identité…");
-      const idPath = await uploadSlot("id_document", slots.id_document.file!);
+      setProgress("Envoi du recto…");
+      const idRectoPath = await uploadSlot("id_recto", slots.id_recto.file!);
+      setProgress("Envoi du verso…");
+      const idVersoPath = await uploadSlot("id_verso", slots.id_verso.file!);
       setProgress("Envoi du selfie…");
       const selfiePath = await uploadSlot("selfie", slots.selfie.file!);
       setProgress("Envoi des photos récentes…");
@@ -160,7 +166,8 @@ export default function VerificationPage() {
       setProgress("Création du dossier…");
       const { data: requestId, error } = await supabase.rpc("submit_verification_request", {
         p_selfie_url: selfiePath,
-        p_id_document_url: idPath,
+        p_id_document_url: idRectoPath,
+        p_id_document_verso_url: idVersoPath,
         p_recent_photo_1_url: photo1Path,
         p_recent_photo_2_url: photo2Path,
         p_document_type: documentType,
@@ -192,13 +199,15 @@ export default function VerificationPage() {
     slotKey,
     inputRef,
     capture,
+    buttonLabel = "Choisir un fichier",
   }: {
     title: string;
     hint: string;
     icon: typeof FileText;
-    slotKey: SlotKey;
+    slotKey: Exclude<SlotKey, "selfie">;
     inputRef: RefObject<HTMLInputElement>;
     capture?: "user" | "environment";
+    buttonLabel?: string;
   }) => {
     const slot = slots[slotKey];
     return (
@@ -217,7 +226,7 @@ export default function VerificationPage() {
             <img
               src={slot.preview}
               alt={title}
-              className="w-full h-40 object-cover rounded-lg border border-border/40"
+              className="w-full h-40 object-contain bg-black/20 rounded-lg border border-border/40"
             />
             <button
               type="button"
@@ -237,7 +246,7 @@ export default function VerificationPage() {
             disabled={submitting}
           >
             <Upload size={14} />
-            Choisir un fichier
+            {buttonLabel}
           </Button>
         )}
         <input
@@ -284,9 +293,9 @@ export default function VerificationPage() {
             Vérification d&apos;identité
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Pour un environnement de rencontres sérieux, nous vérifions chaque dossier
-            manuellement : pièce d&apos;identité officielle, selfie en direct, et deux photos
-            récentes de vous.
+            Dossier complet exigé : pièce d&apos;identité <strong className="text-foreground">recto et verso</strong>,
+            selfie capturé <strong className="text-foreground">en direct via la caméra</strong>, et deux photos
+            récentes. Tout doit être net, visible et lisible.
           </p>
         </div>
 
@@ -342,37 +351,44 @@ export default function VerificationPage() {
               </select>
             </div>
 
-            <SlotCard
-              title="1. Pièce d'identité"
-              hint="Photo nette du recto (CNI, passeport ou permis). Masquez le numéro si vous le souhaitez, le visage doit rester visible."
-              icon={FileText}
-              slotKey="id_document"
-              inputRef={idRef}
-              capture="environment"
-            />
-
-            <div className="rounded-xl border border-champagne/20 bg-champagne/5 p-4 text-sm">
-              <p className="font-medium flex items-center gap-2">
-                <Camera size={16} className="text-champagne" />
-                Défi selfie
-              </p>
-              <p className="text-muted-foreground mt-1">
-                Prenez un selfie en direct : <strong className="text-foreground">{poseChallenge}</strong>
-              </p>
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs text-muted-foreground space-y-1">
+              <p className="font-medium text-foreground text-sm">Exigences de lisibilité</p>
+              <p>• Cadrez toute la pièce (bords visibles), sans reflet ni flou.</p>
+              <p>• Texte, photo et mentions doivent être lisibles à l&apos;œil nu.</p>
+              <p>• Évitez les doigts qui masquent le document.</p>
             </div>
 
             <SlotCard
-              title="2. Selfie en direct"
-              hint="Visage bien éclairé, sans filtre lourd, sans lunettes de soleil."
-              icon={Camera}
-              slotKey="selfie"
-              inputRef={selfieRef}
-              capture="user"
+              title="1a. Pièce d'identité — Recto"
+              hint="Face avant complète et nette. Visage et informations clairement lisibles."
+              icon={FileText}
+              slotKey="id_recto"
+              inputRef={idRectoRef}
+              capture="environment"
+              buttonLabel="Photographier / choisir le recto"
+            />
+
+            <SlotCard
+              title="1b. Pièce d'identité — Verso"
+              hint="Face arrière complète et nette. Pour un passeport : page des données ou page suivante."
+              icon={FileText}
+              slotKey="id_verso"
+              inputRef={idVersoRef}
+              capture="environment"
+              buttonLabel="Photographier / choisir le verso"
+            />
+
+            <SelfieCamera
+              poseChallenge={poseChallenge}
+              previewUrl={slots.selfie.preview}
+              disabled={submitting}
+              onCaptured={(file, previewUrl) => setSlotFile("selfie", file, previewUrl)}
+              onClear={() => setSlotFile("selfie", null)}
             />
 
             <SlotCard
               title="3. Photo récente n°1"
-              hint="Une photo de vous prise récemment (hors selfie de vérification)."
+              hint="Une photo de vous prise récemment (hors selfie de vérification), visage visible."
               icon={ImageIcon}
               slotKey="recent_1"
               inputRef={recent1Ref}
@@ -387,8 +403,9 @@ export default function VerificationPage() {
             />
 
             <div className="rounded-xl border border-border/30 p-4 text-xs text-muted-foreground space-y-1">
-              <p>• Vos documents sont stockés de façon privée et accessibles uniquement à la conformité.</p>
-              <p>• Aucune approbation automatique : un humain valide chaque dossier.</p>
+              <p>• Documents stockés en privé, accessibles uniquement à la conformité.</p>
+              <p>• Validation humaine uniquement — pas d&apos;approbation automatique.</p>
+              <p>• Selfie : caméra obligatoire (pas d&apos;upload galerie).</p>
               <p>• Formats JPEG / PNG / WebP · 8 Mo max par fichier.</p>
             </div>
 

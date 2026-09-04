@@ -650,6 +650,7 @@ export type Database = {
           face_match_score: number | null
           id: string
           id_document_url: string | null
+          id_document_verso_url: string | null
           liveness_score: number | null
           pose_challenge: string | null
           provider: string | null
@@ -671,6 +672,7 @@ export type Database = {
           face_match_score?: number | null
           id?: string
           id_document_url?: string | null
+          id_document_verso_url?: string | null
           liveness_score?: number | null
           pose_challenge?: string | null
           provider?: string | null
@@ -692,6 +694,7 @@ export type Database = {
           face_match_score?: number | null
           id?: string
           id_document_url?: string | null
+          id_document_verso_url?: string | null
           liveness_score?: number | null
           pose_challenge?: string | null
           provider?: string | null
@@ -908,6 +911,7 @@ export type Database = {
         Args: {
           p_selfie_url: string
           p_id_document_url: string
+          p_id_document_verso_url: string
           p_recent_photo_1_url: string
           p_recent_photo_2_url: string
           p_document_type?: string

@@ -10,6 +10,7 @@ interface VerificationRequest {
   user_id: string;
   selfie_url: string;
   id_document_url: string | null;
+  id_document_verso_url: string | null;
   recent_photo_1_url: string | null;
   recent_photo_2_url: string | null;
   document_type: string | null;
@@ -27,6 +28,7 @@ interface VerificationRequest {
   urls?: {
     selfie?: string;
     id_document?: string;
+    id_document_verso?: string;
     recent_1?: string;
     recent_2?: string;
     avatar?: string;
@@ -97,9 +99,10 @@ export default function AdminVerifications() {
     const withUrls = await Promise.all(
       data.map(async (r) => {
         const profile = profileMap[r.user_id];
-        const [selfie, id_document, recent_1, recent_2] = await Promise.all([
+        const [selfie, id_document, id_document_verso, recent_1, recent_2] = await Promise.all([
           resolveUrl(r.selfie_url),
           resolveUrl((r as VerificationRequest).id_document_url),
+          resolveUrl((r as VerificationRequest).id_document_verso_url),
           resolveUrl((r as VerificationRequest).recent_photo_1_url),
           resolveUrl((r as VerificationRequest).recent_photo_2_url),
         ]);
@@ -110,6 +113,7 @@ export default function AdminVerifications() {
           urls: {
             selfie,
             id_document,
+            id_document_verso,
             recent_1,
             recent_2,
             avatar: profile?.avatar_url || undefined,
@@ -238,9 +242,15 @@ export default function AdminVerifications() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-1.5">
-                      {[r.urls?.id_document, r.urls?.selfie, r.urls?.recent_1, r.urls?.recent_2]
+                      {[
+                        r.urls?.id_document,
+                        r.urls?.id_document_verso,
+                        r.urls?.selfie,
+                        r.urls?.recent_1,
+                        r.urls?.recent_2,
+                      ]
                         .filter(Boolean)
-                        .slice(0, 4)
+                        .slice(0, 5)
                         .map((url, i) => (
                           <img
                             key={i}
@@ -315,8 +325,9 @@ export default function AdminVerifications() {
 
             <div className="p-5 space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Evidence label="Pièce d'identité" url={selected.urls?.id_document} />
-                <Evidence label="Selfie live" url={selected.urls?.selfie} />
+                <Evidence label="Pièce d'identité — Recto" url={selected.urls?.id_document} />
+                <Evidence label="Pièce d'identité — Verso" url={selected.urls?.id_document_verso} />
+                <Evidence label="Selfie live (caméra)" url={selected.urls?.selfie} />
                 <Evidence label="Photo récente 1" url={selected.urls?.recent_1} />
                 <Evidence label="Photo récente 2" url={selected.urls?.recent_2} />
               </div>

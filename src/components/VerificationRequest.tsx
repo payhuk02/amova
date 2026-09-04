@@ -42,8 +42,8 @@ const VerificationRequest = ({ currentStatus }: VerificationRequestProps) => {
         <div>
           <p className="text-sm font-medium">Vérification d&apos;identité professionnelle</p>
           <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-            Pièce d&apos;identité, selfie en direct et deux photos récentes. Validation manuelle
-            par notre équipe de conformité.
+            Pièce d&apos;identité recto + verso (lisibles), selfie caméra en direct, et deux photos
+            récentes. Validation manuelle par notre équipe de conformité.
           </p>
         </div>
       </div>
@@ -55,7 +55,7 @@ const VerificationRequest = ({ currentStatus }: VerificationRequestProps) => {
       )}
       <Button variant="outline" className="w-full" asChild>
         <Link to="/verification">
-          Ouvrir le dossier KYC
+            Ouvrir le dossier KYC (recto + verso + selfie caméra)
           <ArrowRight size={14} />
         </Link>
       </Button>
