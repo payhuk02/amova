@@ -13,6 +13,7 @@ const REQUIRED_SIDEBAR_PATHS = [
   "/events",
   "/speed-dating",
   "/edit-profile",
+  "/verification",
   "/coach",
   "/premium",
   "/settings",

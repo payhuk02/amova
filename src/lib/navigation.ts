@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Compass, MapPin, Heart, Eye, MessageCircle, Bell,
-  BookOpen, Calendar, Zap, Crown, Settings, User, Bot,
+  BookOpen, Calendar, Zap, Crown, Settings, User, Bot, ShieldCheck,
 } from "lucide-react";
 
 export interface NavItem {
@@ -45,6 +45,7 @@ export const navGroups: NavGroup[] = [
     label: "Mon espace",
     items: [
       { path: "/edit-profile", icon: User, label: "Mon profil" },
+      { path: "/verification", icon: ShieldCheck, label: "Vérification KYC" },
       { path: "/coach", icon: Bot, label: "Coach Dating" },
       { path: "/premium", icon: Crown, label: "Premium" },
       { path: "/settings", icon: Settings, label: "Paramètres" },
@@ -84,7 +85,7 @@ export const mobileNavItems: MobileNavItem[] = [
     path: "/settings",
     icon: User,
     label: "Mon espace",
-    matchPaths: ["/settings", "/premium", "/edit-profile", "/coach"],
+    matchPaths: ["/settings", "/premium", "/edit-profile", "/coach", "/verification"],
   },
 ];
 

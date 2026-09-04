@@ -642,49 +642,67 @@ export type Database = {
       }
       verification_requests: {
         Row: {
+          admin_notes: string | null
           auto_review_status: string | null
           created_at: string
+          document_type: string | null
+          external_id: string | null
           face_match_score: number | null
           id: string
+          id_document_url: string | null
           liveness_score: number | null
           pose_challenge: string | null
+          provider: string | null
+          recent_photo_1_url: string | null
+          recent_photo_2_url: string | null
           rejection_reason: string | null
           reviewed_at: string | null
+          reviewed_by: string | null
           selfie_url: string
           status: string
           user_id: string
-          provider: string | null
-          external_id: string | null
         }
         Insert: {
+          admin_notes?: string | null
           auto_review_status?: string | null
           created_at?: string
+          document_type?: string | null
+          external_id?: string | null
           face_match_score?: number | null
           id?: string
+          id_document_url?: string | null
           liveness_score?: number | null
           pose_challenge?: string | null
+          provider?: string | null
+          recent_photo_1_url?: string | null
+          recent_photo_2_url?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
+          reviewed_by?: string | null
           selfie_url: string
           status?: string
           user_id: string
-          provider?: string | null
-          external_id?: string | null
         }
         Update: {
+          admin_notes?: string | null
           auto_review_status?: string | null
           created_at?: string
+          document_type?: string | null
+          external_id?: string | null
           face_match_score?: number | null
           id?: string
+          id_document_url?: string | null
           liveness_score?: number | null
           pose_challenge?: string | null
+          provider?: string | null
+          recent_photo_1_url?: string | null
+          recent_photo_2_url?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
+          reviewed_by?: string | null
           selfie_url?: string
           status?: string
           user_id?: string
-          provider?: string | null
-          external_id?: string | null
         }
         Relationships: []
       }
@@ -878,8 +896,24 @@ export type Database = {
       }
       admin_get_stats: { Args: Record<PropertyKey, never>; Returns: Json }
       admin_review_verification: {
-        Args: { p_request_id: string; p_approved: boolean }
+        Args: {
+          p_request_id: string
+          p_approved: boolean
+          p_rejection_reason?: string | null
+          p_admin_notes?: string | null
+        }
         Returns: undefined
+      }
+      submit_verification_request: {
+        Args: {
+          p_selfie_url: string
+          p_id_document_url: string
+          p_recent_photo_1_url: string
+          p_recent_photo_2_url: string
+          p_document_type?: string
+          p_pose_challenge?: string | null
+        }
+        Returns: string
       }
       admin_set_admin: {
         Args: { p_user_id: string; p_is_admin: boolean }

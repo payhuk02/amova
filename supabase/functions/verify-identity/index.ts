@@ -7,17 +7,20 @@ import { getAiSettings, getModelForFeature, openRouterChatJson } from "../_share
 interface KycResult {
   liveness_score: number;
   face_match_score: number;
+  document_readable: boolean;
+  face_consistent_across_photos: boolean;
   is_live_person: boolean;
   same_person: boolean;
   rejection_reason?: string;
+  admin_summary?: string;
 }
 
-function extractStoragePath(selfieRef: string): string {
-  if (selfieRef.includes("/verifications/")) {
-    const parts = selfieRef.split("/verifications/");
+function extractStoragePath(ref: string): string {
+  if (ref.includes("/verifications/")) {
+    const parts = ref.split("/verifications/");
     return parts[parts.length - 1].split("?")[0];
   }
-  return selfieRef;
+  return ref;
 }
 
 function mimeFromPath(path: string): string {
@@ -26,18 +29,16 @@ function mimeFromPath(path: string): string {
   return "image/jpeg";
 }
 
-async function loadSelfieDataUrl(
+async function loadDataUrl(
   supabase: ReturnType<typeof getServiceClient>,
-  selfieRef: string,
-): Promise<string> {
-  const path = extractStoragePath(selfieRef);
+  ref: string,
+): Promise<string | null> {
+  if (!ref || ref === "sumsub") return null;
+  const path = extractStoragePath(ref);
   const { data, error } = await supabase.storage.from("verifications").download(path);
-  if (error || !data) {
-    throw new Error("Impossible de charger le selfie de vérification");
-  }
+  if (error || !data) return null;
   const bytes = new Uint8Array(await data.arrayBuffer());
-  const base64 = encodeBase64(bytes);
-  return `data:${mimeFromPath(path)};base64,${base64}`;
+  return `data:${mimeFromPath(path)};base64,${encodeBase64(bytes)}`;
 }
 
 serve(async (req) => {
@@ -55,11 +56,11 @@ serve(async (req) => {
   }
 
   try {
-    const { requestId, selfieUrl, storagePath, avatarUrl, poseChallenge } = await req.json();
-    const selfieRef = storagePath || selfieUrl;
+    const body = await req.json();
+    const requestId = body.requestId as string | undefined;
 
-    if (!requestId || !selfieRef) {
-      return new Response(JSON.stringify({ error: "requestId et storagePath requis" }), {
+    if (!requestId) {
+      return new Response(JSON.stringify({ error: "requestId requis" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -69,7 +70,9 @@ serve(async (req) => {
 
     const { data: request } = await supabase
       .from("verification_requests")
-      .select("id, user_id, status")
+      .select(
+        "id, user_id, status, selfie_url, id_document_url, recent_photo_1_url, recent_photo_2_url, pose_challenge, document_type",
+      )
       .eq("id", requestId)
       .eq("user_id", user.id)
       .single();
@@ -81,97 +84,116 @@ serve(async (req) => {
       });
     }
 
-    const selfieDataUrl = await loadSelfieDataUrl(supabase, selfieRef);
-    const profileAvatar = avatarUrl as string | undefined;
-    const challenge = poseChallenge || "sourire naturel";
+    const selfieDataUrl = await loadDataUrl(supabase, request.selfie_url);
+    if (!selfieDataUrl) {
+      throw new Error("Impossible de charger le selfie");
+    }
+
+    const idDataUrl = await loadDataUrl(supabase, request.id_document_url || "");
+    const photo1DataUrl = await loadDataUrl(supabase, request.recent_photo_1_url || "");
+    const photo2DataUrl = await loadDataUrl(supabase, request.recent_photo_2_url || "");
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("avatar_url")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
     const settings = await getAiSettings();
+    const challenge = request.pose_challenge || "visage clairement visible";
 
     const contentParts: Array<Record<string, unknown>> = [
       {
         type: "text",
-        text: `Tu es un système KYC pour une app de rencontres. Analyse le selfie de vérification.
-Défi demandé à l'utilisateur: "${challenge}".
-Évalue:
-1) liveness_score (0-1): personne réelle, pas une photo d'écran
-2) face_match_score (0-1): même personne que la photo de profil (si fournie)
-3) is_live_person (bool)
-4) same_person (bool, false si pas de photo profil)
-5) rejection_reason (string courte en français si rejet)
+        text: `Tu es un assistant de pré-analyse KYC pour une plateforme de rencontres professionnelle.
+Tu ne décides PAS de l'approbation — un humain valide toujours.
+Documents fournis: pièce d'identité (${request.document_type || "cni"}), selfie live, 2 photos récentes.
+Défi selfie: "${challenge}".
 
-Réponds UNIQUEMENT en JSON valide.`,
+Évalue et réponds UNIQUEMENT en JSON:
+{
+  "liveness_score": 0-1,
+  "face_match_score": 0-1,
+  "document_readable": bool,
+  "face_consistent_across_photos": bool,
+  "is_live_person": bool,
+  "same_person": bool,
+  "rejection_reason": "string courte FR si doute",
+  "admin_summary": "2 phrases max pour l'admin"
+}`,
       },
+      { type: "text", text: "Selfie de vérification:" },
       { type: "image_url", image_url: { url: selfieDataUrl } },
     ];
 
-    if (profileAvatar) {
-      contentParts.push({ type: "image_url", image_url: { url: profileAvatar } });
+    if (idDataUrl) {
+      contentParts.push({ type: "text", text: "Pièce d'identité:" });
+      contentParts.push({ type: "image_url", image_url: { url: idDataUrl } });
+    }
+    if (photo1DataUrl) {
+      contentParts.push({ type: "text", text: "Photo récente 1:" });
+      contentParts.push({ type: "image_url", image_url: { url: photo1DataUrl } });
+    }
+    if (photo2DataUrl) {
+      contentParts.push({ type: "text", text: "Photo récente 2:" });
+      contentParts.push({ type: "image_url", image_url: { url: photo2DataUrl } });
+    }
+    if (profile?.avatar_url) {
+      contentParts.push({ type: "text", text: "Avatar profil:" });
+      contentParts.push({ type: "image_url", image_url: { url: profile.avatar_url } });
     }
 
-    const aiData = await openRouterChatJson({
-      model: getModelForFeature(settings, "kyc"),
-      messages: [{ role: "user", content: contentParts }],
-      response_format: { type: "json_object" },
-    }) as { choices?: Array<{ message?: { content?: string } }> };
+    let liveness = 0;
+    let faceMatch = 0;
+    let rejectionReason: string | null = "Pré-analyse IA indisponible — revue manuelle requise";
+    let adminSummary: string | null = null;
 
-    const raw = aiData.choices?.[0]?.message?.content ?? "{}";
-    const parsed = JSON.parse(raw) as KycResult;
+    try {
+      const aiData = await openRouterChatJson({
+        model: getModelForFeature(settings, "kyc"),
+        messages: [{ role: "user", content: contentParts }],
+        response_format: { type: "json_object" },
+      }) as { choices?: Array<{ message?: { content?: string } }> };
 
-    const liveness = Math.min(1, Math.max(0, Number(parsed.liveness_score) || 0));
-    const faceMatch = Math.min(1, Math.max(0, Number(parsed.face_match_score) || 0));
-    const autoApproved =
-      liveness >= 0.75 &&
-      (profileAvatar ? faceMatch >= 0.72 : liveness >= 0.85) &&
-      parsed.is_live_person !== false;
+      const raw = aiData.choices?.[0]?.message?.content ?? "{}";
+      const parsed = JSON.parse(raw) as KycResult;
+      liveness = Math.min(1, Math.max(0, Number(parsed.liveness_score) || 0));
+      faceMatch = Math.min(1, Math.max(0, Number(parsed.face_match_score) || 0));
+      rejectionReason = parsed.rejection_reason || null;
+      adminSummary = parsed.admin_summary || null;
+    } catch (aiError) {
+      console.error("KYC AI advisory failed:", aiError);
+    }
 
-    const autoStatus = autoApproved ? "approved" : "pending_review";
-    const rejectionReason = autoApproved
-      ? null
-      : parsed.rejection_reason || "Vérification manuelle requise";
-
+    // Never auto-approve — human review only
     await supabase
       .from("verification_requests")
       .update({
         liveness_score: liveness,
         face_match_score: faceMatch,
-        auto_review_status: autoStatus,
+        auto_review_status: "pending_review",
         rejection_reason: rejectionReason,
-        pose_challenge: challenge,
-        status: autoApproved ? "approved" : "pending",
-        reviewed_at: autoApproved ? new Date().toISOString() : null,
+        admin_notes: adminSummary,
+        status: "pending",
+        reviewed_at: null,
       })
       .eq("id", requestId);
 
-    if (autoApproved) {
-      await supabase
-        .from("profiles")
-        .update({
-          is_verified: true,
-          verification_status: "verified",
-        })
-        .eq("user_id", user.id);
-
-      await supabase.from("notifications").insert({
-        user_id: user.id,
-        type: "verification",
-        title: "Profil vérifié",
-        body: "Félicitations ! Votre identité a été confirmée.",
-      });
-
-      await supabase.from("badges").upsert(
-        { user_id: user.id, badge_type: "verified" },
-        { onConflict: "user_id,badge_type", ignoreDuplicates: true },
-      );
-    }
+    await supabase
+      .from("profiles")
+      .update({
+        verification_status: "pending",
+        verification_photo_url: request.selfie_url,
+      })
+      .eq("user_id", user.id);
 
     return new Response(
       JSON.stringify({
-        autoApproved,
+        autoApproved: false,
         liveness_score: liveness,
         face_match_score: faceMatch,
-        status: autoApproved ? "verified" : "pending",
-        message: autoApproved
-          ? "Vérification automatique réussie"
-          : "Votre demande sera examinée par notre équipe sous 24h",
+        status: "pending",
+        message: "Dossier reçu. Notre équipe de conformité l'examinera sous 24–48h.",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
