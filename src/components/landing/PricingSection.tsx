@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import ScrollReveal from "@/components/ScrollReveal";
+import { PLAN_PRICES } from "@/lib/plans";
 
 const plans = [
   {
@@ -9,22 +10,31 @@ const plans = [
     price: "0 FCFA",
     period: "",
     description: "Pour découvrir la plateforme",
-    features: ["1 Super Like / jour", "50 swipes / jour", "15 messages / jour", "Avatar visible (galerie Premium)"],
+    features: ["1 Super Like / jour", "50 swipes / jour", "15 messages / jour", "Avatar visible (galerie Plus)"],
     cta: "Commencer gratuitement",
     highlighted: false,
   },
   {
+    name: "Plus",
+    price: `${PLAN_PRICES.plus.toLocaleString("fr-FR")} FCFA`,
+    period: "/mois",
+    description: "Photos, likes et messages",
+    features: ["2 Super Likes / jour", "100 swipes / jour", "Messages illimités", "Galerie photos HD", "Voir qui vous aime", "Filtres avancés"],
+    cta: "Choisir Plus",
+    highlighted: false,
+  },
+  {
     name: "Premium",
-    price: "4 900 FCFA",
+    price: `${PLAN_PRICES.premium.toLocaleString("fr-FR")} FCFA`,
     period: "/mois",
     description: "L'expérience complète",
-    features: ["5 Super Likes / jour", "Swipes & messages illimités", "Galerie photos HD", "Voir qui vous aime", "Filtres avancés", "1 Boost / jour"],
+    features: ["5 Super Likes / jour", "Swipes & messages illimités", "1 Boost / jour", "Tout le plan Plus"],
     cta: "Choisir Premium",
     highlighted: true,
   },
   {
     name: "VIP",
-    price: "9 900 FCFA",
+    price: `${PLAN_PRICES.vip.toLocaleString("fr-FR")} FCFA`,
     period: "/mois",
     description: "Visibilité et priorité maximales",
     features: ["Super Likes illimités", "Mode incognito", "Matching prioritaire", "3 Boosts / jour", "Support prioritaire"],
@@ -46,7 +56,7 @@ const PricingSection = () => (
         </p>
       </ScrollReveal>
 
-      <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch px-4 sm:px-6 md:px-0">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto items-stretch px-4 sm:px-6 md:px-0">
         {plans.map((plan, i) => (
           <ScrollReveal key={plan.name} delay={i * 100}>
             <div
@@ -66,7 +76,7 @@ const PricingSection = () => (
                 <p className="text-muted-foreground text-sm">{plan.description}</p>
               </div>
               <div className="mb-6">
-                <span className="font-display text-4xl font-semibold text-gradient-copper tabular-nums">{plan.price}</span>
+                <span className="font-display text-3xl md:text-4xl font-semibold text-gradient-copper tabular-nums">{plan.price}</span>
                 {plan.period && <span className="text-muted-foreground text-sm">{plan.period}</span>}
               </div>
               <ul className="space-y-3 mb-8 flex-1">

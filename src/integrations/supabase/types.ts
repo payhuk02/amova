@@ -717,7 +717,9 @@ export type Database = {
           created_at: string
           id: string
           is_renewal: boolean
-          plan: Database["public"]["Enums"]["subscription_plan"]
+          plan: Database["public"]["Enums"]["subscription_plan"] | null
+          product_type: string
+          product_sku: string | null
           status: string
           token_pay: string | null
           updated_at: string
@@ -730,7 +732,9 @@ export type Database = {
           created_at?: string
           id?: string
           is_renewal?: boolean
-          plan: Database["public"]["Enums"]["subscription_plan"]
+          plan?: Database["public"]["Enums"]["subscription_plan"] | null
+          product_type?: string
+          product_sku?: string | null
           status?: string
           token_pay?: string | null
           updated_at?: string
@@ -743,11 +747,40 @@ export type Database = {
           created_at?: string
           id?: string
           is_renewal?: boolean
-          plan?: Database["public"]["Enums"]["subscription_plan"]
+          plan?: Database["public"]["Enums"]["subscription_plan"] | null
+          product_type?: string
+          product_sku?: string | null
           status?: string
           token_pay?: string | null
           updated_at?: string
+          user_id: string
+        }
+        Relationships: []
+      }
+      user_entitlements: {
+        Row: {
+          id: string
+          user_id: string
+          sku: string
+          expires_at: string
+          source_order_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          sku: string
+          expires_at: string
+          source_order_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
           user_id?: string
+          sku?: string
+          expires_at?: string
+          source_order_id?: string | null
+          created_at?: string
         }
         Relationships: []
       }
@@ -990,7 +1023,7 @@ export type Database = {
       send_subscription_renewal_reminders: { Args: Record<PropertyKey, never>; Returns: number }
     }
     Enums: {
-      subscription_plan: "free" | "premium" | "vip"
+      subscription_plan: "free" | "plus" | "premium" | "vip"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1118,7 +1151,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      subscription_plan: ["free", "premium", "vip"],
+      subscription_plan: ["free", "plus", "premium", "vip"],
     },
   },
 } as const

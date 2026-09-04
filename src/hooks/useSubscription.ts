@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-export type PlanType = "free" | "premium" | "vip";
+export type PlanType = "free" | "plus" | "premium" | "vip";
 
 interface Subscription {
   id: string;
@@ -32,6 +32,16 @@ const PLAN_LIMITS: Record<PlanType, {
     incognitoMode: false,
     priorityMatching: false,
     unlimitedSwipes: false,
+  },
+  plus: {
+    superLikesPerDay: 2,
+    boostsPerDay: 0,
+    canSeeWhoLiked: true,
+    canViewFullGallery: true,
+    dailyMessageLimit: -1,
+    incognitoMode: false,
+    priorityMatching: false,
+    unlimitedSwipes: false, // 100/day server-side
   },
   premium: {
     superLikesPerDay: 5,
@@ -75,6 +85,24 @@ export function useSubscription() {
     enabled: !!user,
   });
 
+  const { data: revealUntil } = useQuery({
+    queryKey: ["entitlement", "likes_reveal_24h", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from("user_entitlements")
+        .select("expires_at")
+        .eq("user_id", user.id)
+        .eq("sku", "likes_reveal_24h")
+        .gt("expires_at", new Date().toISOString())
+        .order("expires_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data?.expires_at ?? null;
+    },
+    enabled: !!user,
+  });
+
   const effectivePlan: PlanType = (() => {
     if (!subscription || subscription.status !== "active") return "free";
     if (
@@ -89,6 +117,8 @@ export function useSubscription() {
 
   const currentPlan: PlanType = effectivePlan;
   const limits = PLAN_LIMITS[currentPlan];
+  const hasLikesRevealPass = Boolean(revealUntil && new Date(revealUntil) > new Date());
+  const canSeeWhoLiked = limits.canSeeWhoLiked || hasLikesRevealPass;
   const isExpired =
     subscription?.plan !== "free" &&
     subscription?.expires_at != null &&
@@ -96,13 +126,14 @@ export function useSubscription() {
 
   const upgrade = (newPlan: PlanType) => {
     if (newPlan === currentPlan || newPlan === "free") return;
-    // Payment flow handled on /premium page via PaymentCheckoutDialog
   };
 
   return {
     subscription,
     currentPlan,
-    limits,
+    limits: { ...limits, canSeeWhoLiked },
+    hasLikesRevealPass,
+    likesRevealExpiresAt: revealUntil,
     isLoading,
     isExpired,
     upgrade,

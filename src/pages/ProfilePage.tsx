@@ -355,12 +355,12 @@ const ProfilePage = () => {
             <div>
               <p className="font-medium">Galerie réservée aux abonnés</p>
               <p className="text-xs text-muted-foreground mt-1">
-                L&apos;avatar reste visible. Passez Premium pour voir toutes les photos en HD,
+                L&apos;avatar reste visible. Passez Plus pour voir toutes les photos en HD,
                 ou matchez pour débloquer ce profil.
               </p>
             </div>
             <Button variant="hero" size="sm" onClick={() => navigate("/premium")}>
-              Voir les offres Premium
+              Voir les offres
             </Button>
           </div>
         )}

@@ -7,19 +7,20 @@ import PaymentCheckoutDialog from "@/components/PaymentCheckoutDialog";
 import PaymentReassurance from "@/components/PaymentReassurance";
 import AppShell from "@/components/AppShell";
 import { cn } from "@/lib/utils";
-import { PLAN_PRICES } from "@/lib/plans";
+import { PLAN_PRICES, CONSUMABLE_PRICES } from "@/lib/plans";
+import type { ConsumableSku } from "@/lib/plans";
 
 const comparisonRows = [
-  { label: "Super Likes / jour", free: "1", premium: "5", vip: "Illimités" },
-  { label: "Swipes", free: "50 / jour", premium: "Illimités", vip: "Illimités" },
-  { label: "Messages / jour", free: "15", premium: "Illimités", vip: "Illimités" },
-  { label: "Galerie photos HD", free: false, premium: true, vip: true },
-  { label: "Boosts / jour", free: "—", premium: "1", vip: "3" },
-  { label: "Voir qui vous aime", free: false, premium: true, vip: true },
-  { label: "Filtres avancés", free: false, premium: true, vip: true },
-  { label: "Mode incognito", free: false, premium: false, vip: true },
-  { label: "Matching prioritaire", free: false, premium: false, vip: true },
-  { label: "Support prioritaire", free: false, premium: false, vip: true },
+  { label: "Super Likes / jour", free: "1", plus: "2", premium: "5", vip: "Illimités" },
+  { label: "Swipes", free: "50 / jour", plus: "100 / jour", premium: "Illimités", vip: "Illimités" },
+  { label: "Messages / jour", free: "15", plus: "Illimités", premium: "Illimités", vip: "Illimités" },
+  { label: "Galerie photos HD", free: false, plus: true, premium: true, vip: true },
+  { label: "Voir qui vous aime", free: false, plus: true, premium: true, vip: true },
+  { label: "Filtres avancés", free: false, plus: true, premium: true, vip: true },
+  { label: "Boosts / jour", free: "—", plus: "—", premium: "1", vip: "3" },
+  { label: "Mode incognito", free: false, plus: false, premium: false, vip: true },
+  { label: "Matching prioritaire", free: false, plus: false, premium: false, vip: true },
+  { label: "Support prioritaire", free: false, plus: false, premium: false, vip: true },
 ] as const;
 
 const plans = [
@@ -30,6 +31,14 @@ const plans = [
     period: "",
     icon: Heart,
     description: "Découvrir la plateforme",
+  },
+  {
+    id: "plus" as PlanType,
+    name: "Plus",
+    price: `${PLAN_PRICES.plus.toLocaleString("fr-FR")} FCFA`,
+    period: "/mois",
+    icon: Zap,
+    description: "Photos, likes & messages",
   },
   {
     id: "premium" as PlanType,
@@ -65,12 +74,12 @@ export default function Premium() {
   const { currentPlan, isExpired, subscription } = useSubscription();
   const [searchParams] = useSearchParams();
   const [checkoutPlan, setCheckoutPlan] = useState<Exclude<PlanType, "free"> | null>(null);
+  const [checkoutSku, setCheckoutSku] = useState<ConsumableSku | null>(null);
   const [isRenewalCheckout, setIsRenewalCheckout] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("renew") !== "1") return;
 
-    // Active sub: renew current plan. Expired: renew last paid plan. Else default Premium.
     const renewPlan: Exclude<PlanType, "free"> =
       currentPlan !== "free"
         ? currentPlan
@@ -84,6 +93,7 @@ export default function Premium() {
 
   const handleSelectPlan = (planId: PlanType) => {
     if (planId === "free" || planId === currentPlan) return;
+    setCheckoutSku(null);
     setIsRenewalCheckout(false);
     setCheckoutPlan(planId);
   };
@@ -95,6 +105,7 @@ export default function Premium() {
         : isExpired && subscription?.plan && subscription.plan !== "free"
           ? (subscription.plan as Exclude<PlanType, "free">)
           : "premium";
+    setCheckoutSku(null);
     setIsRenewalCheckout(true);
     setCheckoutPlan(renewPlan);
   };
@@ -125,8 +136,7 @@ export default function Premium() {
           </div>
         )}
 
-        {/* Plan cards */}
-        <div className="grid gap-4 sm:grid-cols-3 mb-10">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
           {plans.map((plan) => {
             const isCurrent = currentPlan === plan.id;
             const Icon = plan.icon;
@@ -171,28 +181,61 @@ export default function Premium() {
           })}
         </div>
 
-        {/* Comparison table */}
+        <div className="glass-card rounded-2xl p-5 sm:p-6 mb-8">
+          <h2 className="font-display text-lg font-medium mb-2">Passes ponctuels</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Pas besoin d&apos;abonnement : achetez uniquement ce dont vous avez besoin.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {(
+              [
+                { sku: "likes_reveal_24h" as const, desc: "Dévoilez les likes 24h" },
+                { sku: "boost_24h" as const, desc: "Boost profil 24h" },
+                { sku: "spotlight_24h" as const, desc: "Spotlight Discover 24h" },
+              ] as const
+            ).map(({ sku, desc }) => (
+              <button
+                key={sku}
+                type="button"
+                onClick={() => {
+                  setCheckoutPlan(null);
+                  setIsRenewalCheckout(false);
+                  setCheckoutSku(sku);
+                }}
+                className="text-left rounded-xl border border-border/40 bg-secondary/20 p-4 hover:border-champagne/30 transition-colors"
+              >
+                <p className="text-sm font-medium">{desc}</p>
+                <p className="text-champagne text-sm mt-1 tabular-nums">
+                  {CONSUMABLE_PRICES[sku].toLocaleString("fr-FR")} FCFA
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="glass-card rounded-2xl overflow-hidden mb-8">
           <div className="p-4 sm:p-5 border-b border-border/40">
             <h2 className="font-display text-lg sm:text-xl font-medium">Comparatif des formules</h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[500px]">
+            <table className="w-full text-sm min-w-[640px]">
               <thead>
                 <tr className="border-b border-border/40 bg-secondary/30">
                   <th className="text-left px-4 sm:px-6 py-3 text-muted-foreground font-medium">Fonctionnalité</th>
-                  <th className="px-4 py-3 text-center text-muted-foreground font-medium w-24">Gratuit</th>
-                  <th className="px-4 py-3 text-center text-champagne font-medium w-24">Premium</th>
-                  <th className="px-4 py-3 text-center text-muted-foreground font-medium w-24">VIP</th>
+                  <th className="px-3 py-3 text-center text-muted-foreground font-medium w-20">Gratuit</th>
+                  <th className="px-3 py-3 text-center text-muted-foreground font-medium w-20">Plus</th>
+                  <th className="px-3 py-3 text-center text-champagne font-medium w-20">Premium</th>
+                  <th className="px-3 py-3 text-center text-muted-foreground font-medium w-20">VIP</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
                 {comparisonRows.map((row) => (
                   <tr key={row.label} className="hover:bg-secondary/20">
                     <td className="px-4 sm:px-6 py-3 text-foreground/90">{row.label}</td>
-                    <td className="px-4 py-3 text-center"><CellValue value={row.free} /></td>
-                    <td className="px-4 py-3 text-center bg-champagne/5"><CellValue value={row.premium} /></td>
-                    <td className="px-4 py-3 text-center"><CellValue value={row.vip} /></td>
+                    <td className="px-3 py-3 text-center"><CellValue value={row.free} /></td>
+                    <td className="px-3 py-3 text-center"><CellValue value={row.plus} /></td>
+                    <td className="px-3 py-3 text-center bg-champagne/5"><CellValue value={row.premium} /></td>
+                    <td className="px-3 py-3 text-center"><CellValue value={row.vip} /></td>
                   </tr>
                 ))}
               </tbody>
@@ -202,10 +245,9 @@ export default function Premium() {
 
         <PaymentReassurance className="mb-8" />
 
-        {/* Highlights */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {([
-            { icon: Eye, label: "Voir les likes", desc: "Premium+" },
+            { icon: Eye, label: "Voir les likes", desc: "Plus+" },
             { icon: Zap, label: "Boosts quotidiens", desc: "Premium+" },
             { icon: Shield, label: "Mode incognito", desc: "VIP" },
             { icon: Heart, label: "Swipes illimités", desc: "Premium+" },
@@ -220,10 +262,12 @@ export default function Premium() {
 
         <PaymentCheckoutDialog
           plan={checkoutPlan}
-          open={checkoutPlan !== null}
+          productSku={checkoutSku}
+          open={checkoutPlan !== null || checkoutSku !== null}
           onOpenChange={(open) => {
             if (!open) {
               setCheckoutPlan(null);
+              setCheckoutSku(null);
               setIsRenewalCheckout(false);
             }
           }}

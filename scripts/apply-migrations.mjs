@@ -30,6 +30,8 @@ const pending = [
   "20260904140000_professional_kyc.sql",
   "20260904150000_kyc_id_recto_verso.sql",
   "20260904160000_p0_paywall_photos_messages.sql",
+  "20260904170000_plus_plan_enum.sql",
+  "20260904170100_plus_plan_entitlements.sql",
 ];
 
 if (!token) {

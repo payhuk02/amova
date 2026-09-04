@@ -6,7 +6,9 @@ import {
   getServiceClient,
   normalizePhone,
   PLAN_PRICES,
+  CONSUMABLE_PRICES,
   type PaidPlan,
+  type ConsumableSku,
 } from "../_shared/moneyfusion.ts";
 
 serve(async (req) => {
@@ -24,9 +26,73 @@ serve(async (req) => {
   }
 
   try {
-    const { plan, phone, clientName, isRenewal } = await req.json();
+    const { plan, phone, clientName, isRenewal, productSku } = await req.json();
 
-    if (plan !== "premium" && plan !== "vip") {
+    const supabase = getServiceClient();
+    const appUrl = getAppUrl();
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+
+    // Consumable one-shots
+    if (productSku) {
+      const sku = String(productSku) as ConsumableSku;
+      if (!(sku in CONSUMABLE_PRICES)) {
+        return new Response(JSON.stringify({ error: "Produit invalide" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (!phone || !clientName) {
+        return new Response(JSON.stringify({ error: "Téléphone et nom requis" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const amount = CONSUMABLE_PRICES[sku];
+      const { data: order, error: orderError } = await supabase
+        .from("payment_orders")
+        .insert({
+          user_id: user.id,
+          plan: null,
+          amount,
+          client_name: clientName,
+          client_phone: phone,
+          status: "pending",
+          is_renewal: false,
+          product_type: "consumable",
+          product_sku: sku,
+        })
+        .select("id")
+        .single();
+
+      if (orderError || !order) {
+        throw new Error(orderError?.message || "Impossible de créer la commande");
+      }
+
+      const payment = await createMoneyfusionPayment({
+        totalPrice: amount,
+        articleLabel: `Amova ${sku}`,
+        phone: normalizePhone(String(phone)),
+        clientName: String(clientName).trim(),
+        orderId: order.id,
+        userId: user.id,
+        returnUrl: `${appUrl}/premium/callback`,
+        webhookUrl: `${supabaseUrl}/functions/v1/moneyfusion-webhook`,
+      });
+
+      if (!payment.statut || !payment.url || !payment.token) {
+        await supabase.from("payment_orders").update({ status: "failed" }).eq("id", order.id);
+        throw new Error(payment.message || "Échec de l'initialisation du paiement");
+      }
+
+      await supabase.from("payment_orders").update({ token_pay: payment.token }).eq("id", order.id);
+
+      return new Response(JSON.stringify({ url: payment.url }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (plan !== "plus" && plan !== "premium" && plan !== "vip") {
       return new Response(JSON.stringify({ error: "Plan invalide" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -42,7 +108,6 @@ serve(async (req) => {
 
     const paidPlan = plan as PaidPlan;
     const amount = PLAN_PRICES[paidPlan];
-    const supabase = getServiceClient();
 
     const { data: order, error: orderError } = await supabase
       .from("payment_orders")
@@ -54,6 +119,8 @@ serve(async (req) => {
         client_phone: phone,
         status: "pending",
         is_renewal: Boolean(isRenewal),
+        product_type: "subscription",
+        product_sku: null,
       })
       .select("id")
       .single();
@@ -62,8 +129,6 @@ serve(async (req) => {
       throw new Error(orderError?.message || "Impossible de créer la commande");
     }
 
-    const appUrl = getAppUrl();
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const payment = await createMoneyfusionPayment({
       totalPrice: amount,
       articleLabel: `Amova ${paidPlan}`,

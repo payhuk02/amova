@@ -4,7 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { getLimitErrorMessage } from "@/lib/limits";
 import type { BoostInsert } from "@/lib/supabase-helpers";
-import { Zap, Crown } from "lucide-react";
+import PaymentCheckoutDialog from "@/components/PaymentCheckoutDialog";
+import { Zap } from "lucide-react";
 import { toast } from "sonner";
 
 const BoostButton = () => {
@@ -12,6 +13,7 @@ const BoostButton = () => {
   const { limits } = useSubscription();
   const [boosted, setBoosted] = useState(false);
   const [remaining, setRemaining] = useState(0);
+  const [buyOpen, setBuyOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -37,7 +39,7 @@ const BoostButton = () => {
     if (!user || boosted) return;
 
     if (limits.boostsPerDay === 0) {
-      toast.error("Les boosts sont réservés aux abonnés Premium et VIP.");
+      setBuyOpen(true);
       return;
     }
 
@@ -47,15 +49,18 @@ const BoostButton = () => {
 
     if (error) {
       const limitMsg = getLimitErrorMessage(error);
+      if (limitMsg?.includes("boost") || error.message?.includes("daily_boost")) {
+        setBuyOpen(true);
+        return;
+      }
       toast.error(limitMsg || "Erreur lors du boost");
       return;
     }
 
     setBoosted(true);
     setRemaining(30);
-    toast.success("Profil boosté pendant 30 minutes ! ⚡");
+    toast.success("Profil boosté pendant 30 minutes !");
 
-    // Auto reset after 30 min
     setTimeout(() => {
       setBoosted(false);
       setRemaining(0);
@@ -63,20 +68,29 @@ const BoostButton = () => {
   };
 
   return (
-    <button
-      onClick={handleBoost}
-      disabled={boosted || limits.boostsPerDay === 0}
-      className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 active:scale-[0.97] ${
-        boosted
-          ? "bg-amber-500/15 text-amber-500 border border-amber-500/20"
-          : limits.boostsPerDay === 0
-            ? "bg-secondary/30 text-muted-foreground/50 border border-border/20 cursor-not-allowed"
+    <>
+      <button
+        onClick={handleBoost}
+        disabled={boosted}
+        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 active:scale-[0.97] ${
+          boosted
+            ? "bg-amber-500/15 text-amber-500 border border-amber-500/20"
             : "bg-secondary/50 text-muted-foreground hover:bg-amber-500/10 hover:text-amber-500 border border-border/30 hover:border-amber-500/30"
-      }`}
-    >
-      {limits.boostsPerDay === 0 ? <Crown size={14} /> : <Zap size={14} className={boosted ? "fill-current" : ""} />}
-      {boosted ? `Boosté (${remaining} min)` : limits.boostsPerDay === 0 ? "Premium" : "Booster"}
-    </button>
+        }`}
+      >
+        <Zap size={14} className={boosted ? "fill-current" : ""} />
+        {boosted
+          ? `Boosté (${remaining} min)`
+          : limits.boostsPerDay === 0
+            ? "Acheter Boost"
+            : "Booster"}
+      </button>
+      <PaymentCheckoutDialog
+        productSku="boost_24h"
+        open={buyOpen}
+        onOpenChange={setBuyOpen}
+      />
+    </>
   );
 };
 

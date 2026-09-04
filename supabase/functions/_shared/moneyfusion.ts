@@ -1,11 +1,20 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 export const PLAN_PRICES = {
-  premium: 4900,
-  vip: 9900,
+  plus: 2900,
+  premium: 5900,
+  vip: 12900,
 } as const;
 
 export type PaidPlan = keyof typeof PLAN_PRICES;
+
+export const CONSUMABLE_PRICES = {
+  likes_reveal_24h: 1200,
+  boost_24h: 1500,
+  spotlight_24h: 2500,
+} as const;
+
+export type ConsumableSku = keyof typeof CONSUMABLE_PRICES;
 
 export interface MoneyfusionCreateResponse {
   statut?: boolean;

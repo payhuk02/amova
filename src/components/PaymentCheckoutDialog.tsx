@@ -14,12 +14,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import type { PlanType } from "@/hooks/useSubscription";
-import { PLAN_LABELS, PLAN_PRICES } from "@/lib/plans";
+import {
+  PLAN_LABELS,
+  PLAN_PRICES,
+  CONSUMABLE_LABELS,
+  CONSUMABLE_PRICES,
+  type ConsumableSku,
+} from "@/lib/plans";
 import PaymentReassurance from "@/components/PaymentReassurance";
 import { trackEvent } from "@/lib/analytics";
 
 interface PaymentCheckoutDialogProps {
-  plan: Exclude<PlanType, "free"> | null;
+  plan?: Exclude<PlanType, "free"> | null;
+  productSku?: ConsumableSku | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isRenewal?: boolean;
@@ -39,7 +46,8 @@ async function getInvokeErrorMessage(error: unknown): Promise<string> {
 }
 
 export default function PaymentCheckoutDialog({
-  plan,
+  plan = null,
+  productSku = null,
   open,
   onOpenChange,
   isRenewal = false,
@@ -49,8 +57,21 @@ export default function PaymentCheckoutDialog({
   const [clientName, setClientName] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const isConsumable = Boolean(productSku);
+  const title = isConsumable
+    ? CONSUMABLE_LABELS[productSku!]
+    : plan
+      ? `${isRenewal ? "Renouveler" : "Paiement"} ${PLAN_LABELS[plan]}`
+      : "";
+  const priceLabel = isConsumable
+    ? `${CONSUMABLE_PRICES[productSku!].toLocaleString("fr-FR")} FCFA`
+    : plan
+      ? `${PLAN_PRICES[plan].toLocaleString("fr-FR")} FCFA / mois${isRenewal ? " — prolongation de 30 jours" : ""}`
+      : "";
+
   const handlePay = async () => {
-    if (!plan || !user) return;
+    if (!user) return;
+    if (!isConsumable && !plan) return;
     if (!phone.trim() || !clientName.trim()) {
       toast.error("Veuillez renseigner votre nom et numéro de téléphone");
       return;
@@ -58,14 +79,20 @@ export default function PaymentCheckoutDialog({
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("create-payment", {
-        body: {
-          plan,
-          phone: phone.trim(),
-          clientName: clientName.trim(),
-          isRenewal,
-        },
-      });
+      const body = isConsumable
+        ? {
+            productSku,
+            phone: phone.trim(),
+            clientName: clientName.trim(),
+          }
+        : {
+            plan,
+            phone: phone.trim(),
+            clientName: clientName.trim(),
+            isRenewal,
+          };
+
+      const { data, error } = await supabase.functions.invoke("create-payment", { body });
 
       if (error) {
         throw new Error(await getInvokeErrorMessage(error));
@@ -73,7 +100,10 @@ export default function PaymentCheckoutDialog({
       if (data?.error) throw new Error(data.error);
       if (!data?.url) throw new Error("URL de paiement indisponible");
 
-      trackEvent(isRenewal ? "Renewal Checkout" : "Premium Checkout", { plan });
+      trackEvent(
+        isConsumable ? "Consumable Checkout" : isRenewal ? "Renewal Checkout" : "Premium Checkout",
+        isConsumable ? { productSku } : { plan },
+      );
 
       window.location.href = data.url;
     } catch (err) {
@@ -83,19 +113,14 @@ export default function PaymentCheckoutDialog({
     }
   };
 
-  if (!plan) return null;
+  if (!plan && !productSku) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl">
-            {isRenewal ? "Renouveler" : "Paiement"} {PLAN_LABELS[plan]}
-          </DialogTitle>
-          <DialogDescription>
-            {PLAN_PRICES[plan].toLocaleString("fr-FR")} FCFA / mois
-            {isRenewal && " — prolongation de 30 jours"}
-          </DialogDescription>
+          <DialogTitle className="font-display text-xl">{title}</DialogTitle>
+          <DialogDescription>{priceLabel}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -121,10 +146,10 @@ export default function PaymentCheckoutDialog({
             />
           </div>
 
-          <PaymentReassurance compact />
+          <PaymentReassurance />
 
-          <Button variant="hero" className="w-full" onClick={handlePay} disabled={loading}>
-            {loading ? "Redirection..." : "Payer maintenant"}
+          <Button onClick={handlePay} disabled={loading} className="w-full" variant="default">
+            {loading ? "Redirection…" : "Payer maintenant"}
           </Button>
         </div>
       </DialogContent>

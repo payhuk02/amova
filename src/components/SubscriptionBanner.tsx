@@ -9,7 +9,10 @@ export default function SubscriptionBanner() {
   if (!subscription?.expires_at) return null;
 
   const daysLeft = differenceInDays(parseISO(subscription.expires_at), new Date());
-  const wasPremium = subscription.plan === "premium" || subscription.plan === "vip";
+  const wasPremium =
+    subscription.plan === "plus" ||
+    subscription.plan === "premium" ||
+    subscription.plan === "vip";
 
   if (isExpired && wasPremium) {
     return (

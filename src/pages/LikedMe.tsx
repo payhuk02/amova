@@ -12,6 +12,8 @@ import { isOnline, formatLastSeen } from "@/hooks/useOnlineStatus";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import PaymentCheckoutDialog from "@/components/PaymentCheckoutDialog";
+import { CONSUMABLE_PRICES } from "@/lib/plans";
 
 interface LikerProfile {
   like_id: string;
@@ -32,12 +34,13 @@ interface LikerProfile {
 const LikedMe = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { limits } = useSubscription();
+  const { limits, hasLikesRevealPass } = useSubscription();
   const canSeeWhoLiked = limits.canSeeWhoLiked;
   const [likers, setLikers] = useState<LikerProfile[]>([]);
   const [likedBackIds, setLikedBackIds] = useState<Set<string>>(new Set());
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [revealCheckoutOpen, setRevealCheckoutOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -118,14 +121,26 @@ const LikedMe = () => {
               {likers.length} personne{likers.length > 1 ? "s" : ""} {likers.length > 1 ? "ont" : "a"} aimé votre profil
             </p>
             {!canSeeWhoLiked && likers.length > 0 && (
-              <div className="mt-4 p-4 rounded-xl bg-primary/10 border border-primary/20">
-                <p className="text-sm text-foreground mb-3">
-                  Passez Premium pour voir qui vous a aimé et réagir plus vite.
+              <div className="mt-4 p-4 rounded-xl bg-primary/10 border border-primary/20 space-y-3">
+                <p className="text-sm text-foreground">
+                  Débloquez les noms et photos — abonnement Plus, ou passe 24h.
                 </p>
-                <Button variant="hero" size="sm" onClick={() => navigate("/premium")}>
-                  Débloquer Premium
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="hero" size="sm" onClick={() => navigate("/premium")}>
+                    Passer Plus / Premium
+                  </Button>
+                  <Button
+                    variant="hero-outline"
+                    size="sm"
+                    onClick={() => setRevealCheckoutOpen(true)}
+                  >
+                    Voir 24h — {CONSUMABLE_PRICES.likes_reveal_24h.toLocaleString("fr-FR")} FCFA
+                  </Button>
+                </div>
               </div>
+            )}
+            {hasLikesRevealPass && canSeeWhoLiked && (
+              <p className="mt-2 text-xs text-champagne">Passe « qui m&apos;aime » actif (24h)</p>
             )}
           </div>
         </ScrollReveal>
@@ -301,6 +316,11 @@ const LikedMe = () => {
           </div>
         )}
       </main>
+      <PaymentCheckoutDialog
+        productSku="likes_reveal_24h"
+        open={revealCheckoutOpen}
+        onOpenChange={setRevealCheckoutOpen}
+      />
     </AppShell>
   );
 };

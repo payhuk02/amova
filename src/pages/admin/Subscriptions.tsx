@@ -16,6 +16,7 @@ interface SubscriptionRow {
 
 const PLAN_OPTIONS: { value: PlanType; label: string }[] = [
   { value: "free", label: "Gratuit" },
+  { value: "plus", label: "Plus" },
   { value: "premium", label: "Premium" },
   { value: "vip", label: "VIP" },
 ];
