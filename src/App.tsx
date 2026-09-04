@@ -42,6 +42,8 @@ import TermsPage from "./pages/legal/TermsPage.tsx";
 import FAQPage from "./pages/legal/FAQPage.tsx";
 import ContactPage from "./pages/legal/ContactPage.tsx";
 import CookieConsent from "@/components/CookieConsent";
+import AiChatbot from "@/components/AiChatbot";
+import RouteSeo from "@/components/RouteSeo";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +54,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <RouteSeo />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/confidentialite" element={<PrivacyPage />} />
@@ -92,6 +95,7 @@ const App = () => (
 
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <AiChatbot />
           <CookieConsent />
         </BrowserRouter>
       </TooltipProvider>

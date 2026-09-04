@@ -9,6 +9,8 @@ import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
 import { useAuth } from "@/contexts/AuthContext";
+import Seo, { OrganizationJsonLd, WebsiteJsonLd } from "@/components/Seo";
+import { DEFAULT_DESCRIPTION } from "@/lib/seo";
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -22,6 +24,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo
+        title="Amova — Rencontres sincères, histoires vraies"
+        description={DEFAULT_DESCRIPTION}
+        path="/"
+        jsonLd={[OrganizationJsonLd(), WebsiteJsonLd()]}
+      />
       <Navbar />
       <HeroSection />
       <HowItWorksSection />

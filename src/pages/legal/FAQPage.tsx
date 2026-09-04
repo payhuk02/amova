@@ -1,6 +1,8 @@
 import LegalLayout from "@/components/legal/LegalLayout";
 import { Link } from "react-router-dom";
 import { PLAN_PRICES, CONSUMABLE_PRICES, PAID_TRIAL, formatFcfa } from "@/lib/plans";
+import Seo from "@/components/Seo";
+import { SITE_URL } from "@/lib/seo";
 
 const faqs = [
   {
@@ -42,23 +44,43 @@ const faqs = [
 ];
 
 const FAQPage = () => (
-  <LegalLayout title="Foire aux questions">
-    <div className="space-y-8">
-      {faqs.map((item) => (
-        <div key={item.q}>
-          <h2 className="font-display text-lg text-foreground mb-2">{item.q}</h2>
-          <p>{item.a}</p>
-        </div>
-      ))}
-    </div>
-    <p className="mt-10">
-      Une autre question ?{" "}
-      <Link to="/contact" className="text-champagne hover:underline">
-        Contactez-nous
-      </Link>
-      .
-    </p>
-  </LegalLayout>
+  <>
+    <Seo
+      title="FAQ — Questions fréquentes"
+      description="Réponses sur les abonnements Amova, la vérification d'identité, les messages, la sécurité et Mobile Money."
+      path="/faq"
+      jsonLd={{
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: faqs.map((item) => ({
+          "@type": "Question",
+          name: item.q,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: item.a,
+          },
+        })),
+        url: `${SITE_URL}/faq`,
+      }}
+    />
+    <LegalLayout title="Foire aux questions">
+      <div className="space-y-8">
+        {faqs.map((item) => (
+          <div key={item.q}>
+            <h2 className="font-display text-lg text-foreground mb-2">{item.q}</h2>
+            <p>{item.a}</p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-10">
+        Une autre question ?{" "}
+        <Link to="/contact" className="text-champagne hover:underline">
+          Contactez-nous
+        </Link>
+        .
+      </p>
+    </LegalLayout>
+  </>
 );
 
 export default FAQPage;

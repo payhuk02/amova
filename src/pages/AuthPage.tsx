@@ -57,14 +57,26 @@ const AuthPage = () => {
         trackEvent("Login");
         navigate("/dashboard");
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth`,
+          },
         });
         if (error) throw error;
         trackEvent("Signup");
-        toast.success("Inscription réussie ! Vérifiez votre email.");
+
+        // Autoconfirm ON: session is returned immediately
+        if (data.session) {
+          toast.success("Inscription réussie — bienvenue sur Amova");
+          navigate("/profile-setup");
+          return;
+        }
+
+        // Fallback if confirmation email is still required
+        toast.success("Compte créé. Vérifiez votre e-mail pour confirmer, puis connectez-vous.");
+        setIsLogin(true);
       }
     } catch (error: unknown) {
       toast.error(getErrorMessage(error));

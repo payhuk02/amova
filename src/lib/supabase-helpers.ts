@@ -19,9 +19,31 @@ export type SpeedDatingQueueInsert = TablesInsert<"speed_dating_queue">;
 export type SpeedDatingQueueUpdate = TablesUpdate<"speed_dating_queue">;
 
 export function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === "object" && error !== null && "message" in error) {
-    return String((error as { message: unknown }).message);
+  const raw =
+    error instanceof Error
+      ? error.message
+      : typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message: unknown }).message)
+        : "";
+
+  const msg = raw.toLowerCase();
+
+  if (msg.includes("email rate limit") || msg.includes("over_email_send_rate_limit")) {
+    return "Trop d'e-mails envoyés. Réessayez dans environ 1 heure, ou connectez-vous avec Google.";
   }
+  if (msg.includes("rate limit") || msg.includes("too many requests")) {
+    return "Trop de tentatives. Patientez quelques minutes puis réessayez.";
+  }
+  if (msg.includes("user already registered") || msg.includes("already been registered")) {
+    return "Un compte existe déjà avec cet e-mail. Connectez-vous ou réinitialisez le mot de passe.";
+  }
+  if (msg.includes("invalid login credentials")) {
+    return "E-mail ou mot de passe incorrect.";
+  }
+  if (msg.includes("email not confirmed")) {
+    return "Confirmez votre e-mail avant de vous connecter, ou réessayez dans quelques minutes.";
+  }
+
+  if (raw) return raw;
   return "Une erreur est survenue";
 }

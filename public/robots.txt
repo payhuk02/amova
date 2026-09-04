@@ -1,8 +1,23 @@
+# Amova — https://www.amova.space
 User-agent: Googlebot
 Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /messages
+Disallow: /settings
+Disallow: /edit-profile
+Disallow: /profile-setup
+Disallow: /premium/callback
 
 User-agent: Bingbot
 Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /messages
+Disallow: /settings
+Disallow: /edit-profile
+Disallow: /profile-setup
+Disallow: /premium/callback
 
 User-agent: Twitterbot
 Allow: /
@@ -12,3 +27,8 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /premium/callback
+
+Sitemap: https://www.amova.space/sitemap.xml
