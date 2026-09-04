@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import {
   Users, Flag, LayoutDashboard, LogOut, ShieldCheck, CreditCard,
   Crown, MessageSquare, Calendar, Bell, Shield, Menu, X, Bot,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdmin } from "@/hooks/useAdmin";
 import ThemeToggle from "@/components/ThemeToggle";
 import { STATUS_LABELS, statusBadgeClass } from "@/lib/admin";
 import Logo from "@/components/Logo";
@@ -57,7 +58,20 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { signOut } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  if (adminLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

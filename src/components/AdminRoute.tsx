@@ -2,6 +2,10 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdmin } from "@/hooks/useAdmin";
 
+/**
+ * Defense-in-depth admin gate (client).
+ * Server RLS + SECURITY DEFINER RPCs remain the source of truth.
+ */
 export default function AdminRoute({ children }: { children: React.ReactNode }) {
   const { session, loading: authLoading } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdmin();
@@ -15,7 +19,7 @@ export default function AdminRoute({ children }: { children: React.ReactNode }) 
   }
 
   if (!session) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth" replace state={{ from: "/admin" }} />;
   }
 
   if (!isAdmin) {

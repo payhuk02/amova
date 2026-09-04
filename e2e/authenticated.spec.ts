@@ -98,6 +98,14 @@ test.describe("Authenticated feature smoke", () => {
     }
   });
 
+  test("nested admin routes also gate non-admins", async ({ page }) => {
+    await page.goto("/admin/users", { waitUntil: "domcontentloaded" });
+    await expect(page).toHaveURL(/\/(admin\/users|dashboard)/, { timeout: 15_000 });
+    if (!page.url().includes("/admin")) {
+      await expect(page.getByText(/Bonjour,/i)).toBeVisible({ timeout: 15_000 });
+    }
+  });
+
   test("nearby and stories routes load", async ({ page }) => {
     await page.goto("/nearby", { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/\/nearby/);

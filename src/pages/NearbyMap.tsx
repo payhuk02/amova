@@ -14,6 +14,13 @@ import { useGeolocation, useSmartMatches } from "@/hooks/useGeolocation";
 import { useBlockedUsers } from "@/hooks/useBlockedUsers";
 import { toast } from "sonner";
 
+/** Stable angle (0–360) from user id for radar placement. */
+function hashAngle(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return h % 360;
+}
+
 const NearbyMap = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -141,6 +148,52 @@ const NearbyMap = () => {
               <span>200 km</span>
             </div>
           </div>
+
+          {/* Radar map (distance-based, no third-party map SDK) */}
+          {!matchLoading && visibleMatches.length > 0 && (
+            <div className="glass-card rounded-xl p-4 mb-6 overflow-hidden">
+              <p className="text-xs text-muted-foreground mb-3">Carte de proximité</p>
+              <div className="relative mx-auto aspect-square max-w-sm rounded-full border border-border/40 bg-secondary/20">
+                {[0.33, 0.66, 1].map((r) => (
+                  <div
+                    key={r}
+                    className="absolute rounded-full border border-border/30"
+                    style={{
+                      inset: `${(1 - r) * 50}%`,
+                    }}
+                  />
+                ))}
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-champagne shadow-md z-10" title="Vous" />
+                {visibleMatches.slice(0, 24).map((m) => {
+                  const angle = hashAngle(m.user_id);
+                  const dist = typeof m.distance_km === "number" ? m.distance_km : maxDistance * 0.5;
+                  const radiusPct = Math.min(46, Math.max(8, (dist / maxDistance) * 46));
+                  const rad = (angle * Math.PI) / 180;
+                  const x = 50 + radiusPct * Math.cos(rad);
+                  const y = 50 + radiusPct * Math.sin(rad);
+                  return (
+                    <button
+                      key={m.user_id}
+                      type="button"
+                      title={`${m.display_name ?? "Profil"} · ${Math.round(dist)} km`}
+                      onClick={() => navigate(`/profile/${m.user_id}`)}
+                      className="absolute w-8 h-8 -ml-4 -mt-4 rounded-full border-2 border-background overflow-hidden bg-secondary shadow-md hover:scale-110 transition-transform z-[5]"
+                      style={{ left: `${x}%`, top: `${y}%` }}
+                    >
+                      {m.avatar_url ? (
+                        <img src={m.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-4 h-4 m-auto text-muted-foreground" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[10px] text-muted-foreground text-center mt-3">
+                Vous êtes au centre · positions approximatives selon la distance
+              </p>
+            </div>
+          )}
 
           {matchLoading ? (
             <div className="flex items-center justify-center py-20">

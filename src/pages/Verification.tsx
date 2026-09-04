@@ -72,7 +72,9 @@ export default function VerificationPage() {
   );
 
   const idRectoRef = useRef<HTMLInputElement>(null);
+  const idRectoCamRef = useRef<HTMLInputElement>(null);
   const idVersoRef = useRef<HTMLInputElement>(null);
+  const idVersoCamRef = useRef<HTMLInputElement>(null);
   const recent1Ref = useRef<HTMLInputElement>(null);
   const recent2Ref = useRef<HTMLInputElement>(null);
 
@@ -197,17 +199,18 @@ export default function VerificationPage() {
     hint,
     icon: Icon,
     slotKey,
-    inputRef,
-    capture,
-    buttonLabel = "Choisir un fichier",
+    galleryRef,
+    cameraRef,
+    dualCapture = false,
   }: {
     title: string;
     hint: string;
     icon: typeof FileText;
     slotKey: Exclude<SlotKey, "selfie">;
-    inputRef: RefObject<HTMLInputElement>;
-    capture?: "user" | "environment";
-    buttonLabel?: string;
+    galleryRef: RefObject<HTMLInputElement>;
+    cameraRef?: RefObject<HTMLInputElement>;
+    /** When true: gallery import + camera capture (ID docs). When false: gallery only. */
+    dualCapture?: boolean;
   }) => {
     const slot = slots[slotKey];
     return (
@@ -237,29 +240,66 @@ export default function VerificationPage() {
               <XCircle size={16} />
             </button>
           </div>
+        ) : dualCapture ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => galleryRef.current?.click()}
+              disabled={submitting}
+            >
+              <Upload size={14} />
+              Importer un fichier
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => cameraRef?.current?.click()}
+              disabled={submitting || !cameraRef}
+            >
+              <ImageIcon size={14} />
+              Photographier
+            </Button>
+          </div>
         ) : (
           <Button
             type="button"
             variant="outline"
             className="w-full"
-            onClick={() => inputRef.current?.click()}
+            onClick={() => galleryRef.current?.click()}
             disabled={submitting}
           >
             <Upload size={14} />
-            {buttonLabel}
+            Choisir un fichier
           </Button>
         )}
+        {/* Gallery / file picker — no capture attribute (allows photo library) */}
         <input
-          ref={inputRef}
+          ref={galleryRef}
           type="file"
           accept="image/jpeg,image/png,image/webp"
-          capture={capture}
           className="hidden"
           onChange={(e) => {
             onPick(slotKey, e.target.files);
             e.target.value = "";
           }}
         />
+        {/* Camera-preferred picker (mobile) — separate input so gallery stays available */}
+        {dualCapture && cameraRef && (
+          <input
+            ref={cameraRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              onPick(slotKey, e.target.files);
+              e.target.value = "";
+            }}
+          />
+        )}
       </div>
     );
   };
@@ -293,8 +333,9 @@ export default function VerificationPage() {
             Vérification d&apos;identité
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Dossier complet exigé : pièce d&apos;identité <strong className="text-foreground">recto et verso</strong>,
-            selfie capturé <strong className="text-foreground">en direct via la caméra</strong>, et deux photos
+            Dossier complet exigé : pièce d&apos;identité <strong className="text-foreground">recto et verso</strong>
+            {" "}(import fichier ou photo), selfie capturé{" "}
+            <strong className="text-foreground">en direct via la caméra</strong>, et deux photos
             récentes. Tout doit être net, visible et lisible.
           </p>
         </div>
@@ -353,6 +394,7 @@ export default function VerificationPage() {
 
             <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs text-muted-foreground space-y-1">
               <p className="font-medium text-foreground text-sm">Exigences de lisibilité</p>
+              <p>• Pièce d&apos;identité : importez un fichier ou photographiez (recto + verso).</p>
               <p>• Cadrez toute la pièce (bords visibles), sans reflet ni flou.</p>
               <p>• Texte, photo et mentions doivent être lisibles à l&apos;œil nu.</p>
               <p>• Évitez les doigts qui masquent le document.</p>
@@ -360,22 +402,22 @@ export default function VerificationPage() {
 
             <SlotCard
               title="1a. Pièce d'identité — Recto"
-              hint="Face avant complète et nette. Visage et informations clairement lisibles."
+              hint="Face avant complète et nette. Importez un scan/photo ou utilisez la caméra."
               icon={FileText}
               slotKey="id_recto"
-              inputRef={idRectoRef}
-              capture="environment"
-              buttonLabel="Photographier / choisir le recto"
+              galleryRef={idRectoRef}
+              cameraRef={idRectoCamRef}
+              dualCapture
             />
 
             <SlotCard
               title="1b. Pièce d'identité — Verso"
-              hint="Face arrière complète et nette. Pour un passeport : page des données ou page suivante."
+              hint="Face arrière. Pour un passeport : page des données ou page suivante."
               icon={FileText}
               slotKey="id_verso"
-              inputRef={idVersoRef}
-              capture="environment"
-              buttonLabel="Photographier / choisir le verso"
+              galleryRef={idVersoRef}
+              cameraRef={idVersoCamRef}
+              dualCapture
             />
 
             <SelfieCamera
@@ -391,7 +433,7 @@ export default function VerificationPage() {
               hint="Une photo de vous prise récemment (hors selfie de vérification), visage visible."
               icon={ImageIcon}
               slotKey="recent_1"
-              inputRef={recent1Ref}
+              galleryRef={recent1Ref}
             />
 
             <SlotCard
@@ -399,13 +441,13 @@ export default function VerificationPage() {
               hint="Une seconde photo récente, idéalement dans un autre contexte."
               icon={ImageIcon}
               slotKey="recent_2"
-              inputRef={recent2Ref}
+              galleryRef={recent2Ref}
             />
 
             <div className="rounded-xl border border-border/30 p-4 text-xs text-muted-foreground space-y-1">
               <p>• Documents stockés en privé, accessibles uniquement à la conformité.</p>
               <p>• Validation humaine uniquement — pas d&apos;approbation automatique.</p>
-              <p>• Selfie : caméra obligatoire (pas d&apos;upload galerie).</p>
+              <p>• Pièce d&apos;identité : import fichier ou caméra. Selfie : caméra obligatoire.</p>
               <p>• Formats JPEG / PNG / WebP · 8 Mo max par fichier.</p>
             </div>
 

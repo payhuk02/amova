@@ -47,7 +47,7 @@ export const navGroups: NavGroup[] = [
       { path: "/edit-profile", icon: User, label: "Mon profil" },
       { path: "/verification", icon: ShieldCheck, label: "Vérification KYC" },
       { path: "/coach", icon: Bot, label: "Coach Dating" },
-      { path: "/premium", icon: Crown, label: "Premium" },
+      { path: "/premium", icon: Crown, label: "Abonnements" },
       { path: "/settings", icon: Settings, label: "Paramètres" },
     ],
   },
