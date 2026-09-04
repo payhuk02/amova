@@ -202,7 +202,7 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
             >
               <div className="flex items-center justify-between px-4 h-14 border-b border-border/40">
                 <span className="flex items-center gap-2 font-display text-lg font-semibold">
-                  <Logo variant="mark" className="h-7 w-7" />
+                  <Logo variant="mark" className="h-8 w-8 rounded-xl" />
                   Menu
                 </span>
                 <button

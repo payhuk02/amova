@@ -6,7 +6,7 @@ const Footer = () => (
     <div className="container">
       <div className="flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center">
-          <Logo variant="compact" className="h-10" />
+          <Logo variant="compact" className="h-14 rounded-2xl" />
         </div>
         <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-sm text-muted-foreground">
           <Link to="/confidentialite" className="hover:text-foreground transition-colors">Confidentialité</Link>

@@ -23,24 +23,38 @@ const markBuffer = await sharp(logoBytes)
   .png()
   .toBuffer();
 
+function roundedMaskSvg(size) {
+  const r = Math.round(size * 0.22);
+  return Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+      <rect width="${size}" height="${size}" rx="${r}" ry="${r}" fill="#fff"/>
+    </svg>`,
+  );
+}
+
 async function writeSquareIcon(relPath, size, padding = 0) {
   const inner = size - padding * 2;
   const icon = await sharp(markBuffer)
-    .resize(inner, inner, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .resize(inner, inner, { fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 0 } })
+    .png()
+    .toBuffer();
+
+  const square = await sharp({
+    create: {
+      width: size,
+      height: size,
+      channels: 4,
+      background: "#FFFFFF",
+    },
+  })
+    .composite([{ input: icon, gravity: "center" }])
     .png()
     .toBuffer();
 
   const out = join(root, relPath);
   mkdirSync(dirname(out), { recursive: true });
-  await sharp({
-    create: {
-      width: size,
-      height: size,
-      channels: 4,
-      background: "#000000",
-    },
-  })
-    .composite([{ input: icon, gravity: "center" }])
+  await sharp(square)
+    .composite([{ input: roundedMaskSvg(size), blend: "dest-in" }])
     .png()
     .toFile(out);
   console.log(`Wrote ${relPath} (${size}x${size})`);

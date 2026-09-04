@@ -8,9 +8,9 @@ interface LogoProps {
 }
 
 const variantClass: Record<LogoVariant, string> = {
-  full: "h-12 w-auto",
-  compact: "h-9 w-auto",
-  mark: "h-8 w-8 object-cover object-top",
+  full: "h-16 w-auto rounded-2xl",
+  compact: "h-11 w-auto rounded-xl",
+  mark: "h-9 w-9 rounded-xl",
 };
 
 export default function Logo({ variant = "full", className }: LogoProps) {
@@ -24,7 +24,11 @@ export default function Logo({ variant = "full", className }: LogoProps) {
     <img
       src={src}
       alt={alt}
-      className={cn("object-contain shrink-0", variantClass[variant], className)}
+      className={cn(
+        "object-contain shrink-0 bg-white",
+        variantClass[variant],
+        className,
+      )}
       decoding="async"
     />
   );
