@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { useSubscription, PlanType } from "@/hooks/useSubscription";
 import PaymentCheckoutDialog from "@/components/PaymentCheckoutDialog";
 import PaymentReassurance from "@/components/PaymentReassurance";
-import MerchantStatusBanner from "@/components/MerchantStatusBanner";
 import AppShell from "@/components/AppShell";
 import { cn } from "@/lib/utils";
 import { PLAN_PRICES } from "@/lib/plans";
@@ -100,8 +99,6 @@ export default function Premium() {
             Des formules transparentes, sans engagement caché. Choisissez le plan adapté à vos ambitions.
           </p>
         </div>
-
-        <MerchantStatusBanner />
 
         {currentPlan !== "free" && (
           <div className="mb-6 flex justify-center">
