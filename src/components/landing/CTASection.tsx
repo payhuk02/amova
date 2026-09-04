@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import ScrollReveal from "@/components/ScrollReveal";
-import TrustBar from "@/components/TrustBar";
 
 const CTASection = () => (
   <section className="py-24 md:py-32 relative overflow-hidden">
@@ -18,9 +17,6 @@ const CTASection = () => (
         <Button variant="hero" size="xl" asChild>
           <Link to="/auth">Créer mon compte</Link>
         </Button>
-        <div className="mt-8">
-          <TrustBar compact />
-        </div>
         <p className="text-muted-foreground/60 text-xs mt-6">
           Inscription gratuite · Annulation à tout moment
         </p>

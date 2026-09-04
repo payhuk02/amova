@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const HeroSection = () => (
-  <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 sm:pt-[7.5rem] bg-plum">
+  <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 bg-plum">
     <div className="absolute inset-0">
       <img
         src={heroBg}

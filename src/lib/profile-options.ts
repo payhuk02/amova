@@ -21,6 +21,7 @@ export type OccupationSector = (typeof OCCUPATION_SECTORS)[number]["value"];
 export const RELIGIONS = [
   { value: "islam", label: "Islam" },
   { value: "christianisme", label: "Christianisme" },
+  { value: "animisme", label: "Animisme" },
   { value: "autre", label: "Autre" },
   { value: "non_precise", label: "Préfère ne pas dire" },
 ] as const;

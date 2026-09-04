@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { LogOut, Menu, X, Shield } from "lucide-react";
 import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
-import TrustBar from "@/components/TrustBar";
 import SubscriptionBanner from "@/components/SubscriptionBanner";
 import { useNotificationCount } from "@/hooks/useNotifications";
 import { useTrackOnlineStatus } from "@/hooks/useOnlineStatus";
@@ -154,7 +153,6 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
         />
 
         <div className="px-4 py-3 border-t border-border/40">
-          <TrustBar compact className="mb-3" />
           <div className="flex items-center justify-between">
             <ThemeToggle />
             <Button
@@ -224,7 +222,6 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
               />
 
               <div className="p-4 border-t border-border/40 safe-area-bottom space-y-3">
-                <TrustBar compact />
                 <Button
                   variant="ghost"
                   size="sm"

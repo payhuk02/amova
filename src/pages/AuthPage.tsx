@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
-import TrustBar from "@/components/TrustBar";
 import { trackEvent } from "@/lib/analytics";
 
 const AuthPage = () => {
@@ -238,10 +237,6 @@ const AuthPage = () => {
           </button>
         </p>
       </div>
-      </div>
-
-      <div className="border-t border-border/40 bg-secondary/20 px-4 py-4">
-        <TrustBar compact />
       </div>
     </div>
   );

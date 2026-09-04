@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
-import TrustBar from "@/components/TrustBar";
 import Logo from "@/components/Logo";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -85,11 +84,6 @@ const Navbar = () => {
         </div>
       )}
     </nav>
-    <div className="fixed top-16 left-0 right-0 z-40 border-b border-border/20 bg-secondary/30 backdrop-blur-sm hidden sm:block">
-      <div className="container py-2">
-        <TrustBar compact />
-      </div>
-    </div>
     </>
   );
 };

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import AppShell from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -18,13 +19,28 @@ function isPlanType(value: string | null): value is PlanType {
   return Boolean(value && value in PLAN_LABELS);
 }
 
+async function needsKyc(userId: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("is_verified, verification_status")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!data) return true;
+  if (data.is_verified) return false;
+  if (data.verification_status === "approved") return false;
+  return true;
+}
+
 export default function PremiumCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const token = searchParams.get("token") || searchParams.get("tokenPay");
   const [status, setStatus] = useState<CallbackStatus>("loading");
   const [productKey, setProductKey] = useState<string | null>(null);
+  const [redirectingKyc, setRedirectingKyc] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -43,20 +59,33 @@ export default function PremiumCallback() {
       }
 
       if (data?.status === "paid") {
-        setProductKey(typeof data.plan === "string" ? data.plan : null);
-        setStatus("paid");
+        const plan = typeof data.plan === "string" ? data.plan : null;
+        setProductKey(plan);
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ["subscription"] }),
           queryClient.invalidateQueries({ queryKey: ["entitlement"] }),
         ]);
+
+        // After a subscription payment, unfinished KYC → verification page
+        if (plan && !isConsumableSku(plan) && user?.id) {
+          const requireKyc = await needsKyc(user.id);
+          if (requireKyc) {
+            setRedirectingKyc(true);
+            setStatus("paid");
+            navigate("/verification", { replace: true });
+            return;
+          }
+        }
+
+        setStatus("paid");
         return;
       }
 
       setStatus("pending");
     };
 
-    verify();
-  }, [token, queryClient]);
+    void verify();
+  }, [token, queryClient, user?.id, navigate]);
 
   const successLabel = (() => {
     if (isConsumableSku(productKey)) return CONSUMABLE_LABELS[productKey];
@@ -65,6 +94,17 @@ export default function PremiumCallback() {
   })();
 
   const isConsumable = isConsumableSku(productKey);
+
+  const continueAfterPayment = async () => {
+    if (!isConsumable && user?.id) {
+      const requireKyc = await needsKyc(user.id);
+      if (requireKyc) {
+        navigate("/verification", { replace: true });
+        return;
+      }
+    }
+    navigate(isConsumable ? "/liked-me" : "/dashboard");
+  };
 
   return (
     <AppShell>
@@ -82,17 +122,19 @@ export default function PremiumCallback() {
             <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" />
             <h1 className="text-2xl font-display mb-2">Paiement confirmé !</h1>
             <p className="text-muted-foreground mb-6">
-              {isConsumable
-                ? successLabel
-                  ? `Votre achat « ${successLabel} » est maintenant actif.`
-                  : "Votre achat est maintenant actif."
-                : successLabel
-                  ? `Votre abonnement ${successLabel} est maintenant actif.`
-                  : "Votre abonnement est maintenant actif."}
+              {redirectingKyc
+                ? "Redirection vers la vérification d'identité…"
+                : isConsumable
+                  ? successLabel
+                    ? `Votre achat « ${successLabel} » est maintenant actif.`
+                    : "Votre achat est maintenant actif."
+                  : successLabel
+                    ? `Votre abonnement ${successLabel} est maintenant actif.`
+                    : "Votre abonnement est maintenant actif."}
             </p>
-            <Button onClick={() => navigate(isConsumable ? "/liked-me" : "/dashboard")}>
-              Continuer
-            </Button>
+            {!redirectingKyc && (
+              <Button onClick={() => void continueAfterPayment()}>Continuer</Button>
+            )}
           </>
         )}
 
