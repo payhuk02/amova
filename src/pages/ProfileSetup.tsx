@@ -6,7 +6,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import DateOfBirthFields from "@/components/DateOfBirthFields";
-import { parseDobParts } from "@/lib/date-of-birth";
+import { parseDobParts, splitIsoDate } from "@/lib/date-of-birth";
+import { isProfileComplete } from "@/hooks/useProfileComplete";
 import { toast } from "sonner";
 import { Camera, Loader2, ShieldCheck } from "lucide-react";
 
@@ -18,6 +19,8 @@ const ProfileSetup = () => {
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [confirmAdult, setConfirmAdult] = useState(false);
+  const [genderLocked, setGenderLocked] = useState(false);
+  const [dobLocked, setDobLocked] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     display_name: "",
@@ -34,12 +37,32 @@ const ProfileSetup = () => {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("display_name, date_of_birth, gender")
+      .select("display_name, date_of_birth, gender, age, looking_for, city, avatar_url, bio")
       .eq("user_id", user.id)
-      .single()
+      .maybeSingle()
       .then(({ data }) => {
-        if (data?.display_name && data?.date_of_birth && data?.gender) {
-          navigate("/dashboard");
+        if (isProfileComplete(data)) {
+          navigate("/dashboard", { replace: true });
+          return;
+        }
+        if (data) {
+          const dobParts = splitIsoDate(data.date_of_birth);
+          const hasGender = Boolean(data.gender?.trim());
+          const hasDob = Boolean(data.date_of_birth);
+          setGenderLocked(hasGender);
+          setDobLocked(hasDob);
+          setForm((f) => ({
+            ...f,
+            display_name: data.display_name || f.display_name,
+            gender: data.gender || f.gender,
+            city: data.city || f.city,
+            looking_for: data.looking_for || f.looking_for,
+            bio: data.bio || f.bio,
+            dobDay: dobParts.day || f.dobDay,
+            dobMonth: dobParts.month || f.dobMonth,
+            dobYear: dobParts.year || f.dobYear,
+          }));
+          if (data.avatar_url) setAvatarUrl(data.avatar_url);
         }
       });
   }, [user, navigate]);
@@ -106,16 +129,21 @@ const ProfileSetup = () => {
 
     setLoading(true);
     try {
-      const profileData = {
+      const profileData: Record<string, unknown> = {
         display_name: form.display_name.trim(),
-        gender: form.gender,
-        date_of_birth: dob.iso,
-        age: dob.age,
         city: form.city.trim(),
         looking_for: form.looking_for,
         bio: form.bio.trim() || null,
         avatar_url: avatarUrl.split("?")[0],
       };
+
+      if (!genderLocked) {
+        profileData.gender = form.gender;
+      }
+      if (!dobLocked) {
+        profileData.date_of_birth = dob.iso;
+        profileData.age = dob.age;
+      }
 
       const { data: existing } = await supabase
         .from("profiles")
@@ -127,7 +155,13 @@ const ProfileSetup = () => {
       if (existing) {
         ({ error } = await supabase.from("profiles").update(profileData).eq("user_id", user.id));
       } else {
-        ({ error } = await supabase.from("profiles").insert({ ...profileData, user_id: user.id }));
+        ({ error } = await supabase.from("profiles").insert({
+          ...profileData,
+          gender: form.gender,
+          date_of_birth: dob.iso,
+          age: dob.age,
+          user_id: user.id,
+        }));
       }
 
       if (error) throw error;
@@ -138,6 +172,8 @@ const ProfileSetup = () => {
       const msg = error instanceof Error ? error.message : "Erreur";
       if (msg.includes("gender_locked")) {
         toast.error("Le genre ne peut plus être modifié");
+      } else if (msg.includes("date_of_birth_locked")) {
+        toast.error("La date de naissance ne peut plus être modifiée");
       } else if (msg.includes("must_be_18")) {
         toast.error("Amova est réservé aux majeurs (18+)");
       } else {
@@ -227,15 +263,19 @@ const ProfileSetup = () => {
 
           <div>
             <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">
-              Vous êtes <span className="text-champagne">(définitif)</span>
+              Vous êtes{" "}
+              <span className="text-champagne">
+                {genderLocked ? "(verrouillé)" : "(définitif)"}
+              </span>
             </label>
             <div className="flex gap-2 sm:gap-3">
               {genderOptions.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
+                  disabled={genderLocked}
                   onClick={() => update("gender", opt.value)}
-                  className={`flex-1 h-11 sm:h-12 rounded-lg border text-xs sm:text-sm font-medium transition-all duration-200 touch-manipulation active:scale-[0.97] ${
+                  className={`flex-1 h-11 sm:h-12 rounded-lg border text-xs sm:text-sm font-medium transition-all duration-200 touch-manipulation active:scale-[0.97] disabled:opacity-80 disabled:cursor-not-allowed ${
                     form.gender === opt.value
                       ? "border-primary bg-primary/10 text-foreground"
                       : "border-border/50 bg-secondary/30 text-muted-foreground hover:border-primary/30"
@@ -252,6 +292,7 @@ const ProfileSetup = () => {
             month={form.dobMonth}
             year={form.dobYear}
             required
+            disabled={dobLocked}
             onChange={({ day, month, year }) =>
               setForm((f) => ({ ...f, dobDay: day, dobMonth: month, dobYear: year }))
             }

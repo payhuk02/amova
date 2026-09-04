@@ -43,9 +43,13 @@ const BoostButton = () => {
       return;
     }
 
-    const { error } = await supabase.from("boosts").insert({
-      user_id: user.id,
-    } satisfies BoostInsert);
+    const { data: inserted, error } = await supabase
+      .from("boosts")
+      .insert({
+        user_id: user.id,
+      } satisfies BoostInsert)
+      .select("expires_at")
+      .single();
 
     if (error) {
       const limitMsg = getLimitErrorMessage(error);
@@ -57,14 +61,24 @@ const BoostButton = () => {
       return;
     }
 
+    const expiresAt = inserted?.expires_at
+      ? new Date(inserted.expires_at).getTime()
+      : Date.now() + 30 * 60 * 1000;
+    const remainingMs = Math.max(0, expiresAt - Date.now());
+    const remainingMin = Math.max(1, Math.ceil(remainingMs / 60000));
+
     setBoosted(true);
-    setRemaining(30);
-    toast.success("Profil boosté pendant 30 minutes !");
+    setRemaining(remainingMin);
+    toast.success(
+      remainingMin >= 60
+        ? `Profil boosté pendant ${Math.round(remainingMin / 60)} h !`
+        : `Profil boosté pendant ${remainingMin} min !`,
+    );
 
     setTimeout(() => {
       setBoosted(false);
       setRemaining(0);
-    }, 30 * 60 * 1000);
+    }, remainingMs);
   };
 
   return (

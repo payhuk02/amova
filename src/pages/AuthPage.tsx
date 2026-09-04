@@ -146,38 +146,40 @@ const AuthPage = () => {
             {loading ? "Chargement..." : isLogin ? "Se connecter" : "Créer mon compte"}
           </Button>
 
-          {!isLogin && (
-            <div className="space-y-2.5">
-              <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={confirmAdult}
-                  onChange={(e) => setConfirmAdult(e.target.checked)}
-                  className="mt-0.5 rounded border-border"
-                />
-                <span>Je confirme avoir 18 ans ou plus.</span>
-              </label>
-              <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="mt-0.5 rounded border-border"
-                />
-                <span>
-                  J&apos;accepte les{" "}
-                  <Link to="/conditions" className="text-champagne hover:underline">
-                    conditions
-                  </Link>{" "}
-                  et la{" "}
-                  <Link to="/confidentialite" className="text-champagne hover:underline">
-                    politique de confidentialité
-                  </Link>
-                  .
-                </span>
-              </label>
-            </div>
-          )}
+          <div className="space-y-2.5">
+            {!isLogin && (
+              <>
+                <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={confirmAdult}
+                    onChange={(e) => setConfirmAdult(e.target.checked)}
+                    className="mt-0.5 rounded border-border"
+                  />
+                  <span>Je confirme avoir 18 ans ou plus.</span>
+                </label>
+                <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    className="mt-0.5 rounded border-border"
+                  />
+                  <span>
+                    J&apos;accepte les{" "}
+                    <Link to="/conditions" className="text-champagne hover:underline">
+                      conditions
+                    </Link>{" "}
+                    et la{" "}
+                    <Link to="/confidentialite" className="text-champagne hover:underline">
+                      politique de confidentialité
+                    </Link>
+                    .
+                  </span>
+                </label>
+              </>
+            )}
+          </div>
         </form>
 
         <div className="relative my-6 sm:my-8">
@@ -193,7 +195,12 @@ const AuthPage = () => {
           variant="outline"
           size="xl"
           className="w-full border-border/50 hover:border-primary/30 touch-manipulation"
+          disabled={!isLogin && (!confirmAdult || !acceptedTerms)}
           onClick={async () => {
+            if (!isLogin && (!confirmAdult || !acceptedTerms)) {
+              toast.error("Confirmez avoir 18 ans et acceptez les conditions avant de continuer.");
+              return;
+            }
             const { error } = await lovable.auth.signInWithOAuth("google", {
               redirect_uri: `${window.location.origin}/auth`,
             });

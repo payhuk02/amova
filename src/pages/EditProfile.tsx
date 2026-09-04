@@ -117,7 +117,11 @@ const EditProfile = () => {
 
     if (inserted) setPhotos(prev => [...prev, inserted as Photo]);
     setUploading(false);
-    toast.success("Photo ajoutée");
+    if (inserted) {
+      toast.success("Photo ajoutée");
+    } else {
+      toast.error("Impossible d'ajouter la photo");
+    }
   };
 
   const handleDeletePhoto = async (photo: Photo) => {

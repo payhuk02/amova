@@ -25,6 +25,7 @@ import { isOnline } from "@/hooks/useOnlineStatus";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { getLimitErrorMessage } from "@/lib/limits";
 
 interface ProfileData {
   user_id: string;
@@ -121,11 +122,26 @@ const ProfilePage = () => {
   const handleLike = async () => {
     if (!user || !userId) return;
     if (liked) {
-      await supabase.from("likes").delete().eq("from_user_id", user.id).eq("to_user_id", userId);
+      const { error } = await supabase
+        .from("likes")
+        .delete()
+        .eq("from_user_id", user.id)
+        .eq("to_user_id", userId);
+      if (error) {
+        toast.error("Impossible de retirer ce like");
+        return;
+      }
       setLiked(false);
       setIsMatch(false);
     } else {
-      await supabase.from("likes").insert({ from_user_id: user.id, to_user_id: userId });
+      const { error } = await supabase
+        .from("likes")
+        .insert({ from_user_id: user.id, to_user_id: userId });
+      if (error) {
+        const limitMsg = getLimitErrorMessage(error);
+        toast.error(limitMsg || "Impossible d'envoyer ce like");
+        return;
+      }
       setLiked(true);
       const { data: rev } = await supabase.rpc("has_liked_me", { p_user_id: userId });
       if (rev) {

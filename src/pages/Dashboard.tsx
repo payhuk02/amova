@@ -15,6 +15,7 @@ import ProfileCard from "@/components/ProfileCard";
 import EmptyState from "@/components/ui/empty-state";
 import { useBlockedUsers } from "@/hooks/useBlockedUsers";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { isProfileComplete } from "@/hooks/useProfileComplete";
 import { toast } from "sonner";
 
 interface Profile {
@@ -56,7 +57,7 @@ const Dashboard = () => {
       .eq("user_id", user.id)
       .single();
 
-    if (!myProfile?.display_name) {
+    if (!isProfileComplete(myProfile as Parameters<typeof isProfileComplete>[0])) {
       navigate("/profile-setup");
       return;
     }
@@ -76,21 +77,27 @@ const Dashboard = () => {
       setMatchedIds(new Set((mutualIds as string[] | null) ?? []));
     }
 
-    let query = supabase
-      .from("profiles")
-      .select("*")
-      .neq("user_id", user.id)
-      .not("display_name", "is", null)
-      .or("incognito_mode.is.null,incognito_mode.eq.false");
+    // Same source as Discover: excludes likes, passes, blocks, incognito
+    const { data: discovered, error: discoverError } = await supabase.rpc("get_discover_profiles", {
+      p_limit: 50,
+      p_city: filters.city || null,
+      p_age_min: filters.ageMin ? parseInt(filters.ageMin, 10) : null,
+      p_age_max: filters.ageMax ? parseInt(filters.ageMax, 10) : null,
+      p_gender: filters.gender || null,
+      p_looking_for: null,
+      p_verified_only: false,
+      p_online_only: false,
+      p_interests: null,
+    });
 
-    if (myProfile.looking_for && myProfile.looking_for !== "les deux") {
-      query = query.eq("gender", myProfile.looking_for);
+    if (discoverError) {
+      toast.error("Impossible de charger les profils");
+      setProfiles([]);
+    } else {
+      setProfiles((discovered || []) as Profile[]);
     }
-
-    const { data: otherProfiles } = await query.limit(50);
-    setProfiles((otherProfiles || []) as Profile[]);
     setLoading(false);
-  }, [user, navigate]);
+  }, [user, navigate, filters.city, filters.ageMin, filters.ageMax, filters.gender]);
 
   useEffect(() => {
     loadData();
@@ -140,10 +147,6 @@ const Dashboard = () => {
 
   const filteredProfiles = profiles.filter((p) => {
     if (blockedIds.has(p.user_id)) return false;
-    if (filters.city && p.city && !p.city.toLowerCase().includes(filters.city.toLowerCase())) return false;
-    if (filters.ageMin && p.age && p.age < parseInt(filters.ageMin)) return false;
-    if (filters.ageMax && p.age && p.age > parseInt(filters.ageMax)) return false;
-    if (filters.gender && p.gender !== filters.gender) return false;
     return true;
   });
 

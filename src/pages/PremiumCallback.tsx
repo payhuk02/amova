@@ -5,10 +5,18 @@ import { useQueryClient } from "@tanstack/react-query";
 import AppShell from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
-import { PLAN_LABELS } from "@/lib/plans";
+import { CONSUMABLE_LABELS, PLAN_LABELS, type ConsumableSku } from "@/lib/plans";
 import type { PlanType } from "@/hooks/useSubscription";
 
 type CallbackStatus = "loading" | "paid" | "pending" | "error";
+
+function isConsumableSku(value: string | null): value is ConsumableSku {
+  return Boolean(value && value in CONSUMABLE_LABELS);
+}
+
+function isPlanType(value: string | null): value is PlanType {
+  return Boolean(value && value in PLAN_LABELS);
+}
 
 export default function PremiumCallback() {
   const [searchParams] = useSearchParams();
@@ -16,7 +24,7 @@ export default function PremiumCallback() {
   const queryClient = useQueryClient();
   const token = searchParams.get("token") || searchParams.get("tokenPay");
   const [status, setStatus] = useState<CallbackStatus>("loading");
-  const [plan, setPlan] = useState<PlanType | null>(null);
+  const [productKey, setProductKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -35,9 +43,12 @@ export default function PremiumCallback() {
       }
 
       if (data?.status === "paid") {
-        setPlan(data.plan as PlanType);
+        setProductKey(typeof data.plan === "string" ? data.plan : null);
         setStatus("paid");
-        queryClient.invalidateQueries({ queryKey: ["subscription"] });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["subscription"] }),
+          queryClient.invalidateQueries({ queryKey: ["entitlement"] }),
+        ]);
         return;
       }
 
@@ -46,6 +57,14 @@ export default function PremiumCallback() {
 
     verify();
   }, [token, queryClient]);
+
+  const successLabel = (() => {
+    if (isConsumableSku(productKey)) return CONSUMABLE_LABELS[productKey];
+    if (isPlanType(productKey)) return PLAN_LABELS[productKey];
+    return null;
+  })();
+
+  const isConsumable = isConsumableSku(productKey);
 
   return (
     <AppShell>
@@ -63,9 +82,17 @@ export default function PremiumCallback() {
             <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" />
             <h1 className="text-2xl font-display mb-2">Paiement confirmé !</h1>
             <p className="text-muted-foreground mb-6">
-              Votre abonnement {plan ? PLAN_LABELS[plan] : ""} est maintenant actif.
+              {isConsumable
+                ? successLabel
+                  ? `Votre achat « ${successLabel} » est maintenant actif.`
+                  : "Votre achat est maintenant actif."
+                : successLabel
+                  ? `Votre abonnement ${successLabel} est maintenant actif.`
+                  : "Votre abonnement est maintenant actif."}
             </p>
-            <Button onClick={() => navigate("/dashboard")}>Continuer</Button>
+            <Button onClick={() => navigate(isConsumable ? "/liked-me" : "/dashboard")}>
+              Continuer
+            </Button>
           </>
         )}
 

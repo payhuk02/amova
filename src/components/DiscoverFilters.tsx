@@ -136,7 +136,7 @@ const DiscoverFilters = ({
         </div>
       </div>
 
-      {/* Advanced filters — Premium */}
+      {/* Advanced filters — Plus+ */}
       <div className="space-y-2 pt-2 border-t border-border/30">
         <p className="text-[10px] uppercase tracking-wider text-champagne/80 font-medium">
           Filtres avancés {!canUseAdvancedFilters && "· Plus"}

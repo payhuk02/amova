@@ -36,6 +36,7 @@ const pending = [
   "20260904190000_paid_trial.sql",
   "20260904200000_vip_priority_spotlight.sql",
   "20260904210000_profile_dob_identity_locks.sql",
+  "20260904220000_audit_export_plus_age_lock.sql",
 ];
 
 if (!token) {

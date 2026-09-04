@@ -12,6 +12,7 @@ import { isOnline, formatLastSeen } from "@/hooks/useOnlineStatus";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import { getLimitErrorMessage } from "@/lib/limits";
 import PaymentCheckoutDialog from "@/components/PaymentCheckoutDialog";
 import { CONSUMABLE_PRICES } from "@/lib/plans";
 
@@ -94,7 +95,11 @@ const LikedMe = () => {
         setLikedBackIds((prev) => new Set(prev).add(toUserId));
         setMatchedIds((prev) => new Set(prev).add(toUserId));
         toast.success("C'est un match ! 🎉");
+        return;
       }
+
+      const limitMsg = getLimitErrorMessage(error);
+      toast.error(limitMsg || "Impossible d'envoyer ce like");
     },
     [user]
   );
@@ -267,7 +272,7 @@ const LikedMe = () => {
                               className="touch-manipulation h-8 text-xs"
                             >
                               <Eye size={13} />
-                              Débloquer Premium
+                              Débloquer (Plus+)
                             </Button>
                           ) : !isLikedBack ? (
                             <Button

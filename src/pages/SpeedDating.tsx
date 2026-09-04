@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { toast } from "sonner";
+import { getLimitErrorMessage } from "@/lib/limits";
 
 const SESSION_DURATION = 180;
 
@@ -163,7 +164,13 @@ const SpeedDating = () => {
 
   const handleLikePartner = async () => {
     if (!user || !partner) return;
-    await supabase.from("likes").insert({ from_user_id: user.id, to_user_id: partner.user_id });
+    const { error } = await supabase
+      .from("likes")
+      .insert({ from_user_id: user.id, to_user_id: partner.user_id });
+    if (error) {
+      toast.error(getLimitErrorMessage(error) || "Impossible d'envoyer ce like");
+      return;
+    }
     toast.success("Like envoyé ! Si c'est réciproque, vous aurez un match 💕");
   };
 

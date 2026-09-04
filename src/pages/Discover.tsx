@@ -49,15 +49,15 @@ const Discover = () => {
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
-  const [matchAnimation, setMatchAnimation] = useState<string | null>(null);
+  const [matchTarget, setMatchTarget] = useState<{ name: string; userId: string } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [reportTarget, setReportTarget] = useState<Profile | null>(null);
   const [showCompatibility, setShowCompatibility] = useState(false);
   const [myProfile, setMyProfile] = useState<ProfileRow | null>(null);
   const { blockedIds, reload: reloadBlocked } = useBlockedUsers();
   const { checkBadges } = useCheckAndAwardBadges();
-  const { limits } = useSubscription();
-  const canUseAdvancedFilters = limits.canSeeWhoLiked;
+  const { limits, currentPlan } = useSubscription();
+  const canUseAdvancedFilters = currentPlan !== "free";
   const aiCandidateLimit = limits.priorityMatching ? 40 : 20;
   const [filters, setFilters] = useState<DiscoverFiltersState>({
     city: "",
@@ -173,20 +173,26 @@ const Discover = () => {
       if (!user || !currentProfile || swiping) return;
       setSwiping(direction);
 
+      let shouldAdvance = false;
+
       if (direction === "right") {
         const { error } = await supabase
           .from("likes")
           .insert({ from_user_id: user.id, to_user_id: currentProfile.user_id, is_super: isSuper } satisfies LikeInsert);
 
         if (!error) {
+          shouldAdvance = true;
           const { data: reverse } = await supabase.rpc("has_liked_me", {
             p_user_id: currentProfile.user_id,
           });
 
           if (reverse) {
-            setMatchAnimation(currentProfile.display_name || "quelqu'un");
+            setMatchTarget({
+              name: currentProfile.display_name || "quelqu'un",
+              userId: currentProfile.user_id,
+            });
             toast.success("C'est un match ! 🎉");
-            setTimeout(() => setMatchAnimation(null), 2500);
+            setTimeout(() => setMatchTarget(null), 2500);
             checkBadges();
           } else if (isSuper) {
             toast.success("Super Like envoyé ! ⭐");
@@ -207,7 +213,9 @@ const Discover = () => {
             to_user_id: currentProfile.user_id,
           } satisfies PassInsert);
 
-        if (error && error.code !== "23505") {
+        if (!error || error.code === "23505") {
+          shouldAdvance = true;
+        } else {
           toast.error("Impossible d'enregistrer ce passage");
         }
       }
@@ -215,7 +223,9 @@ const Discover = () => {
       setTimeout(() => {
         setSwiping(null);
         setDragX(0);
-        setCurrentIndex((prev) => prev + 1);
+        if (shouldAdvance) {
+          setCurrentIndex((prev) => prev + 1);
+        }
       }, 300);
     },
     [user, currentProfile, swiping, checkBadges]
@@ -252,7 +262,7 @@ const Discover = () => {
   return (
     <AppShell>
       {/* Match overlay */}
-      {matchAnimation && (
+      {matchTarget && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-xl animate-in fade-in duration-300">
           <div className="text-center animate-in zoom-in-95 duration-500">
             <div className="w-20 h-20 rounded-full bg-accent/20 flex items-center justify-center mx-auto mb-6">
@@ -262,15 +272,16 @@ const Discover = () => {
               C'est un <span className="text-gradient-copper italic">match</span> !
             </h2>
             <p className="text-muted-foreground">
-              Vous et {matchAnimation} vous plaisez mutuellement
+              Vous et {matchTarget.name} vous plaisez mutuellement
             </p>
             <Button
               variant="hero"
               size="lg"
               className="mt-8"
               onClick={() => {
-                setMatchAnimation(null);
-                navigate(`/messages?with=${currentProfile?.user_id}`);
+                const userId = matchTarget.userId;
+                setMatchTarget(null);
+                navigate(`/messages?with=${userId}`);
               }}
             >
               <MessageCircle size={16} />
