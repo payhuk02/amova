@@ -8,8 +8,19 @@ import { Input } from "@/components/ui/input";
 import DateOfBirthFields from "@/components/DateOfBirthFields";
 import { parseDobParts, splitIsoDate } from "@/lib/date-of-birth";
 import { isProfileComplete } from "@/hooks/useProfileComplete";
+import {
+  COUNTRIES_FR,
+  OCCUPATION_SECTORS,
+  PARTNER_PREFERENCE_OPTIONS,
+  RELATIONSHIP_TYPES,
+  RELIGIONS,
+} from "@/lib/profile-options";
 import { toast } from "sonner";
 import { Camera, Loader2, ShieldCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const SELECT_CLASS =
+  "h-11 sm:h-12 w-full rounded-lg border border-border/50 bg-secondary/50 px-3 text-sm text-foreground focus:outline-none focus:border-primary/50";
 
 const ProfileSetup = () => {
   const { user } = useAuth();
@@ -26,8 +37,14 @@ const ProfileSetup = () => {
     display_name: "",
     gender: "",
     city: "",
+    country: "",
     looking_for: "",
     bio: "",
+    religion: "",
+    relationship_type: "",
+    occupation: "",
+    occupation_sector: "",
+    partner_preferences: [] as string[],
     dobDay: "",
     dobMonth: "",
     dobYear: "",
@@ -37,27 +54,36 @@ const ProfileSetup = () => {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("display_name, date_of_birth, gender, age, looking_for, city, avatar_url, bio")
+      .select(
+        "display_name, date_of_birth, gender, age, looking_for, city, country, avatar_url, bio, religion, relationship_type, occupation, occupation_sector, partner_preferences",
+      )
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (isProfileComplete(data)) {
+        if (isProfileComplete(data as Parameters<typeof isProfileComplete>[0])) {
           navigate("/dashboard", { replace: true });
           return;
         }
         if (data) {
           const dobParts = splitIsoDate(data.date_of_birth);
-          const hasGender = Boolean(data.gender?.trim());
-          const hasDob = Boolean(data.date_of_birth);
-          setGenderLocked(hasGender);
-          setDobLocked(hasDob);
+          const row = data as Record<string, unknown>;
+          setGenderLocked(Boolean(data.gender?.trim()));
+          setDobLocked(Boolean(data.date_of_birth));
           setForm((f) => ({
             ...f,
             display_name: data.display_name || f.display_name,
             gender: data.gender || f.gender,
             city: data.city || f.city,
+            country: (row.country as string) || f.country,
             looking_for: data.looking_for || f.looking_for,
             bio: data.bio || f.bio,
+            religion: (row.religion as string) || f.religion,
+            relationship_type: (row.relationship_type as string) || f.relationship_type,
+            occupation: (row.occupation as string) || f.occupation,
+            occupation_sector: (row.occupation_sector as string) || f.occupation_sector,
+            partner_preferences: Array.isArray(row.partner_preferences)
+              ? (row.partner_preferences as string[])
+              : f.partner_preferences,
             dobDay: dobParts.day || f.dobDay,
             dobMonth: dobParts.month || f.dobMonth,
             dobYear: dobParts.year || f.dobYear,
@@ -70,7 +96,6 @@ const ProfileSetup = () => {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-
     if (!file.type.startsWith("image/")) {
       toast.error("Choisissez une image (JPEG, PNG ou WebP)");
       return;
@@ -79,67 +104,69 @@ const ProfileSetup = () => {
       toast.error("Photo trop volumineuse (max 8 Mo)");
       return;
     }
-
     setUploading(true);
     const ext = file.name.split(".").pop() || "jpg";
     const path = `${user.id}/avatar.${ext}`;
-
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
     if (error) {
       toast.error("Erreur lors de l'upload");
       setUploading(false);
       return;
     }
-
     const { data: publicUrl } = supabase.storage.from("avatars").getPublicUrl(path);
     setAvatarUrl(`${publicUrl.publicUrl}?t=${Date.now()}`);
     setUploading(false);
   };
 
+  const togglePref = (pref: string) => {
+    setForm((f) => {
+      const has = f.partner_preferences.includes(pref);
+      if (has) return { ...f, partner_preferences: f.partner_preferences.filter((p) => p !== pref) };
+      if (f.partner_preferences.length >= 6) {
+        toast.error("Choisissez au plus 6 critères");
+        return f;
+      }
+      return { ...f, partner_preferences: [...f.partner_preferences, pref] };
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-
-    if (!avatarUrl) {
-      toast.error("Ajoutez une photo de profil pour continuer");
-      return;
+    if (!avatarUrl) return toast.error("Ajoutez une photo de profil pour continuer");
+    if (!form.gender) return toast.error("Indiquez votre genre — ce choix sera définitif");
+    if (!form.country) return toast.error("Indiquez votre pays");
+    if (!form.city.trim()) return toast.error("Indiquez votre ville");
+    if (!form.religion) return toast.error("Indiquez votre religion");
+    if (!form.relationship_type) return toast.error("Indiquez le type de relation recherché");
+    if (!form.occupation_sector) return toast.error("Indiquez votre secteur d'activité");
+    if (!form.occupation.trim()) return toast.error("Indiquez votre métier / fonction");
+    if (form.partner_preferences.length < 1) {
+      return toast.error("Choisissez au moins un critère pour le profil recherché");
     }
-    if (!form.gender) {
-      toast.error("Indiquez votre genre — ce choix sera définitif");
-      return;
-    }
-    if (!form.city.trim()) {
-      toast.error("Indiquez votre ville");
-      return;
-    }
-    if (!form.looking_for) {
-      toast.error("Indiquez qui vous recherchez");
-      return;
-    }
-    if (!confirmAdult) {
-      toast.error("Confirmez que vous avez 18 ans ou plus");
-      return;
-    }
+    if (!confirmAdult) return toast.error("Confirmez que vous avez 18 ans ou plus");
 
     const dob = parseDobParts(form.dobYear, form.dobMonth, form.dobDay);
-    if ("error" in dob) {
-      toast.error(dob.error);
-      return;
-    }
+    if ("error" in dob) return toast.error(dob.error);
+
+    const lookingFor = form.gender === "homme" ? "femme" : "homme";
 
     setLoading(true);
     try {
       const profileData: Record<string, unknown> = {
         display_name: form.display_name.trim(),
         city: form.city.trim(),
-        looking_for: form.looking_for,
+        country: form.country,
+        looking_for: lookingFor,
         bio: form.bio.trim() || null,
         avatar_url: avatarUrl.split("?")[0],
+        religion: form.religion,
+        relationship_type: form.relationship_type,
+        occupation: form.occupation.trim(),
+        occupation_sector: form.occupation_sector,
+        partner_preferences: form.partner_preferences,
       };
-
-      if (!genderLocked) {
-        profileData.gender = form.gender;
-      }
+      if (!genderLocked) profileData.gender = form.gender;
       if (!dobLocked) {
         profileData.date_of_birth = dob.iso;
         profileData.age = dob.age;
@@ -149,7 +176,7 @@ const ProfileSetup = () => {
         .from("profiles")
         .select("id")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       let error;
       if (existing) {
@@ -163,22 +190,16 @@ const ProfileSetup = () => {
           user_id: user.id,
         }));
       }
-
       if (error) throw error;
       await queryClient.invalidateQueries({ queryKey: ["profile-complete"] });
       toast.success("Profil créé — bienvenue sur Amova");
       navigate("/dashboard");
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Erreur";
-      if (msg.includes("gender_locked")) {
-        toast.error("Le genre ne peut plus être modifié");
-      } else if (msg.includes("date_of_birth_locked")) {
-        toast.error("La date de naissance ne peut plus être modifiée");
-      } else if (msg.includes("must_be_18")) {
-        toast.error("Amova est réservé aux majeurs (18+)");
-      } else {
-        toast.error(msg);
-      }
+      if (msg.includes("gender_locked")) toast.error("Le genre ne peut plus être modifié");
+      else if (msg.includes("date_of_birth_locked")) toast.error("La date de naissance ne peut plus être modifiée");
+      else if (msg.includes("must_be_18")) toast.error("Amova est réservé aux majeurs (18+)");
+      else toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -187,7 +208,6 @@ const ProfileSetup = () => {
   const update = (key: string, value: string) => {
     setForm((f) => {
       const next = { ...f, [key]: value };
-      // Amova is heterosexual: auto-set opposite looking_for
       if (key === "gender" && !genderLocked) {
         if (value === "homme") next.looking_for = "femme";
         if (value === "femme") next.looking_for = "homme";
@@ -195,18 +215,19 @@ const ProfileSetup = () => {
       return next;
     });
   };
-  const genderOptions = [
-    { value: "homme", label: "Homme" },
-    { value: "femme", label: "Femme" },
-  ];
 
   const canSubmit =
     Boolean(avatarUrl) &&
     Boolean(form.display_name.trim()) &&
     Boolean(form.gender) &&
     Boolean(form.dobDay && form.dobMonth && form.dobYear) &&
+    Boolean(form.country) &&
     Boolean(form.city.trim()) &&
-    Boolean(form.looking_for) &&
+    Boolean(form.religion) &&
+    Boolean(form.relationship_type) &&
+    Boolean(form.occupation_sector) &&
+    Boolean(form.occupation.trim()) &&
+    form.partner_preferences.length > 0 &&
     confirmAdult &&
     !loading &&
     !uploading;
@@ -216,14 +237,13 @@ const ProfileSetup = () => {
       <div className="w-full max-w-md">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-champagne/10 text-champagne text-xs font-medium mb-4 border border-champagne/20">
           <ShieldCheck size={14} />
-          Inscription sécurisée · 18+
+          Inscription sécurisée · 18+ · Matching H↔F
         </div>
         <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-light mb-1 sm:mb-2">
           Créez votre profil Amova
         </h1>
         <p className="text-muted-foreground text-xs sm:text-sm mb-6 sm:mb-8">
-          Informations essentielles pour une communauté premium et authentique. Le genre et la date
-          de naissance sont définitifs après validation.
+          Genre et date de naissance sont définitifs. Renseignez aussi votre situation et vos critères.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
@@ -240,20 +260,13 @@ const ProfileSetup = () => {
               ) : (
                 <Camera className="w-6 h-6 text-muted-foreground group-hover:text-foreground transition-colors" />
               )}
-              {avatarUrl && (
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Camera className="w-5 h-5 text-white" />
-                </div>
-              )}
             </button>
             <p className="text-[10px] text-muted-foreground">Photo de profil obligatoire</p>
             <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleUpload} />
           </div>
 
           <div>
-            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">
-              Prénom ou pseudonyme
-            </label>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">Prénom ou pseudonyme</label>
             <Input
               value={form.display_name}
               onChange={(e) => update("display_name", e.target.value)}
@@ -265,24 +278,25 @@ const ProfileSetup = () => {
           </div>
 
           <div>
-            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">
-              Vous êtes{" "}
-              <span className="text-champagne">
-                {genderLocked ? "(verrouillé)" : "(définitif)"}
-              </span>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">
+              Vous êtes <span className="text-champagne">{genderLocked ? "(verrouillé)" : "(définitif)"}</span>
             </label>
             <div className="flex gap-2 sm:gap-3">
-              {genderOptions.map((opt) => (
+              {[
+                { value: "homme", label: "Homme" },
+                { value: "femme", label: "Femme" },
+              ].map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
                   disabled={genderLocked}
                   onClick={() => update("gender", opt.value)}
-                  className={`flex-1 h-11 sm:h-12 rounded-lg border text-xs sm:text-sm font-medium transition-all duration-200 touch-manipulation active:scale-[0.97] disabled:opacity-80 disabled:cursor-not-allowed ${
+                  className={cn(
+                    "flex-1 h-11 sm:h-12 rounded-lg border text-xs sm:text-sm font-medium transition-all touch-manipulation disabled:opacity-80",
                     form.gender === opt.value
                       ? "border-primary bg-primary/10 text-foreground"
-                      : "border-border/50 bg-secondary/30 text-muted-foreground hover:border-primary/30"
-                  }`}
+                      : "border-border/50 bg-secondary/30 text-muted-foreground",
+                  )}
                 >
                   {opt.label}
                 </button>
@@ -301,41 +315,145 @@ const ProfileSetup = () => {
             }
           />
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">Pays</label>
+              <select
+                value={form.country}
+                onChange={(e) => update("country", e.target.value)}
+                required
+                className={SELECT_CLASS}
+              >
+                <option value="">Choisir…</option>
+                {COUNTRIES_FR.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">Ville</label>
+              <Input
+                value={form.city}
+                onChange={(e) => update("city", e.target.value)}
+                placeholder="Ouagadougou, Abidjan…"
+                required
+                className="h-11 sm:h-12 bg-secondary/50 border-border/50 text-base"
+              />
+            </div>
+          </div>
+
           <div>
-            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Ville</label>
-            <Input
-              value={form.city}
-              onChange={(e) => update("city", e.target.value)}
-              placeholder="Abidjan, Dakar…"
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">Religion</label>
+            <div className="grid grid-cols-2 gap-2">
+              {RELIGIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => update("religion", opt.value)}
+                  className={cn(
+                    "h-10 rounded-lg border text-xs font-medium",
+                    form.religion === opt.value
+                      ? "border-primary bg-primary/10"
+                      : "border-border/50 bg-secondary/30 text-muted-foreground",
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">
+              Type de relation recherchée
+            </label>
+            <div className="flex flex-col gap-2">
+              {RELATIONSHIP_TYPES.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => update("relationship_type", opt.value)}
+                  className={cn(
+                    "h-11 rounded-lg border text-sm font-medium text-left px-3",
+                    form.relationship_type === opt.value
+                      ? "border-primary bg-primary/10"
+                      : "border-border/50 bg-secondary/30 text-muted-foreground",
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">Secteur d&apos;activité</label>
+            <select
+              value={form.occupation_sector}
+              onChange={(e) => update("occupation_sector", e.target.value)}
               required
+              className={SELECT_CLASS}
+            >
+              <option value="">Choisir…</option>
+              {OCCUPATION_SECTORS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">Métier / fonction</label>
+            <Input
+              value={form.occupation}
+              onChange={(e) => update("occupation", e.target.value)}
+              placeholder="Ex. Enseignant, Infirmière, Commerçant…"
+              required
+              maxLength={80}
               className="h-11 sm:h-12 bg-secondary/50 border-border/50 text-base"
             />
           </div>
 
           <div>
-            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">
-              Vous cherchez
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">
+              Vous cherchez{" "}
+              {form.gender === "homme" ? "une femme" : form.gender === "femme" ? "un homme" : "…"} — critères
             </label>
-            <div className="h-11 sm:h-12 rounded-lg border border-border/50 bg-secondary/30 px-3 flex items-center text-sm text-muted-foreground">
-              {form.gender === "homme"
-                ? "Une femme (matching H↔F)"
-                : form.gender === "femme"
-                  ? "Un homme (matching H↔F)"
-                  : "Choisissez d’abord votre genre"}
+            <div className="flex flex-wrap gap-1.5">
+              {PARTNER_PREFERENCE_OPTIONS.map((pref) => {
+                const on = form.partner_preferences.includes(pref);
+                return (
+                  <button
+                    key={pref}
+                    type="button"
+                    onClick={() => togglePref(pref)}
+                    className={cn(
+                      "px-2.5 py-1.5 rounded-full text-[11px] border transition-colors",
+                      on
+                        ? "border-primary bg-primary/15 text-foreground"
+                        : "border-border/40 bg-secondary/40 text-muted-foreground",
+                    )}
+                  >
+                    {pref}
+                  </button>
+                );
+              })}
             </div>
+            <p className="text-[10px] text-muted-foreground mt-1.5">1 à 6 critères</p>
           </div>
 
           <div>
-            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">
-              Bio (optionnel)
-            </label>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">Bio (optionnel)</label>
             <textarea
               value={form.bio}
               onChange={(e) => update("bio", e.target.value)}
               placeholder="Quelques mots sur vous..."
               maxLength={300}
               rows={3}
-              className="w-full rounded-lg border border-border/50 bg-secondary/50 px-3 sm:px-4 py-2.5 sm:py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 resize-none"
+              className="w-full rounded-lg border border-border/50 bg-secondary/50 px-3 py-2.5 text-sm resize-none focus:outline-none focus:border-primary/50"
             />
           </div>
 
@@ -356,13 +474,7 @@ const ProfileSetup = () => {
             </span>
           </label>
 
-          <Button
-            type="submit"
-            variant="hero"
-            size="xl"
-            className="w-full touch-manipulation"
-            disabled={!canSubmit}
-          >
+          <Button type="submit" variant="hero" size="xl" className="w-full" disabled={!canSubmit}>
             {loading ? "Enregistrement..." : "Valider mon profil"}
           </Button>
         </form>

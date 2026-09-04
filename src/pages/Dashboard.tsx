@@ -233,7 +233,7 @@ const Dashboard = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
               {filteredProfiles.map((p, i) => (
-                <ScrollReveal key={p.id} delay={i * 80}>
+                <ScrollReveal key={p.id} delay={i * 80} className="h-full">
                   <ProfileCard
                     profile={p}
                     isLiked={likedIds.has(p.user_id)}
@@ -243,6 +243,7 @@ const Dashboard = () => {
                     onMessage={() => navigate(`/messages?with=${p.user_id}`)}
                     onViewProfile={() => navigate(`/profile/${p.user_id}`)}
                     onReport={() => setReportTarget(p)}
+                    className="h-full"
                   />
                 </ScrollReveal>
               ))}

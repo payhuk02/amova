@@ -14,6 +14,11 @@ export function isProfileComplete(profile: {
   date_of_birth?: string | null;
   looking_for?: string | null;
   city?: string | null;
+  country?: string | null;
+  religion?: string | null;
+  relationship_type?: string | null;
+  occupation?: string | null;
+  occupation_sector?: string | null;
   avatar_url?: string | null;
 } | null): boolean {
   if (!profile) return false;
@@ -25,6 +30,11 @@ export function isProfileComplete(profile: {
       profile.age >= 18 &&
       profile.looking_for &&
       profile.city?.trim() &&
+      profile.country?.trim() &&
+      profile.religion &&
+      profile.relationship_type &&
+      profile.occupation?.trim() &&
+      profile.occupation_sector &&
       profile.avatar_url,
   );
 }
@@ -39,7 +49,9 @@ export function useProfileComplete() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("display_name, gender, age, date_of_birth, looking_for, city, avatar_url")
+        .select(
+          "display_name, gender, age, date_of_birth, looking_for, city, country, religion, relationship_type, occupation, occupation_sector, avatar_url",
+        )
         .eq("user_id", user.id)
         .maybeSingle();
 

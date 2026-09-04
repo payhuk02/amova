@@ -13,6 +13,14 @@ import AppShell from "@/components/AppShell";
 import VerificationRequest from "@/components/VerificationRequest";
 import DateOfBirthFields from "@/components/DateOfBirthFields";
 import { formatDobFr, parseDobParts, splitIsoDate } from "@/lib/date-of-birth";
+import {
+  COUNTRIES_FR,
+  OCCUPATION_SECTORS,
+  PARTNER_PREFERENCE_OPTIONS,
+  RELATIONSHIP_TYPES,
+  RELIGIONS,
+} from "@/lib/profile-options";
+import { cn } from "@/lib/utils";
 
 interface Photo {
   id: string;
@@ -36,8 +44,14 @@ const EditProfile = () => {
     age: "",
     date_of_birth: "" as string | null,
     city: "",
+    country: "",
     looking_for: "",
     bio: "",
+    religion: "",
+    relationship_type: "",
+    occupation: "",
+    occupation_sector: "",
+    partner_preferences: [] as string[],
     avatar_url: "",
     interests: [] as string[],
     verification_status: "none",
@@ -64,8 +78,16 @@ const EditProfile = () => {
           age: profile.age?.toString() || "",
           date_of_birth: (profile as { date_of_birth?: string | null }).date_of_birth || null,
           city: profile.city || "",
+          country: (profile as { country?: string | null }).country || "",
           looking_for: profile.looking_for || "",
           bio: profile.bio || "",
+          religion: (profile as { religion?: string | null }).religion || "",
+          relationship_type: (profile as { relationship_type?: string | null }).relationship_type || "",
+          occupation: (profile as { occupation?: string | null }).occupation || "",
+          occupation_sector: (profile as { occupation_sector?: string | null }).occupation_sector || "",
+          partner_preferences: Array.isArray((profile as { partner_preferences?: string[] }).partner_preferences)
+            ? ((profile as { partner_preferences: string[] }).partner_preferences)
+            : [],
           avatar_url: profile.avatar_url || "",
           interests: (profile as any).interests || [],
           verification_status: (profile as any).verification_status || "none",
@@ -152,9 +174,15 @@ const EditProfile = () => {
     const payload: Record<string, unknown> = {
       display_name: form.display_name,
       city: form.city,
+      country: form.country || null,
       looking_for:
         form.gender === "homme" ? "femme" : form.gender === "femme" ? "homme" : form.looking_for,
       bio: form.bio,
+      religion: form.religion || null,
+      relationship_type: form.relationship_type || null,
+      occupation: form.occupation || null,
+      occupation_sector: form.occupation_sector || null,
+      partner_preferences: form.partner_preferences,
       avatar_url: form.avatar_url || null,
       interests: form.interests,
       incognito_mode: form.incognito_mode && limits.incognitoMode,
@@ -335,12 +363,118 @@ const EditProfile = () => {
               )}
             </div>
             <div>
+              <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Pays</label>
+              <select
+                value={form.country}
+                onChange={(e) => update("country", e.target.value)}
+                className="h-11 sm:h-12 w-full rounded-lg border border-border/50 bg-secondary/50 px-3 text-sm"
+              >
+                <option value="">Choisir…</option>
+                {COUNTRIES_FR.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Ville</label>
               <Input
                 value={form.city}
                 onChange={(e) => update("city", e.target.value)}
                 className="h-11 sm:h-12 bg-secondary/50 border-border/50 text-base"
               />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">Religion</label>
+            <div className="grid grid-cols-2 gap-2">
+              {RELIGIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => update("religion", opt.value)}
+                  className={cn(
+                    "h-10 rounded-lg border text-xs font-medium",
+                    form.religion === opt.value ? "border-primary bg-primary/10" : "border-border/50 bg-secondary/30 text-muted-foreground",
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">Type de relation</label>
+            <div className="flex flex-col gap-2">
+              {RELATIONSHIP_TYPES.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => update("relationship_type", opt.value)}
+                  className={cn(
+                    "h-11 rounded-lg border text-sm px-3 text-left",
+                    form.relationship_type === opt.value ? "border-primary bg-primary/10" : "border-border/50 bg-secondary/30 text-muted-foreground",
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">Secteur</label>
+            <select
+              value={form.occupation_sector}
+              onChange={(e) => update("occupation_sector", e.target.value)}
+              className="h-11 sm:h-12 w-full rounded-lg border border-border/50 bg-secondary/50 px-3 text-sm"
+            >
+              <option value="">Choisir…</option>
+              {OCCUPATION_SECTORS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">Métier / fonction</label>
+            <Input
+              value={form.occupation}
+              onChange={(e) => update("occupation", e.target.value)}
+              placeholder="Votre métier"
+              className="h-11 sm:h-12 bg-secondary/50 border-border/50 text-base"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">Critères recherchés</label>
+            <div className="flex flex-wrap gap-1.5">
+              {PARTNER_PREFERENCE_OPTIONS.map((pref) => {
+                const on = form.partner_preferences.includes(pref);
+                return (
+                  <button
+                    key={pref}
+                    type="button"
+                    onClick={() =>
+                      setForm((f) => ({
+                        ...f,
+                        partner_preferences: on
+                          ? f.partner_preferences.filter((p) => p !== pref)
+                          : f.partner_preferences.length >= 6
+                            ? f.partner_preferences
+                            : [...f.partner_preferences, pref],
+                      }))
+                    }
+                    className={cn(
+                      "px-2.5 py-1.5 rounded-full text-[11px] border",
+                      on ? "border-primary bg-primary/15" : "border-border/40 bg-secondary/40 text-muted-foreground",
+                    )}
+                  >
+                    {pref}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

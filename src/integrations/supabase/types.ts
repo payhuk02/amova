@@ -431,6 +431,12 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           looking_for: string | null
+          country: string | null
+          religion: string | null
+          relationship_type: string | null
+          occupation: string | null
+          occupation_sector: string | null
+          partner_preferences: string[] | null
           updated_at: string
           user_id: string
           verification_photo_url: string | null
@@ -458,6 +464,12 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           looking_for?: string | null
+          country?: string | null
+          religion?: string | null
+          relationship_type?: string | null
+          occupation?: string | null
+          occupation_sector?: string | null
+          partner_preferences?: string[] | null
           updated_at?: string
           user_id: string
           verification_photo_url?: string | null
@@ -485,6 +497,12 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           looking_for?: string | null
+          country?: string | null
+          religion?: string | null
+          relationship_type?: string | null
+          occupation?: string | null
+          occupation_sector?: string | null
+          partner_preferences?: string[] | null
           updated_at?: string
           user_id?: string
           verification_photo_url?: string | null

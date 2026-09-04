@@ -11,7 +11,9 @@ export interface ProfileCardData {
   avatar_url: string | null;
   age: number | null;
   city: string | null;
+  country?: string | null;
   bio: string | null;
+  occupation?: string | null;
   interests?: string[] | null;
   last_seen?: string | null;
   is_verified?: boolean;
@@ -43,16 +45,18 @@ export default function ProfileCard({
 }: ProfileCardProps) {
   const online = profile.last_seen ? isOnline(profile.last_seen) : false;
   const shouldBlur = blurPhoto && !isMatched;
+  const place = [profile.city, profile.country].filter(Boolean).join(", ");
 
   return (
     <article
       className={cn(
         "glass-card rounded-2xl overflow-hidden group hover:border-champagne/20 transition-all duration-300",
+        "flex flex-col h-full min-h-[420px]",
         className,
       )}
     >
-      {/* Photo */}
-      <div className="aspect-[4/3] bg-secondary/30 relative">
+      {/* Photo — fixed ratio for equal cards */}
+      <div className="aspect-[4/3] bg-secondary/30 relative shrink-0">
         {profile.avatar_url ? (
           <BlurredPhoto
             src={profile.avatar_url}
@@ -68,11 +72,8 @@ export default function ProfileCard({
 
         <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-card via-card/60 to-transparent" />
 
-        {/* Top badges */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-          {profile.last_seen && (
-            <OnlineStatus online={online} compact />
-          )}
+          {profile.last_seen && <OnlineStatus online={online} compact />}
         </div>
 
         <div className="absolute top-3 right-3 flex flex-wrap gap-1.5 justify-end">
@@ -91,11 +92,11 @@ export default function ProfileCard({
         )}
       </div>
 
-      {/* Info */}
-      <div className="p-4 sm:p-5">
-        <h3 className="font-display text-lg sm:text-xl font-medium mb-1">
+      {/* Info — grows; actions pinned bottom */}
+      <div className="p-4 sm:p-5 flex flex-col flex-1 min-h-0">
+        <h3 className="font-display text-lg sm:text-xl font-medium mb-1 truncate">
           {onViewProfile ? (
-            <button onClick={onViewProfile} className="hover:text-champagne transition-colors text-left">
+            <button onClick={onViewProfile} className="hover:text-champagne transition-colors text-left truncate max-w-full">
               {profile.display_name}
               {profile.age && (
                 <span className="text-muted-foreground font-light">, {profile.age}</span>
@@ -111,41 +112,47 @@ export default function ProfileCard({
           )}
         </h3>
 
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-2">
-          {profile.city && (
-            <span className="flex items-center gap-1">
-              <MapPin size={12} />
-              {profile.city}
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-2 min-h-[1.25rem]">
+          {place ? (
+            <span className="flex items-center gap-1 truncate">
+              <MapPin size={12} className="shrink-0" />
+              <span className="truncate">{place}</span>
             </span>
+          ) : (
+            <span className="opacity-0">—</span>
           )}
           {profile.last_seen && (
-            <span className="text-[10px] sm:text-[11px] text-muted-foreground/70">
+            <span className="text-[10px] sm:text-[11px] text-muted-foreground/70 shrink-0">
               {formatLastSeen(profile.last_seen)}
             </span>
           )}
         </div>
 
-        {profile.interests && profile.interests.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            {profile.interests.slice(0, 3).map((interest) => (
-              <InterestTag key={interest}>{interest}</InterestTag>
-            ))}
-            {profile.interests.length > 3 && (
-              <InterestTag className="text-muted-foreground">
-                +{profile.interests.length - 3}
-              </InterestTag>
-            )}
-          </div>
+        {profile.occupation && (
+          <p className="text-[11px] text-muted-foreground/80 mb-2 truncate">{profile.occupation}</p>
         )}
 
-        {profile.bio && (
-          <p className="text-xs sm:text-sm text-foreground/70 leading-relaxed line-clamp-2 mb-4">
-            {profile.bio}
-          </p>
-        )}
+        <div className="flex flex-wrap gap-1 mb-2 min-h-[1.5rem]">
+          {profile.interests && profile.interests.length > 0 ? (
+            <>
+              {profile.interests.slice(0, 3).map((interest) => (
+                <InterestTag key={interest}>{interest}</InterestTag>
+              ))}
+              {profile.interests.length > 3 && (
+                <InterestTag className="text-muted-foreground">
+                  +{profile.interests.length - 3}
+                </InterestTag>
+              )}
+            </>
+          ) : null}
+        </div>
+
+        <p className="text-xs sm:text-sm text-foreground/70 leading-relaxed line-clamp-2 min-h-[2.5rem] mb-4">
+          {profile.bio?.trim() || "\u00A0"}
+        </p>
 
         {(onLike || onMessage) && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 mt-auto pt-1">
             {onLike && (
               <Button
                 variant={isLiked ? "default" : "hero-outline"}

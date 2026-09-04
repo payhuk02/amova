@@ -8,6 +8,11 @@ const complete = {
   date_of_birth: "1998-01-10",
   looking_for: "femme",
   city: "Abidjan",
+  country: "Côte d'Ivoire",
+  religion: "islam",
+  relationship_type: "monogamie",
+  occupation: "Ingénieur",
+  occupation_sector: "prive",
   avatar_url: "https://example.com/a.jpg",
 };
 
@@ -27,7 +32,9 @@ describe("isProfileComplete", () => {
     expect(isProfileComplete(complete)).toBe(true);
   });
 
-  it("returns false for whitespace-only display name", () => {
-    expect(isProfileComplete({ ...complete, display_name: "   " })).toBe(false);
+  it("returns false when extended onboarding fields are missing", () => {
+    expect(isProfileComplete({ ...complete, country: null })).toBe(false);
+    expect(isProfileComplete({ ...complete, religion: "" })).toBe(false);
+    expect(isProfileComplete({ ...complete, relationship_type: null })).toBe(false);
   });
 });
