@@ -12,11 +12,13 @@ import {
   Calendar,
   UserX,
   ShieldAlert,
+  Crown,
 } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import BadgesDisplay from "@/components/BadgesDisplay";
 import BlockReportDialog from "@/components/BlockReportDialog";
 import { useBlockedUsers } from "@/hooks/useBlockedUsers";
+import { useSubscription } from "@/hooks/useSubscription";
 import EmptyState from "@/components/ui/empty-state";
 import { TrustBadge, OnlineStatus, InterestTag } from "@/components/TrustBadge";
 import { isOnline } from "@/hooks/useOnlineStatus";
@@ -49,8 +51,10 @@ const ProfilePage = () => {
   const { userId } = useParams<{ userId: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { limits } = useSubscription();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [galleryLocked, setGalleryLocked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
   const [isMatch, setIsMatch] = useState(false);
@@ -75,7 +79,8 @@ const ProfilePage = () => {
         .select("id, photo_url, position")
         .eq("user_id", userId)
         .order("position");
-      setPhotos((ph as Photo[]) || []);
+      const photoRows = (ph as Photo[]) || [];
+      setPhotos(photoRows);
 
       const { data: myLike } = await supabase
         .from("likes")
@@ -85,10 +90,18 @@ const ProfilePage = () => {
         .maybeSingle();
       setLiked(!!myLike);
 
+      let matched = false;
       if (myLike) {
         const { data: rev } = await supabase.rpc("has_liked_me", { p_user_id: userId });
-        setIsMatch(!!rev);
+        matched = !!rev;
+        setIsMatch(matched);
+      } else {
+        setIsMatch(false);
       }
+
+      const isOwn = userId === user.id;
+      const unlocked = isOwn || limits.canViewFullGallery || matched;
+      setGalleryLocked(!unlocked);
 
       const { data: stats } = await supabase.rpc("get_public_profile_stats", {
         p_user_id: userId,
@@ -103,7 +116,7 @@ const ProfilePage = () => {
     };
 
     load();
-  }, [userId, user]);
+  }, [userId, user, limits.canViewFullGallery]);
 
   const handleLike = async () => {
     if (!user || !userId) return;
@@ -331,6 +344,24 @@ const ProfilePage = () => {
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {galleryLocked && userId !== user?.id && (
+          <div className="mt-4 rounded-xl border border-champagne/25 bg-champagne/5 p-5 text-center space-y-3">
+            <div className="w-12 h-12 rounded-full bg-champagne/15 flex items-center justify-center mx-auto">
+              <Crown size={22} className="text-champagne" />
+            </div>
+            <div>
+              <p className="font-medium">Galerie réservée aux abonnés</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                L&apos;avatar reste visible. Passez Premium pour voir toutes les photos en HD,
+                ou matchez pour débloquer ce profil.
+              </p>
+            </div>
+            <Button variant="hero" size="sm" onClick={() => navigate("/premium")}>
+              Voir les offres Premium
+            </Button>
           </div>
         )}
       </main>

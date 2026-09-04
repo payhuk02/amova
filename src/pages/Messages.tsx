@@ -36,6 +36,7 @@ import { toast } from "sonner";
 import { isOnline } from "@/hooks/useOnlineStatus";
 import type { MessageInsert } from "@/lib/supabase-helpers";
 import { getErrorMessage } from "@/lib/supabase-helpers";
+import { getLimitErrorMessage } from "@/lib/limits";
 
 interface Match {
   user_id: string;
@@ -381,6 +382,16 @@ const Messages = () => {
   }, []);
 
   const handleMessagingError = (error: unknown) => {
+    const limitMsg = getLimitErrorMessage(error as { message?: string });
+    if (limitMsg) {
+      toast.error(limitMsg, {
+        action: {
+          label: "Premium",
+          onClick: () => navigate("/premium"),
+        },
+      });
+      return;
+    }
     const message = getErrorMessage(error);
     if (message.includes("blocked_user")) {
       toast.error("Vous ne pouvez pas envoyer de message à cet utilisateur");

@@ -11,7 +11,9 @@ import { PLAN_PRICES } from "@/lib/plans";
 
 const comparisonRows = [
   { label: "Super Likes / jour", free: "1", premium: "5", vip: "Illimités" },
-  { label: "Swipes", free: "Limités", premium: "Illimités", vip: "Illimités" },
+  { label: "Swipes", free: "50 / jour", premium: "Illimités", vip: "Illimités" },
+  { label: "Messages / jour", free: "15", premium: "Illimités", vip: "Illimités" },
+  { label: "Galerie photos HD", free: false, premium: true, vip: true },
   { label: "Boosts / jour", free: "—", premium: "1", vip: "3" },
   { label: "Voir qui vous aime", free: false, premium: true, vip: true },
   { label: "Filtres avancés", free: false, premium: true, vip: true },
@@ -60,17 +62,25 @@ function CellValue({ value }: { value: string | boolean }) {
 }
 
 export default function Premium() {
-  const { currentPlan } = useSubscription();
+  const { currentPlan, isExpired, subscription } = useSubscription();
   const [searchParams] = useSearchParams();
   const [checkoutPlan, setCheckoutPlan] = useState<Exclude<PlanType, "free"> | null>(null);
   const [isRenewalCheckout, setIsRenewalCheckout] = useState(false);
 
   useEffect(() => {
-    if (searchParams.get("renew") === "1" && currentPlan !== "free") {
-      setCheckoutPlan(currentPlan);
-      setIsRenewalCheckout(true);
-    }
-  }, [searchParams, currentPlan]);
+    if (searchParams.get("renew") !== "1") return;
+
+    // Active sub: renew current plan. Expired: renew last paid plan. Else default Premium.
+    const renewPlan: Exclude<PlanType, "free"> =
+      currentPlan !== "free"
+        ? currentPlan
+        : isExpired && subscription?.plan && subscription.plan !== "free"
+          ? (subscription.plan as Exclude<PlanType, "free">)
+          : "premium";
+
+    setCheckoutPlan(renewPlan);
+    setIsRenewalCheckout(true);
+  }, [searchParams, currentPlan, isExpired, subscription?.plan]);
 
   const handleSelectPlan = (planId: PlanType) => {
     if (planId === "free" || planId === currentPlan) return;
@@ -79,9 +89,14 @@ export default function Premium() {
   };
 
   const openRenewal = () => {
-    if (currentPlan === "free") return;
+    const renewPlan: Exclude<PlanType, "free"> =
+      currentPlan !== "free"
+        ? currentPlan
+        : isExpired && subscription?.plan && subscription.plan !== "free"
+          ? (subscription.plan as Exclude<PlanType, "free">)
+          : "premium";
     setIsRenewalCheckout(true);
-    setCheckoutPlan(currentPlan);
+    setCheckoutPlan(renewPlan);
   };
 
   return (
@@ -100,10 +115,12 @@ export default function Premium() {
           </p>
         </div>
 
-        {currentPlan !== "free" && (
+        {(currentPlan !== "free" || isExpired) && (
           <div className="mb-6 flex justify-center">
             <Button variant="outline" size="sm" onClick={openRenewal} className="border-champagne/30">
-              Renouveler mon abonnement {currentPlan.toUpperCase()}
+              {isExpired && currentPlan === "free"
+                ? "Renouveler mon abonnement"
+                : `Renouveler mon abonnement ${currentPlan.toUpperCase()}`}
             </Button>
           </div>
         )}

@@ -17,6 +17,8 @@ const PLAN_LIMITS: Record<PlanType, {
   superLikesPerDay: number;
   boostsPerDay: number;
   canSeeWhoLiked: boolean;
+  canViewFullGallery: boolean;
+  dailyMessageLimit: number;
   incognitoMode: boolean;
   priorityMatching: boolean;
   unlimitedSwipes: boolean;
@@ -25,6 +27,8 @@ const PLAN_LIMITS: Record<PlanType, {
     superLikesPerDay: 1,
     boostsPerDay: 0,
     canSeeWhoLiked: false,
+    canViewFullGallery: false,
+    dailyMessageLimit: 15,
     incognitoMode: false,
     priorityMatching: false,
     unlimitedSwipes: false,
@@ -33,6 +37,8 @@ const PLAN_LIMITS: Record<PlanType, {
     superLikesPerDay: 5,
     boostsPerDay: 1,
     canSeeWhoLiked: true,
+    canViewFullGallery: true,
+    dailyMessageLimit: -1,
     incognitoMode: false,
     priorityMatching: false,
     unlimitedSwipes: true,
@@ -41,6 +47,8 @@ const PLAN_LIMITS: Record<PlanType, {
     superLikesPerDay: -1,
     boostsPerDay: 3,
     canSeeWhoLiked: true,
+    canViewFullGallery: true,
+    dailyMessageLimit: -1,
     incognitoMode: true,
     priorityMatching: true,
     unlimitedSwipes: true,

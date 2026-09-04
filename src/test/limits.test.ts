@@ -14,6 +14,10 @@ describe("getLimitErrorMessage", () => {
     expect(getLimitErrorMessage({ message: "daily_boost_limit_reached" })).toContain("boosts");
   });
 
+  it("returns message limit message", () => {
+    expect(getLimitErrorMessage({ message: "daily_message_limit_reached" })).toContain("messages");
+  });
+
   it("returns incognito message", () => {
     expect(getLimitErrorMessage({ message: "incognito_requires_vip" })).toContain("VIP");
   });
