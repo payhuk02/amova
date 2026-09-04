@@ -54,7 +54,7 @@ Configurer les secrets Supabase :
 
 ```bash
 supabase secrets set MONEYFUSION_API_URL="https://pay.moneyfusion.net/Votre_App/votre-cle/pay/"
-supabase secrets set MONEYFUSION_WEBHOOK_SECRET="secret-partage"
+supabase secrets set MONEYFUSION_WEBHOOK_SECRET="secret-partage-fort-min-16-caracteres"
 supabase secrets set APP_URL="https://www.amova.space"
 supabase secrets set CRON_SECRET="secret-aleatoire"
 supabase secrets set VAPID_PUBLIC_KEY="..."

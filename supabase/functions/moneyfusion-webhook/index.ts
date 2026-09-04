@@ -20,13 +20,22 @@ async function fulfillToken(token: string, expectedAmount?: number) {
   return Boolean(data);
 }
 
-function verifyWebhookSecret(req: Request): boolean {
+function verifyWebhookSecret(req: Request): { ok: boolean; misconfigured?: boolean } {
   const secret = Deno.env.get("MONEYFUSION_WEBHOOK_SECRET");
-  if (!secret) return true;
+  if (!secret || secret.trim().length < 16) {
+    console.error("MONEYFUSION_WEBHOOK_SECRET missing or too short");
+    return { ok: false, misconfigured: true };
+  }
+
   const header =
     req.headers.get("X-Webhook-Secret") ??
     req.headers.get("X-Moneyfusion-Secret");
-  return header === secret;
+  const querySecret = new URL(req.url).searchParams.get("secret");
+
+  if (header === secret || querySecret === secret) {
+    return { ok: true };
+  }
+  return { ok: false };
 }
 
 serve(async (req) => {
@@ -41,11 +50,17 @@ serve(async (req) => {
     });
   }
 
-  if (!verifyWebhookSecret(req)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+  const auth = verifyWebhookSecret(req);
+  if (!auth.ok) {
+    return new Response(
+      JSON.stringify({
+        error: auth.misconfigured ? "Webhook secret not configured" : "Unauthorized",
+      }),
+      {
+        status: auth.misconfigured ? 503 : 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   }
 
   try {
@@ -71,6 +86,7 @@ serve(async (req) => {
       });
     }
 
+    // Always re-verify with Moneyfusion before fulfilling
     const remote = await checkMoneyfusionPayment(token);
     if (!isPaymentSuccessful(remote.data?.statut, payload.event)) {
       return new Response(JSON.stringify({ received: true, status: "pending" }), {

@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Check, Crown, Sparkles, Zap, Shield, Eye, Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSubscription, PlanType } from "@/hooks/useSubscription";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import PaymentCheckoutDialog from "@/components/PaymentCheckoutDialog";
 import PaymentReassurance from "@/components/PaymentReassurance";
 import AppShell from "@/components/AppShell";
@@ -10,6 +13,7 @@ import { cn } from "@/lib/utils";
 import {
   CONSUMABLE_PRICES,
   BILLING_PERIODS,
+  PAID_TRIAL,
   getSubscriptionAmount,
   formatFcfa,
   type ConsumableSku,
@@ -41,12 +45,24 @@ function CellValue({ value }: { value: string | boolean }) {
 }
 
 export default function Premium() {
+  const { user } = useAuth();
   const { currentPlan, isExpired, subscription } = useSubscription();
   const [searchParams] = useSearchParams();
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>("monthly");
   const [checkoutPlan, setCheckoutPlan] = useState<Exclude<PlanType, "free"> | null>(null);
   const [checkoutSku, setCheckoutSku] = useState<ConsumableSku | null>(null);
   const [isRenewalCheckout, setIsRenewalCheckout] = useState(false);
+  const [isTrialCheckout, setIsTrialCheckout] = useState(false);
+
+  const { data: canStartTrial } = useQuery({
+    queryKey: ["paid-trial-eligible", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("user_can_start_paid_trial");
+      if (error) throw error;
+      return Boolean(data);
+    },
+    enabled: !!user && currentPlan === "free" && !isExpired,
+  });
 
   const periodMeta = BILLING_PERIODS[billingPeriod];
   const priceSuffix =
@@ -109,6 +125,7 @@ export default function Premium() {
   const handleSelectPlan = (planId: PlanType) => {
     if (planId === "free" || planId === currentPlan) return;
     setCheckoutSku(null);
+    setIsTrialCheckout(false);
     setIsRenewalCheckout(false);
     setCheckoutPlan(planId);
   };
@@ -121,8 +138,16 @@ export default function Premium() {
           ? (subscription.plan as Exclude<PlanType, "free">)
           : "premium";
     setCheckoutSku(null);
+    setIsTrialCheckout(false);
     setIsRenewalCheckout(true);
     setCheckoutPlan(renewPlan);
+  };
+
+  const openTrial = () => {
+    setCheckoutPlan(null);
+    setCheckoutSku(null);
+    setIsRenewalCheckout(false);
+    setIsTrialCheckout(true);
   };
 
   return (
@@ -172,6 +197,20 @@ export default function Premium() {
               {isExpired && currentPlan === "free"
                 ? "Renouveler mon abonnement"
                 : `Renouveler mon abonnement ${currentPlan.toUpperCase()}`}
+            </Button>
+          </div>
+        )}
+
+        {canStartTrial && (
+          <div className="mb-8 glass-card rounded-2xl p-5 sm:p-6 border border-champagne/25 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+            <div>
+              <p className="font-display text-lg font-medium">{PAID_TRIAL.label}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Testez Premium une seule fois — swipes illimités, likes visibles, boost inclus.
+              </p>
+            </div>
+            <Button variant="default" onClick={openTrial} className="shrink-0">
+              Essayer — {formatFcfa(PAID_TRIAL.price)}
             </Button>
           </div>
         )}
@@ -245,6 +284,7 @@ export default function Premium() {
                 onClick={() => {
                   setCheckoutPlan(null);
                   setIsRenewalCheckout(false);
+                  setIsTrialCheckout(false);
                   setCheckoutSku(sku);
                 }}
                 className="text-left rounded-xl border border-border/40 bg-secondary/20 p-4 hover:border-champagne/30 transition-colors"
@@ -309,12 +349,14 @@ export default function Premium() {
           plan={checkoutPlan}
           productSku={checkoutSku}
           billingPeriod={billingPeriod}
-          open={checkoutPlan !== null || checkoutSku !== null}
+          isTrial={isTrialCheckout}
+          open={checkoutPlan !== null || checkoutSku !== null || isTrialCheckout}
           onOpenChange={(open) => {
             if (!open) {
               setCheckoutPlan(null);
               setCheckoutSku(null);
               setIsRenewalCheckout(false);
+              setIsTrialCheckout(false);
             }
           }}
           isRenewal={isRenewalCheckout}

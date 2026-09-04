@@ -19,6 +19,7 @@ import {
   CONSUMABLE_LABELS,
   CONSUMABLE_PRICES,
   BILLING_PERIODS,
+  PAID_TRIAL,
   getSubscriptionAmount,
   formatFcfa,
   type ConsumableSku,
@@ -31,6 +32,7 @@ interface PaymentCheckoutDialogProps {
   plan?: Exclude<PlanType, "free"> | null;
   productSku?: ConsumableSku | null;
   billingPeriod?: BillingPeriod;
+  isTrial?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isRenewal?: boolean;
@@ -53,6 +55,7 @@ export default function PaymentCheckoutDialog({
   plan = null,
   productSku = null,
   billingPeriod = "monthly",
+  isTrial = false,
   open,
   onOpenChange,
   isRenewal = false,
@@ -64,22 +67,26 @@ export default function PaymentCheckoutDialog({
 
   const isConsumable = Boolean(productSku);
   const periodMeta = BILLING_PERIODS[billingPeriod];
-  const title = isConsumable
-    ? CONSUMABLE_LABELS[productSku!]
-    : plan
-      ? `${isRenewal ? "Renouveler" : "Paiement"} ${PLAN_LABELS[plan]}`
-      : "";
-  const priceLabel = isConsumable
-    ? formatFcfa(CONSUMABLE_PRICES[productSku!])
-    : plan
-      ? `${formatFcfa(getSubscriptionAmount(plan, billingPeriod))} — ${periodMeta.label}${
-          isRenewal ? ` (prolongation ${periodMeta.days} j)` : ""
-        }`
-      : "";
+  const title = isTrial
+    ? PAID_TRIAL.label
+    : isConsumable
+      ? CONSUMABLE_LABELS[productSku!]
+      : plan
+        ? `${isRenewal ? "Renouveler" : "Paiement"} ${PLAN_LABELS[plan]}`
+        : "";
+  const priceLabel = isTrial
+    ? `${formatFcfa(PAID_TRIAL.price)} — ${PAID_TRIAL.days} jours Premium`
+    : isConsumable
+      ? formatFcfa(CONSUMABLE_PRICES[productSku!])
+      : plan
+        ? `${formatFcfa(getSubscriptionAmount(plan, billingPeriod))} — ${periodMeta.label}${
+            isRenewal ? ` (prolongation ${periodMeta.days} j)` : ""
+          }`
+        : "";
 
   const handlePay = async () => {
     if (!user) return;
-    if (!isConsumable && !plan) return;
+    if (!isTrial && !isConsumable && !plan) return;
     if (!phone.trim() || !clientName.trim()) {
       toast.error("Veuillez renseigner votre nom et numéro de téléphone");
       return;
@@ -87,19 +94,25 @@ export default function PaymentCheckoutDialog({
 
     setLoading(true);
     try {
-      const body = isConsumable
+      const body = isTrial
         ? {
-            productSku,
+            isTrial: true,
             phone: phone.trim(),
             clientName: clientName.trim(),
           }
-        : {
-            plan,
-            phone: phone.trim(),
-            clientName: clientName.trim(),
-            isRenewal,
-            billingPeriod,
-          };
+        : isConsumable
+          ? {
+              productSku,
+              phone: phone.trim(),
+              clientName: clientName.trim(),
+            }
+          : {
+              plan,
+              phone: phone.trim(),
+              clientName: clientName.trim(),
+              isRenewal,
+              billingPeriod,
+            };
 
       const { data, error } = await supabase.functions.invoke("create-payment", { body });
 
@@ -110,8 +123,18 @@ export default function PaymentCheckoutDialog({
       if (!data?.url) throw new Error("URL de paiement indisponible");
 
       trackEvent(
-        isConsumable ? "Consumable Checkout" : isRenewal ? "Renewal Checkout" : "Premium Checkout",
-        isConsumable ? { productSku } : { plan, billingPeriod },
+        isTrial
+          ? "Trial Checkout"
+          : isConsumable
+            ? "Consumable Checkout"
+            : isRenewal
+              ? "Renewal Checkout"
+              : "Premium Checkout",
+        isTrial
+          ? { plan: PAID_TRIAL.plan }
+          : isConsumable
+            ? { productSku }
+            : { plan, billingPeriod },
       );
 
       window.location.href = data.url;
@@ -122,7 +145,7 @@ export default function PaymentCheckoutDialog({
     }
   };
 
-  if (!plan && !productSku) return null;
+  if (!plan && !productSku && !isTrial) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -4,8 +4,10 @@ import {
   createMoneyfusionPayment,
   getAppUrl,
   getServiceClient,
+  getMoneyfusionWebhookUrl,
   normalizePhone,
   CONSUMABLE_PRICES,
+  PAID_TRIAL,
   getSubscriptionAmount,
   type PaidPlan,
   type ConsumableSku,
@@ -29,11 +31,13 @@ serve(async (req) => {
   }
 
   try {
-    const { plan, phone, clientName, isRenewal, productSku, billingPeriod } = await req.json();
+    const { plan, phone, clientName, isRenewal, productSku, billingPeriod, isTrial } =
+      await req.json();
 
     const supabase = getServiceClient();
     const appUrl = getAppUrl();
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const webhookUrl = getMoneyfusionWebhookUrl(supabaseUrl);
 
     // Consumable one-shots
     if (productSku) {
@@ -81,7 +85,76 @@ serve(async (req) => {
         orderId: order.id,
         userId: user.id,
         returnUrl: `${appUrl}/premium/callback`,
-        webhookUrl: `${supabaseUrl}/functions/v1/moneyfusion-webhook`,
+        webhookUrl,
+      });
+
+      if (!payment.statut || !payment.url || !payment.token) {
+        await supabase.from("payment_orders").update({ status: "failed" }).eq("id", order.id);
+        throw new Error(payment.message || "Échec de l'initialisation du paiement");
+      }
+
+      await supabase.from("payment_orders").update({ token_pay: payment.token }).eq("id", order.id);
+
+      return new Response(JSON.stringify({ url: payment.url }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Paid Premium trial (once per account)
+    if (isTrial) {
+      if (!phone || !clientName) {
+        return new Response(JSON.stringify({ error: "Téléphone et nom requis" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: canTrial, error: trialErr } = await supabase.rpc(
+        "user_can_start_paid_trial",
+        { p_user_id: user.id },
+      );
+      if (trialErr) throw new Error(trialErr.message);
+      if (!canTrial) {
+        return new Response(
+          JSON.stringify({ error: "Essai déjà utilisé ou abonnement existant" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      const amount = PAID_TRIAL.price;
+      const { data: order, error: orderError } = await supabase
+        .from("payment_orders")
+        .insert({
+          user_id: user.id,
+          plan: PAID_TRIAL.plan,
+          amount,
+          client_name: clientName,
+          client_phone: phone,
+          status: "pending",
+          is_renewal: false,
+          product_type: "trial",
+          product_sku: null,
+          billing_period: "trial",
+        })
+        .select("id")
+        .single();
+
+      if (orderError || !order) {
+        throw new Error(orderError?.message || "Impossible de créer la commande");
+      }
+
+      const payment = await createMoneyfusionPayment({
+        totalPrice: amount,
+        articleLabel: `Amova Premium essai ${PAID_TRIAL.days}j`,
+        phone: normalizePhone(String(phone)),
+        clientName: String(clientName).trim(),
+        orderId: order.id,
+        userId: user.id,
+        returnUrl: `${appUrl}/premium/callback`,
+        webhookUrl,
       });
 
       if (!payment.statut || !payment.url || !payment.token) {
@@ -150,7 +223,7 @@ serve(async (req) => {
       orderId: order.id,
       userId: user.id,
       returnUrl: `${appUrl}/premium/callback`,
-      webhookUrl: `${supabaseUrl}/functions/v1/moneyfusion-webhook`,
+      webhookUrl,
     });
 
     if (!payment.statut || !payment.url || !payment.token) {

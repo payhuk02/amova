@@ -1,11 +1,15 @@
 import LegalLayout from "@/components/legal/LegalLayout";
 import { Link } from "react-router-dom";
-import { PLAN_PRICES, CONSUMABLE_PRICES, formatFcfa } from "@/lib/plans";
+import { PLAN_PRICES, CONSUMABLE_PRICES, PAID_TRIAL, formatFcfa } from "@/lib/plans";
 
 const faqs = [
   {
     q: "Qu’est-ce qui est gratuit sur Amova ?",
     a: "Le plan Gratuit permet de découvrir la plateforme : 50 swipes/jour, 1 Super Like/jour, 15 messages/jour, et l’avatar des profils. La galerie photos HD, « Qui m’aime » et les messages illimités sont réservés aux abonnés Plus et plus.",
+  },
+  {
+    q: "Puis-je essayer Premium avant de m’abonner ?",
+    a: `Oui : un essai Premium payant de ${PAID_TRIAL.days} jours à ${formatFcfa(PAID_TRIAL.price)}, une seule fois par compte (si vous n’avez jamais eu d’abonnement payant).`,
   },
   {
     q: "Quelle est la différence entre Plus, Premium et VIP ?",

@@ -52,3 +52,11 @@ export const CONSUMABLE_LABELS: Record<ConsumableSku, string> = {
   boost_24h: "Boost profil — 24h",
   spotlight_24h: "Spotlight — 24h",
 };
+
+/** One-time paid Premium trial (eligibility enforced server-side). */
+export const PAID_TRIAL = {
+  plan: "premium" as const,
+  days: 3,
+  price: 990,
+  label: "Essai Premium 3 jours",
+};

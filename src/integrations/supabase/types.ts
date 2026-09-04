@@ -966,6 +966,10 @@ export type Database = {
         Args: { p_token: string; p_expected_amount?: number | null }
         Returns: boolean
       }
+      user_can_start_paid_trial: {
+        Args: { p_user_id?: string }
+        Returns: boolean
+      }
       get_mutual_match_user_ids: { Args: Record<PropertyKey, never>; Returns: string[] }
       has_liked_me: { Args: { p_user_id: string }; Returns: boolean }
       get_public_profile_stats: {

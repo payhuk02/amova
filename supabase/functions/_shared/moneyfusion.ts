@@ -36,6 +36,13 @@ export const CONSUMABLE_PRICES = {
 
 export type ConsumableSku = keyof typeof CONSUMABLE_PRICES;
 
+/** One-time paid Premium trial */
+export const PAID_TRIAL = {
+  plan: "premium" as const,
+  days: 3,
+  price: 990,
+};
+
 export interface MoneyfusionCreateResponse {
   statut?: boolean;
   token?: string;
@@ -73,6 +80,16 @@ export function normalizePhone(phone: string): string {
 
 export function getAppUrl() {
   return Deno.env.get("APP_URL") ?? "http://localhost:5173";
+}
+
+/** Webhook URL with required shared secret (Moneyfusion has no signed headers). */
+export function getMoneyfusionWebhookUrl(supabaseUrl: string): string {
+  const secret = Deno.env.get("MONEYFUSION_WEBHOOK_SECRET");
+  if (!secret || secret.trim().length < 16) {
+    throw new Error("MONEYFUSION_WEBHOOK_SECRET is not configured");
+  }
+  const base = `${supabaseUrl.replace(/\/$/, "")}/functions/v1/moneyfusion-webhook`;
+  return `${base}?secret=${encodeURIComponent(secret)}`;
 }
 
 export async function createMoneyfusionPayment(params: {
