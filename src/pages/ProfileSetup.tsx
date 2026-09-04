@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import DateOfBirthFields from "@/components/DateOfBirthFields";
+import { parseDobParts } from "@/lib/date-of-birth";
 import { toast } from "sonner";
-import { Camera, Loader2 } from "lucide-react";
+import { Camera, Loader2, ShieldCheck } from "lucide-react";
 
 const ProfileSetup = () => {
   const { user } = useAuth();
@@ -15,25 +17,28 @@ const ProfileSetup = () => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [confirmAdult, setConfirmAdult] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     display_name: "",
     gender: "",
-    age: "",
     city: "",
     looking_for: "",
     bio: "",
+    dobDay: "",
+    dobMonth: "",
+    dobYear: "",
   });
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("*")
+      .select("display_name, date_of_birth, gender")
       .eq("user_id", user.id)
       .single()
       .then(({ data }) => {
-        if (data?.display_name) {
+        if (data?.display_name && data?.date_of_birth && data?.gender) {
           navigate("/dashboard");
         }
       });
@@ -43,8 +48,17 @@ const ProfileSetup = () => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
+    if (!file.type.startsWith("image/")) {
+      toast.error("Choisissez une image (JPEG, PNG ou WebP)");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Photo trop volumineuse (max 8 Mo)");
+      return;
+    }
+
     setUploading(true);
-    const ext = file.name.split(".").pop();
+    const ext = file.name.split(".").pop() || "jpg";
     const path = `${user.id}/avatar.${ext}`;
 
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
@@ -55,24 +69,52 @@ const ProfileSetup = () => {
     }
 
     const { data: publicUrl } = supabase.storage.from("avatars").getPublicUrl(path);
-    setAvatarUrl(publicUrl.publicUrl);
+    setAvatarUrl(`${publicUrl.publicUrl}?t=${Date.now()}`);
     setUploading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    setLoading(true);
 
+    if (!avatarUrl) {
+      toast.error("Ajoutez une photo de profil pour continuer");
+      return;
+    }
+    if (!form.gender) {
+      toast.error("Indiquez votre genre — ce choix sera définitif");
+      return;
+    }
+    if (!form.city.trim()) {
+      toast.error("Indiquez votre ville");
+      return;
+    }
+    if (!form.looking_for) {
+      toast.error("Indiquez qui vous recherchez");
+      return;
+    }
+    if (!confirmAdult) {
+      toast.error("Confirmez que vous avez 18 ans ou plus");
+      return;
+    }
+
+    const dob = parseDobParts(form.dobYear, form.dobMonth, form.dobDay);
+    if ("error" in dob) {
+      toast.error(dob.error);
+      return;
+    }
+
+    setLoading(true);
     try {
       const profileData = {
-        display_name: form.display_name,
+        display_name: form.display_name.trim(),
         gender: form.gender,
-        age: parseInt(form.age),
-        city: form.city,
+        date_of_birth: dob.iso,
+        age: dob.age,
+        city: form.city.trim(),
         looking_for: form.looking_for,
-        bio: form.bio,
-        avatar_url: avatarUrl,
+        bio: form.bio.trim() || null,
+        avatar_url: avatarUrl.split("?")[0],
       };
 
       const { data: existing } = await supabase
@@ -83,22 +125,24 @@ const ProfileSetup = () => {
 
       let error;
       if (existing) {
-        ({ error } = await supabase
-          .from("profiles")
-          .update(profileData)
-          .eq("user_id", user.id));
+        ({ error } = await supabase.from("profiles").update(profileData).eq("user_id", user.id));
       } else {
-        ({ error } = await supabase
-          .from("profiles")
-          .insert({ ...profileData, user_id: user.id }));
+        ({ error } = await supabase.from("profiles").insert({ ...profileData, user_id: user.id }));
       }
 
       if (error) throw error;
       await queryClient.invalidateQueries({ queryKey: ["profile-complete"] });
-      toast.success("Profil créé avec succès !");
+      toast.success("Profil créé — bienvenue sur Amova");
       navigate("/dashboard");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Erreur";
+      if (msg.includes("gender_locked")) {
+        toast.error("Le genre ne peut plus être modifié");
+      } else if (msg.includes("must_be_18")) {
+        toast.error("Amova est réservé aux majeurs (18+)");
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -109,7 +153,6 @@ const ProfileSetup = () => {
   const genderOptions = [
     { value: "homme", label: "Homme" },
     { value: "femme", label: "Femme" },
-    { value: "autre", label: "Autre" },
   ];
 
   const lookingForOptions = [
@@ -118,17 +161,34 @@ const ProfileSetup = () => {
     { value: "les deux", label: "Les deux" },
   ];
 
+  const canSubmit =
+    Boolean(avatarUrl) &&
+    Boolean(form.display_name.trim()) &&
+    Boolean(form.gender) &&
+    Boolean(form.dobDay && form.dobMonth && form.dobYear) &&
+    Boolean(form.city.trim()) &&
+    Boolean(form.looking_for) &&
+    confirmAdult &&
+    !loading &&
+    !uploading;
+
   return (
     <div className="min-h-[100dvh] flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 safe-area-top safe-area-bottom">
       <div className="w-full max-w-md">
-        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-light mb-1 sm:mb-2">Complétez votre profil</h1>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-champagne/10 text-champagne text-xs font-medium mb-4 border border-champagne/20">
+          <ShieldCheck size={14} />
+          Inscription sécurisée · 18+
+        </div>
+        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-light mb-1 sm:mb-2">
+          Créez votre profil Amova
+        </h1>
         <p className="text-muted-foreground text-xs sm:text-sm mb-6 sm:mb-8">
-          Ces informations restent confidentielles et vous aident à trouver la bonne personne.
+          Informations essentielles pour une communauté premium et authentique. Le genre et la date
+          de naissance sont définitifs après validation.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-          {/* Avatar upload */}
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-2">
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
@@ -147,22 +207,28 @@ const ProfileSetup = () => {
                 </div>
               )}
             </button>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+            <p className="text-[10px] text-muted-foreground">Photo de profil obligatoire</p>
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleUpload} />
           </div>
 
           <div>
-            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Prénom ou pseudonyme</label>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">
+              Prénom ou pseudonyme
+            </label>
             <Input
               value={form.display_name}
               onChange={(e) => update("display_name", e.target.value)}
               placeholder="Votre prénom"
               required
+              maxLength={40}
               className="h-11 sm:h-12 bg-secondary/50 border-border/50 text-base"
             />
           </div>
 
           <div>
-            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Vous êtes</label>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">
+              Vous êtes <span className="text-champagne">(définitif)</span>
+            </label>
             <div className="flex gap-2 sm:gap-3">
               {genderOptions.map((opt) => (
                 <button
@@ -181,33 +247,31 @@ const ProfileSetup = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Âge</label>
-              <Input
-                type="number"
-                min={18}
-                max={120}
-                value={form.age}
-                onChange={(e) => update("age", e.target.value)}
-                placeholder="28"
-                required
-                className="h-11 sm:h-12 bg-secondary/50 border-border/50 tabular-nums text-base"
-              />
-            </div>
-            <div>
-              <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Ville</label>
-              <Input
-                value={form.city}
-                onChange={(e) => update("city", e.target.value)}
-                placeholder="Paris"
-                className="h-11 sm:h-12 bg-secondary/50 border-border/50 text-base"
-              />
-            </div>
+          <DateOfBirthFields
+            day={form.dobDay}
+            month={form.dobMonth}
+            year={form.dobYear}
+            required
+            onChange={({ day, month, year }) =>
+              setForm((f) => ({ ...f, dobDay: day, dobMonth: month, dobYear: year }))
+            }
+          />
+
+          <div>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Ville</label>
+            <Input
+              value={form.city}
+              onChange={(e) => update("city", e.target.value)}
+              placeholder="Abidjan, Dakar…"
+              required
+              className="h-11 sm:h-12 bg-secondary/50 border-border/50 text-base"
+            />
           </div>
 
           <div>
-            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Vous cherchez</label>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">
+              Vous cherchez
+            </label>
             <div className="flex gap-2 sm:gap-3">
               {lookingForOptions.map((opt) => (
                 <button
@@ -227,7 +291,9 @@ const ProfileSetup = () => {
           </div>
 
           <div>
-            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Bio (optionnel)</label>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">
+              Bio (optionnel)
+            </label>
             <textarea
               value={form.bio}
               onChange={(e) => update("bio", e.target.value)}
@@ -238,13 +304,31 @@ const ProfileSetup = () => {
             />
           </div>
 
+          <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer">
+            <input
+              type="checkbox"
+              checked={confirmAdult}
+              onChange={(e) => setConfirmAdult(e.target.checked)}
+              className="mt-0.5 rounded border-border"
+              required
+            />
+            <span>
+              Je confirme avoir au moins 18 ans et accepter les{" "}
+              <Link to="/conditions" className="text-champagne hover:underline">
+                conditions d&apos;utilisation
+              </Link>
+              .
+            </span>
+          </label>
+
           <Button
+            type="submit"
             variant="hero"
             size="xl"
             className="w-full touch-manipulation"
-            disabled={loading || !form.display_name || !form.gender || !form.age || !form.looking_for}
+            disabled={!canSubmit}
           >
-            {loading ? "Enregistrement..." : "Commencer l'aventure"}
+            {loading ? "Enregistrement..." : "Valider mon profil"}
           </Button>
         </form>
       </div>

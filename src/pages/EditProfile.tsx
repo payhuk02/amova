@@ -7,10 +7,12 @@ import { getLimitErrorMessage } from "@/lib/limits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Camera, Loader2, Plus, X, ArrowLeft, Save, EyeOff } from "lucide-react";
+import { Camera, Loader2, Plus, X, ArrowLeft, Save, EyeOff, Lock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import AppShell from "@/components/AppShell";
 import VerificationRequest from "@/components/VerificationRequest";
+import DateOfBirthFields from "@/components/DateOfBirthFields";
+import { formatDobFr, parseDobParts, splitIsoDate } from "@/lib/date-of-birth";
 
 interface Photo {
   id: string;
@@ -32,6 +34,7 @@ const EditProfile = () => {
     display_name: "",
     gender: "",
     age: "",
+    date_of_birth: "" as string | null,
     city: "",
     looking_for: "",
     bio: "",
@@ -40,7 +43,10 @@ const EditProfile = () => {
     verification_status: "none",
     incognito_mode: false,
   });
+  const [dobDraft, setDobDraft] = useState({ day: "", month: "", year: "" });
   const [newInterest, setNewInterest] = useState("");
+  const genderLocked = Boolean(form.gender);
+  const dobLocked = Boolean(form.date_of_birth);
 
   useEffect(() => {
     if (!user) return;
@@ -56,6 +62,7 @@ const EditProfile = () => {
           display_name: profile.display_name || "",
           gender: profile.gender || "",
           age: profile.age?.toString() || "",
+          date_of_birth: (profile as { date_of_birth?: string | null }).date_of_birth || null,
           city: profile.city || "",
           looking_for: profile.looking_for || "",
           bio: profile.bio || "",
@@ -64,6 +71,7 @@ const EditProfile = () => {
           verification_status: (profile as any).verification_status || "none",
           incognito_mode: (profile as any).incognito_mode || false,
         });
+        setDobDraft(splitIsoDate((profile as { date_of_birth?: string | null }).date_of_birth));
       }
 
       const { data: photoData } = await supabase
@@ -136,20 +144,35 @@ const EditProfile = () => {
       toast.error("Le mode incognito est réservé au plan VIP.");
       return;
     }
+
+    const payload: Record<string, unknown> = {
+      display_name: form.display_name,
+      city: form.city,
+      looking_for: form.looking_for,
+      bio: form.bio,
+      avatar_url: form.avatar_url || null,
+      interests: form.interests,
+      incognito_mode: form.incognito_mode && limits.incognitoMode,
+    };
+
+    // One-time set only (server enforces lock afterwards)
+    if (!genderLocked && form.gender) {
+      payload.gender = form.gender;
+    }
+    if (!dobLocked) {
+      const dob = parseDobParts(dobDraft.year, dobDraft.month, dobDraft.day);
+      if ("error" in dob) {
+        toast.error(dob.error);
+        return;
+      }
+      payload.date_of_birth = dob.iso;
+      payload.age = dob.age;
+    }
+
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
-      .update({
-        display_name: form.display_name,
-        gender: form.gender,
-        age: parseInt(form.age) || null,
-        city: form.city,
-        looking_for: form.looking_for,
-        bio: form.bio,
-        avatar_url: form.avatar_url || null,
-        interests: form.interests,
-        incognito_mode: form.incognito_mode && limits.incognitoMode,
-      } as any)
+      .update(payload as any)
       .eq("user_id", user.id);
 
     if (error) {
@@ -165,7 +188,6 @@ const EditProfile = () => {
   const genderOptions = [
     { value: "homme", label: "Homme" },
     { value: "femme", label: "Femme" },
-    { value: "autre", label: "Autre" },
   ];
 
   const lookingForOptions = [
@@ -252,25 +274,65 @@ const EditProfile = () => {
           </div>
 
           <div>
-            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Genre</label>
-            <div className="flex gap-2 sm:gap-3">
-              {genderOptions.map(opt => (
-                <button key={opt.value} type="button" onClick={() => update("gender", opt.value)}
-                  className={`flex-1 h-11 sm:h-12 rounded-lg border text-xs sm:text-sm font-medium transition-all duration-200 touch-manipulation active:scale-[0.97] ${form.gender === opt.value ? "border-primary bg-primary/10 text-foreground" : "border-border/50 bg-secondary/30 text-muted-foreground hover:border-primary/30"}`}>
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block flex items-center gap-1.5">
+              Genre {genderLocked && <Lock size={12} className="text-champagne" />}
+            </label>
+            {genderLocked ? (
+              <div className="h-11 sm:h-12 rounded-lg border border-border/40 bg-secondary/20 px-3 flex items-center text-sm">
+                <span className="capitalize">{form.gender}</span>
+                <span className="ml-auto text-[10px] text-muted-foreground">Non modifiable</span>
+              </div>
+            ) : (
+              <div className="flex gap-2 sm:gap-3">
+                {genderOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => update("gender", opt.value)}
+                    className={`flex-1 h-11 sm:h-12 rounded-lg border text-xs sm:text-sm font-medium transition-all duration-200 touch-manipulation active:scale-[0.97] ${
+                      form.gender === opt.value
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-border/50 bg-secondary/30 text-muted-foreground hover:border-primary/30"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Âge</label>
-              <Input type="number" min={18} max={120} value={form.age} onChange={e => update("age", e.target.value)} className="h-11 sm:h-12 bg-secondary/50 border-border/50 tabular-nums text-base" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className={dobLocked ? "" : "sm:col-span-2"}>
+              {dobLocked ? (
+                <>
+                  <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block flex items-center gap-1.5">
+                    Date de naissance <Lock size={12} className="text-champagne" />
+                  </label>
+                  <div className="h-11 sm:h-12 rounded-lg border border-border/40 bg-secondary/20 px-3 flex items-center text-sm tabular-nums">
+                    {formatDobFr(form.date_of_birth)}
+                    {form.age ? (
+                      <span className="ml-auto text-xs text-muted-foreground">{form.age} ans</span>
+                    ) : null}
+                  </div>
+                </>
+              ) : (
+                <DateOfBirthFields
+                  day={dobDraft.day}
+                  month={dobDraft.month}
+                  year={dobDraft.year}
+                  required
+                  onChange={setDobDraft}
+                />
+              )}
             </div>
             <div>
               <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Ville</label>
-              <Input value={form.city} onChange={e => update("city", e.target.value)} className="h-11 sm:h-12 bg-secondary/50 border-border/50 text-base" />
+              <Input
+                value={form.city}
+                onChange={(e) => update("city", e.target.value)}
+                className="h-11 sm:h-12 bg-secondary/50 border-border/50 text-base"
+              />
             </div>
           </div>
 

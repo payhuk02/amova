@@ -16,9 +16,11 @@ const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [confirmAdult, setConfirmAdult] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,8 +38,16 @@ const AuthPage = () => {
         throw new Error("Le mot de passe doit contenir au moins 8 caractères.");
       }
 
+      if (!isLogin && password !== confirmPassword) {
+        throw new Error("Les mots de passe ne correspondent pas.");
+      }
+
       if (!isLogin && !acceptedTerms) {
         throw new Error("Veuillez accepter les conditions d'utilisation.");
+      }
+
+      if (!isLogin && !confirmAdult) {
+        throw new Error("Vous devez confirmer avoir 18 ans ou plus.");
       }
 
       if (isLogin) {
@@ -78,7 +88,7 @@ const AuthPage = () => {
         <p className="text-muted-foreground text-sm sm:text-base mb-6 sm:mb-8">
           {isLogin
             ? "Accédez à votre espace personnel sécurisé."
-            : "Rejoignez une communauté vérifiée et protégée."}
+            : "Rejoignez une plateforme premium, vérifiée et sécurisée."}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
@@ -115,25 +125,58 @@ const AuthPage = () => {
             </div>
           </div>
 
+          {!isLogin && (
+            <div>
+              <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">
+                Confirmer le mot de passe
+              </label>
+              <Input
+                type={showPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                minLength={8}
+                className="h-11 sm:h-12 bg-secondary/50 border-border/50 focus:border-primary/50 text-base"
+              />
+            </div>
+          )}
+
           <Button variant="hero" size="xl" className="w-full touch-manipulation" disabled={loading}>
             {loading ? "Chargement..." : isLogin ? "Se connecter" : "Créer mon compte"}
           </Button>
 
           {!isLogin && (
-            <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer">
-              <input
-                type="checkbox"
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                className="mt-0.5 rounded border-border"
-              />
-              <span>
-                J&apos;accepte les{" "}
-                <Link to="/conditions" className="text-champagne hover:underline">conditions</Link>
-                {" "}et la{" "}
-                <Link to="/confidentialite" className="text-champagne hover:underline">politique de confidentialité</Link>.
-              </span>
-            </label>
+            <div className="space-y-2.5">
+              <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={confirmAdult}
+                  onChange={(e) => setConfirmAdult(e.target.checked)}
+                  className="mt-0.5 rounded border-border"
+                />
+                <span>Je confirme avoir 18 ans ou plus.</span>
+              </label>
+              <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-0.5 rounded border-border"
+                />
+                <span>
+                  J&apos;accepte les{" "}
+                  <Link to="/conditions" className="text-champagne hover:underline">
+                    conditions
+                  </Link>{" "}
+                  et la{" "}
+                  <Link to="/confidentialite" className="text-champagne hover:underline">
+                    politique de confidentialité
+                  </Link>
+                  .
+                </span>
+              </label>
+            </div>
           )}
         </form>
 
