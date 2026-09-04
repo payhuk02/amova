@@ -184,17 +184,20 @@ const ProfileSetup = () => {
     }
   };
 
-  const update = (key: string, value: string) => setForm((f) => ({ ...f, [key]: value }));
-
+  const update = (key: string, value: string) => {
+    setForm((f) => {
+      const next = { ...f, [key]: value };
+      // Amova is heterosexual: auto-set opposite looking_for
+      if (key === "gender" && !genderLocked) {
+        if (value === "homme") next.looking_for = "femme";
+        if (value === "femme") next.looking_for = "homme";
+      }
+      return next;
+    });
+  };
   const genderOptions = [
     { value: "homme", label: "Homme" },
     { value: "femme", label: "Femme" },
-  ];
-
-  const lookingForOptions = [
-    { value: "homme", label: "Un homme" },
-    { value: "femme", label: "Une femme" },
-    { value: "les deux", label: "Les deux" },
   ];
 
   const canSubmit =
@@ -313,21 +316,12 @@ const ProfileSetup = () => {
             <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">
               Vous cherchez
             </label>
-            <div className="flex gap-2 sm:gap-3">
-              {lookingForOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => update("looking_for", opt.value)}
-                  className={`flex-1 h-11 sm:h-12 rounded-lg border text-xs sm:text-sm font-medium transition-all duration-200 touch-manipulation active:scale-[0.97] ${
-                    form.looking_for === opt.value
-                      ? "border-primary bg-primary/10 text-foreground"
-                      : "border-border/50 bg-secondary/30 text-muted-foreground hover:border-primary/30"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+            <div className="h-11 sm:h-12 rounded-lg border border-border/50 bg-secondary/30 px-3 flex items-center text-sm text-muted-foreground">
+              {form.gender === "homme"
+                ? "Une femme (matching H↔F)"
+                : form.gender === "femme"
+                  ? "Un homme (matching H↔F)"
+                  : "Choisissez d’abord votre genre"}
             </div>
           </div>
 

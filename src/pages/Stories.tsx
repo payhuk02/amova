@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Plus, X, Eye, Image, Trash2, Send, Heart, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { toast } from "sonner";
 import AppShell from "@/components/AppShell";
+import BlurredPhoto from "@/components/BlurredPhoto";
+import { useSubscription } from "@/hooks/useSubscription";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -29,6 +31,8 @@ interface StoryGroup {
 
 const Stories = () => {
   const { user } = useAuth();
+  const { limits } = useSubscription();
+  const blurPhotos = !limits.canViewFullGallery;
   const [groups, setGroups] = useState<StoryGroup[]>([]);
   const [myStories, setMyStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
@@ -268,7 +272,12 @@ const Stories = () => {
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 overflow-hidden ring-2 ring-primary/50">
                 {viewing.group.avatar_url ? (
-                  <img src={viewing.group.avatar_url} alt="" className="w-full h-full object-cover" />
+                  <BlurredPhoto
+                    src={viewing.group.avatar_url}
+                    blurred={blurPhotos && viewing.group.user_id !== user?.id}
+                    className="w-full h-full"
+                    showLock={false}
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-white text-xs font-medium">
                     {viewing.group.display_name?.[0]}
@@ -407,7 +416,12 @@ const Stories = () => {
                     <div className="w-full h-full rounded-full bg-background p-0.5">
                       <div className="w-full h-full rounded-full bg-secondary overflow-hidden">
                         {group.avatar_url ? (
-                          <img src={group.avatar_url} alt="" className="w-full h-full object-cover" />
+                          <BlurredPhoto
+                            src={group.avatar_url}
+                            blurred={blurPhotos && group.user_id !== user?.id}
+                            className="w-full h-full"
+                            showLock={false}
+                          />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-xs sm:text-sm font-medium text-muted-foreground">
                             {group.display_name?.[0]}

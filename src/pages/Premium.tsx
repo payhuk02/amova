@@ -26,6 +26,7 @@ const comparisonRows = [
   { label: "Super Likes / jour", free: "1", plus: "2", premium: "5", vip: "Illimités" },
   { label: "Swipes", free: "50 / jour", plus: "100 / jour", premium: "Illimités", vip: "Illimités" },
   { label: "Messages / jour", free: "15", plus: "Illimités", premium: "Illimités", vip: "Illimités" },
+  { label: "Photos nettes (défloutées)", free: false, plus: true, premium: true, vip: true },
   { label: "Galerie photos HD", free: false, plus: true, premium: true, vip: true },
   { label: "Voir qui vous aime", free: false, plus: true, premium: true, vip: true },
   { label: "Filtres avancés", free: false, plus: true, premium: true, vip: true },

@@ -36,15 +36,15 @@ interface Profile {
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { currentPlan } = useSubscription();
+  const { currentPlan, limits } = useSubscription();
   const canFilter = currentPlan !== "free";
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const blurPhotos = !limits.canViewFullGallery;  const [profile, setProfile] = useState<Profile | null>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({ city: "", ageMin: "", ageMax: "", gender: "" });
+  const [filters, setFilters] = useState({ city: "", ageMin: "", ageMax: "" });
   const [reportTarget, setReportTarget] = useState<Profile | null>(null);
   const { blockedIds, reload: reloadBlocked } = useBlockedUsers();
 
@@ -83,7 +83,7 @@ const Dashboard = () => {
       p_city: filters.city || null,
       p_age_min: filters.ageMin ? parseInt(filters.ageMin, 10) : null,
       p_age_max: filters.ageMax ? parseInt(filters.ageMax, 10) : null,
-      p_gender: filters.gender || null,
+      p_gender: null,
       p_looking_for: null,
       p_verified_only: false,
       p_online_only: false,
@@ -97,7 +97,7 @@ const Dashboard = () => {
       setProfiles((discovered || []) as Profile[]);
     }
     setLoading(false);
-  }, [user, navigate, filters.city, filters.ageMin, filters.ageMax, filters.gender]);
+  }, [user, navigate, filters.city, filters.ageMin, filters.ageMax]);
 
   useEffect(() => {
     loadData();
@@ -213,17 +213,6 @@ const Dashboard = () => {
                       placeholder="60" className="h-10 bg-secondary/50 border-border/50 text-sm tabular-nums" />
                   </div>
                 </div>
-                <div className="sm:w-32">
-                  <label className="text-xs text-muted-foreground mb-1 block">Genre</label>
-                  <div className="flex gap-1">
-                    {[{ v: "", l: "Tous" }, { v: "homme", l: "H" }, { v: "femme", l: "F" }].map(opt => (
-                      <button key={opt.v} onClick={() => setFilters(f => ({ ...f, gender: opt.v }))}
-                        className={`flex-1 h-10 rounded-lg border text-xs font-medium transition-all touch-manipulation active:scale-[0.97] ${filters.gender === opt.v ? "border-primary bg-primary/10 text-foreground" : "border-border/50 bg-secondary/30 text-muted-foreground"}`}>
-                        {opt.l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
             </ScrollReveal>
           )}
@@ -249,6 +238,7 @@ const Dashboard = () => {
                     profile={p}
                     isLiked={likedIds.has(p.user_id)}
                     isMatched={matchedIds.has(p.user_id)}
+                    blurPhoto={blurPhotos}
                     onLike={() => handleLike(p.user_id)}
                     onMessage={() => navigate(`/messages?with=${p.user_id}`)}
                     onViewProfile={() => navigate(`/profile/${p.user_id}`)}

@@ -22,6 +22,7 @@ import { getLimitErrorMessage } from "@/lib/limits";
 import type { LikeInsert, PassInsert } from "@/lib/supabase-helpers";
 import { useSubscription } from "@/hooks/useSubscription";
 import { sortDiscoverProfiles } from "@/lib/discover-sort";
+import BlurredPhoto from "@/components/BlurredPhoto";
 
 interface Profile {
   id: string;
@@ -58,6 +59,7 @@ const Discover = () => {
   const { checkBadges } = useCheckAndAwardBadges();
   const { limits, currentPlan } = useSubscription();
   const canUseAdvancedFilters = currentPlan !== "free";
+  const blurPhotos = !limits.canViewFullGallery;
   const aiCandidateLimit = limits.priorityMatching ? 40 : 20;
   const [filters, setFilters] = useState<DiscoverFiltersState>({
     city: "",
@@ -383,7 +385,12 @@ const Discover = () => {
                 {/* Photo */}
                 <div className="aspect-[3/4] bg-secondary/30 relative">
                   {currentProfile.avatar_url ? (
-                    <img src={currentProfile.avatar_url} alt="" className="w-full h-full object-cover" draggable={false} />
+                    <BlurredPhoto
+                      src={currentProfile.avatar_url}
+                      blurred={blurPhotos}
+                      className="w-full h-full"
+                      draggable={false}
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <User className="w-20 h-20 text-muted-foreground/30" strokeWidth={1} />

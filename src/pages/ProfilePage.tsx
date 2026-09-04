@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getLimitErrorMessage } from "@/lib/limits";
+import BlurredPhoto from "@/components/BlurredPhoto";
 
 interface ProfileData {
   user_id: string;
@@ -55,7 +56,7 @@ const ProfilePage = () => {
   const { limits } = useSubscription();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [galleryLocked, setGalleryLocked] = useState(false);
+  const [galleryLocked, setGalleryLocked] = useState(true);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
   const [isMatch, setIsMatch] = useState(false);
@@ -177,11 +178,13 @@ const ProfilePage = () => {
   }
 
   const online = isOnline(profile.last_seen);
+  const isOwn = userId === user?.id;
+  const blurMainPhoto = !isOwn && galleryLocked;
 
   return (
     <AppShell>
-      {/* Lightbox */}
-      {selectedPhoto && (
+      {/* Lightbox — never open sharp photo while locked */}
+      {selectedPhoto && !blurMainPhoto && (
         <div
           className="fixed inset-0 z-[100] bg-background/95 flex items-center justify-center p-3 sm:p-4 safe-area-top safe-area-bottom"
           onClick={() => setSelectedPhoto(null)}
@@ -208,11 +211,14 @@ const ProfilePage = () => {
           {/* Main photo */}
           <div className="aspect-[4/3] sm:aspect-[4/3] bg-secondary/30 relative">
             {profile.avatar_url ? (
-              <img
+              <BlurredPhoto
                 src={profile.avatar_url}
-                alt=""
-                className="w-full h-full object-cover cursor-pointer"
-                onClick={() => setSelectedPhoto(profile.avatar_url!)}
+                blurred={blurMainPhoto}
+                className="w-full h-full cursor-pointer"
+                onClick={() => {
+                  if (!blurMainPhoto) setSelectedPhoto(profile.avatar_url!);
+                  else navigate("/premium");
+                }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
@@ -349,13 +355,17 @@ const ProfilePage = () => {
               {photos.map((photo) => (
                 <button
                   key={photo.id}
-                  onClick={() => setSelectedPhoto(photo.photo_url)}
+                  onClick={() => {
+                    if (galleryLocked) navigate("/premium");
+                    else setSelectedPhoto(photo.photo_url);
+                  }}
                   className="aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-secondary/30 hover:opacity-90 transition-opacity touch-manipulation"
                 >
-                  <img
+                  <BlurredPhoto
                     src={photo.photo_url}
-                    alt=""
-                    className="w-full h-full object-cover"
+                    blurred={galleryLocked}
+                    className="w-full h-full"
+                    showLock={galleryLocked}
                   />
                 </button>
               ))}
@@ -369,10 +379,9 @@ const ProfilePage = () => {
               <Crown size={22} className="text-champagne" />
             </div>
             <div>
-              <p className="font-medium">Galerie réservée aux abonnés</p>
+              <p className="font-medium">Photos floutées — plan Gratuit</p>
               <p className="text-xs text-muted-foreground mt-1">
-                L&apos;avatar reste visible. Passez Plus pour voir toutes les photos en HD,
-                ou matchez pour débloquer ce profil.
+                Passez Plus pour voir les photos nettes, ou matchez pour débloquer ce profil.
               </p>
             </div>
             <Button variant="hero" size="sm" onClick={() => navigate("/premium")}>

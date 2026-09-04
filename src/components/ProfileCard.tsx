@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { TrustBadge, OnlineStatus, InterestTag } from "@/components/TrustBadge";
 import { isOnline, formatLastSeen } from "@/hooks/useOnlineStatus";
 import { cn } from "@/lib/utils";
+import BlurredPhoto from "@/components/BlurredPhoto";
 
 export interface ProfileCardData {
   user_id: string;
@@ -20,6 +21,8 @@ interface ProfileCardProps {
   profile: ProfileCardData;
   isLiked?: boolean;
   isMatched?: boolean;
+  /** Blur photo for free plan (clear when Plus+ or match). */
+  blurPhoto?: boolean;
   onLike?: () => void;
   onMessage?: () => void;
   onViewProfile?: () => void;
@@ -31,6 +34,7 @@ export default function ProfileCard({
   profile,
   isLiked,
   isMatched,
+  blurPhoto = false,
   onLike,
   onMessage,
   onViewProfile,
@@ -38,6 +42,7 @@ export default function ProfileCard({
   className,
 }: ProfileCardProps) {
   const online = profile.last_seen ? isOnline(profile.last_seen) : false;
+  const shouldBlur = blurPhoto && !isMatched;
 
   return (
     <article
@@ -49,10 +54,11 @@ export default function ProfileCard({
       {/* Photo */}
       <div className="aspect-[4/3] bg-secondary/30 relative">
         {profile.avatar_url ? (
-          <img
+          <BlurredPhoto
             src={profile.avatar_url}
-            alt=""
-            className="w-full h-full object-cover"
+            blurred={shouldBlur}
+            className="w-full h-full"
+            showLock={shouldBlur}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

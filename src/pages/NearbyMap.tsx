@@ -13,6 +13,8 @@ import { TrustBadge } from "@/components/TrustBadge";
 import { useGeolocation, useSmartMatches } from "@/hooks/useGeolocation";
 import { useBlockedUsers } from "@/hooks/useBlockedUsers";
 import { toast } from "sonner";
+import { useSubscription } from "@/hooks/useSubscription";
+import BlurredPhoto from "@/components/BlurredPhoto";
 
 /** Stable angle (0–360) from user id for radar placement. */
 function hashAngle(id: string): number {
@@ -27,6 +29,8 @@ const NearbyMap = () => {
   const { position, loading: geoLoading, requestLocation } = useGeolocation();
   const { matches, loading: matchLoading, loadMatches } = useSmartMatches();
   const { blockedIds } = useBlockedUsers();
+  const { limits } = useSubscription();
+  const blurPhotos = !limits.canViewFullGallery;
   const [maxDistance, setMaxDistance] = useState(50);
   const [hasLocation, setHasLocation] = useState(false);
 
@@ -181,7 +185,12 @@ const NearbyMap = () => {
                       style={{ left: `${x}%`, top: `${y}%` }}
                     >
                       {m.avatar_url ? (
-                        <img src={m.avatar_url} alt="" className="w-full h-full object-cover" />
+                        <BlurredPhoto
+                          src={m.avatar_url}
+                          blurred={blurPhotos}
+                          className="w-full h-full"
+                          showLock={false}
+                        />
                       ) : (
                         <User className="w-4 h-4 m-auto text-muted-foreground" />
                       )}
@@ -215,7 +224,11 @@ const NearbyMap = () => {
                   {/* Photo */}
                   <div className="aspect-[4/3] bg-secondary/30 relative">
                     {m.avatar_url ? (
-                      <img src={m.avatar_url} alt="" className="w-full h-full object-cover" />
+                      <BlurredPhoto
+                        src={m.avatar_url}
+                        blurred={blurPhotos}
+                        className="w-full h-full"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <User className="w-12 h-12 text-muted-foreground/20" />

@@ -5,7 +5,7 @@ import { PLAN_PRICES, CONSUMABLE_PRICES, PAID_TRIAL, formatFcfa } from "@/lib/pl
 const faqs = [
   {
     q: "Qu’est-ce qui est gratuit sur Amova ?",
-    a: "Le plan Gratuit permet de découvrir la plateforme : 50 swipes/jour, 1 Super Like/jour, 15 messages/jour, et l’avatar des profils. La galerie photos HD, « Qui m’aime » et les messages illimités sont réservés aux abonnés Plus et plus.",
+    a: "Le plan Gratuit permet de découvrir la plateforme : 50 swipes/jour, 1 Super Like/jour, 15 messages/jour. Les photos de profil sont floutées ; la galerie HD et « Qui m’aime » sont réservés aux abonnés Plus (ou débloqués après un match).",
   },
   {
     q: "Puis-je essayer Premium avant de m’abonner ?",

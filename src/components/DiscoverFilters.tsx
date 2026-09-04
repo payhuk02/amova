@@ -85,41 +85,18 @@ const DiscoverFilters = ({
         </div>
       </div>
 
-      {/* Gender */}
-      <div>
-        <label className="text-xs text-muted-foreground mb-1 block">Genre</label>
-        <div className="flex gap-2">
-          {[
-            { v: "", l: "Tous" },
-            { v: "homme", l: "Homme" },
-            { v: "femme", l: "Femme" },
-          ].map((opt) => (
-            <button
-              key={opt.v}
-              onClick={() => update({ gender: opt.v })}
-              className={`flex-1 h-9 rounded-lg border text-xs font-medium transition-all active:scale-[0.97] ${
-                filters.gender === opt.v
-                  ? "border-primary bg-primary/10 text-foreground"
-                  : "border-border/50 bg-secondary/30 text-muted-foreground"
-              }`}
-            >
-              {opt.l}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Gender filter removed: Amova is heterosexual (H↔F) server-side */}
 
-      {/* Looking for */}
+      {/* Looking for — optional refine among opposite gender who seek you */}
       <div>
         <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
-          <Heart size={12} /> Recherche
+          <Heart size={12} /> Recherche (profils)
         </label>
         <div className="flex gap-2">
           {[
             { v: "", l: "Tout" },
-            { v: "homme", l: "Hommes" },
-            { v: "femme", l: "Femmes" },
-            { v: "les deux", l: "Les deux" },
+            { v: "homme", l: "Cherche hommes" },
+            { v: "femme", l: "Cherche femmes" },
           ].map((opt) => (
             <button
               key={opt.v}
