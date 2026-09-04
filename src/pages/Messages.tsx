@@ -8,6 +8,7 @@ import {
   Send,
   MessageCircle,
   Video,
+  Phone,
   ArrowLeft,
   Image as ImageIcon,
   Smile,
@@ -28,6 +29,7 @@ import VoiceRecorder from "@/components/VoiceRecorder";
 import AudioPlayer from "@/components/AudioPlayer";
 import IcebreakerButton from "@/components/IcebreakerButton";
 import VideoCall from "@/components/VideoCall";
+import AudioCall from "@/components/AudioCall";
 import { formatDistanceToNow, format, isToday, isYesterday } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -59,6 +61,8 @@ interface ConversationMeta {
   unreadCount: number;
 }
 
+type OutboundCallMode = "video" | "audio";
+
 const EMOJI_CATEGORIES = {
   "❤️ Amour": ["❤️", "😍", "🥰", "😘", "💕", "💖", "💗", "💓", "💋", "🫶", "💘", "💝"],
   "😊 Visages": ["😊", "😂", "🤣", "😁", "😄", "🙃", "😉", "🤗", "🤭", "😇", "🥺", "😜"],
@@ -82,7 +86,7 @@ const Messages = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [uploadingVoice, setUploadingVoice] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [inCall, setInCall] = useState(false);
+  const [inCall, setInCall] = useState<OutboundCallMode | null>(null);
   const [showEmoji, setShowEmoji] = useState(false);
   const [emojiCategory, setEmojiCategory] = useState(Object.keys(EMOJI_CATEGORIES)[0]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -603,11 +607,19 @@ const Messages = () => {
 
   return (
     <AppShell>
-      {inCall && selectedUserId && selectedMatch && (
+      {inCall === "video" && selectedUserId && selectedMatch && (
         <VideoCall
           remoteUserId={selectedUserId}
           remoteName={selectedMatch.display_name || "Utilisateur"}
-          onEnd={() => setInCall(false)}
+          onEnd={() => setInCall(null)}
+          isIncoming={false}
+        />
+      )}
+      {inCall === "audio" && selectedUserId && selectedMatch && (
+        <AudioCall
+          remoteUserId={selectedUserId}
+          remoteName={selectedMatch.display_name || "Utilisateur"}
+          onEnd={() => setInCall(null)}
           isIncoming={false}
         />
       )}
@@ -785,8 +797,18 @@ const Messages = () => {
                     <ShieldAlert size={16} />
                   </button>
                   <button
-                    onClick={() => setInCall(true)}
+                    onClick={() => setInCall("audio")}
                     className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors active:scale-95"
+                    title="Appel audio"
+                    disabled={isBlockedSelected || !canMessageSelected}
+                  >
+                    <Phone size={16} />
+                  </button>
+                  <button
+                    onClick={() => setInCall("video")}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors active:scale-95"
+                    title="Appel vidéo"
+                    disabled={isBlockedSelected || !canMessageSelected}
                   >
                     <Video size={16} />
                   </button>

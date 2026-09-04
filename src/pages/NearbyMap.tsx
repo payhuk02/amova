@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,7 @@ import AppShell from "@/components/AppShell";
 import EmptyState from "@/components/ui/empty-state";
 import { TrustBadge } from "@/components/TrustBadge";
 import { useGeolocation, useSmartMatches } from "@/hooks/useGeolocation";
+import { useBlockedUsers } from "@/hooks/useBlockedUsers";
 import { toast } from "sonner";
 
 const NearbyMap = () => {
@@ -18,8 +19,14 @@ const NearbyMap = () => {
   const navigate = useNavigate();
   const { position, loading: geoLoading, requestLocation } = useGeolocation();
   const { matches, loading: matchLoading, loadMatches } = useSmartMatches();
+  const { blockedIds } = useBlockedUsers();
   const [maxDistance, setMaxDistance] = useState(50);
   const [hasLocation, setHasLocation] = useState(false);
+
+  const visibleMatches = useMemo(
+    () => matches.filter((m) => !blockedIds.has(m.user_id)),
+    [matches, blockedIds],
+  );
 
   useEffect(() => {
     if (!user) return;
@@ -139,7 +146,7 @@ const NearbyMap = () => {
             <div className="flex items-center justify-center py-20">
               <Loader2 className="w-8 h-8 text-primary animate-spin" />
             </div>
-          ) : matches.length === 0 ? (
+          ) : visibleMatches.length === 0 ? (
             <EmptyState
               icon={MapPin}
               title="Aucun profil à proximité"
@@ -147,7 +154,7 @@ const NearbyMap = () => {
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {matches.map((m) => (
+              {visibleMatches.map((m) => (
                 <div
                   key={m.user_id}
                   className="glass-card rounded-xl overflow-hidden hover:border-primary/30 transition-all duration-300 group"

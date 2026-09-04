@@ -23,6 +23,16 @@ async function sendFcm(token: string, title: string, body: string): Promise<bool
   return res.ok;
 }
 
+function pushConfigStatus() {
+  return {
+    vapidConfigured: Boolean(
+      Deno.env.get("VAPID_PUBLIC_KEY") && Deno.env.get("VAPID_PRIVATE_KEY"),
+    ),
+    fcmConfigured: Boolean(Deno.env.get("FCM_SERVER_KEY")),
+    cronSecretConfigured: Boolean(Deno.env.get("CRON_SECRET")),
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -37,13 +47,23 @@ serve(async (req) => {
     });
   }
 
+  const url = new URL(req.url);
+  if (url.searchParams.get("health") === "1" || req.method === "GET") {
+    return new Response(
+      JSON.stringify({ ok: true, config: pushConfigStatus() }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
   try {
     const supabase = getServiceClient();
     const results = {
       pushSent: 0,
       pushFailed: 0,
+      pushSkippedNoDevice: 0,
       renewalReminders: 0,
       cleanup: null as Record<string, unknown> | null,
+      config: pushConfigStatus(),
     };
 
     const { data: queue } = await supabase
@@ -60,7 +80,9 @@ serve(async (req) => {
         .eq("user_id", item.user_id);
 
       if (!devices || devices.length === 0) {
-        results.pushFailed++;
+        // Avoid infinite retries for users without a registered device
+        await supabase.from("push_queue").update({ processed: true }).eq("id", item.id);
+        results.pushSkippedNoDevice++;
         continue;
       }
 

@@ -2,6 +2,7 @@ import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export type BoostInsert = TablesInsert<"boosts">;
 export type LikeInsert = TablesInsert<"likes">;
+export type PassInsert = TablesInsert<"profile_passes">;
 export type ProfileUpdate = TablesUpdate<"profiles">;
 export type BlockedUserInsert = TablesInsert<"blocked_users">;
 export type ReportInsert = TablesInsert<"reports">;

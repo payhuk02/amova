@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "ops:check-push": "node scripts/check-push-ops.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "db:migrate": "node scripts/apply-migrations.mjs",
     "cap:sync": "npm run build && npx cap sync",

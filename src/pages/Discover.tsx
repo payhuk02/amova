@@ -19,7 +19,7 @@ import type { ProfileRow } from "@/types/profile";
 import { useCheckAndAwardBadges } from "@/hooks/useBadges";
 import BadgesDisplay from "@/components/BadgesDisplay";
 import { getLimitErrorMessage } from "@/lib/limits";
-import type { LikeInsert } from "@/lib/supabase-helpers";
+import type { LikeInsert, PassInsert } from "@/lib/supabase-helpers";
 import { useSubscription } from "@/hooks/useSubscription";
 
 interface Profile {
@@ -35,7 +35,6 @@ interface Profile {
   last_seen: string | null;
   interests: string[] | null;
   is_verified?: boolean;
-  looking_for: string | null;
   compatibility?: number;
 }
 
@@ -181,6 +180,17 @@ const Discover = () => {
             toast.error("Impossible d'envoyer ce like");
           }
         }
+      } else {
+        const { error } = await supabase
+          .from("profile_passes")
+          .insert({
+            from_user_id: user.id,
+            to_user_id: currentProfile.user_id,
+          } satisfies PassInsert);
+
+        if (error && error.code !== "23505") {
+          toast.error("Impossible d'enregistrer ce passage");
+        }
       }
 
       setTimeout(() => {
@@ -189,7 +199,7 @@ const Discover = () => {
         setCurrentIndex((prev) => prev + 1);
       }, 300);
     },
-    [user, currentProfile, swiping]
+    [user, currentProfile, swiping, checkBadges]
   );
 
   const handlePointerDown = (e: React.PointerEvent) => {
@@ -416,6 +426,8 @@ const Discover = () => {
               <button
                 onClick={() => handleSwipe("left")}
                 disabled={!!swiping}
+                aria-label="Passer"
+                title="Passer"
                 className="w-14 h-14 rounded-full border-2 border-border/50 flex items-center justify-center text-muted-foreground hover:border-destructive hover:text-destructive transition-all duration-200 active:scale-95 hover:shadow-lg"
               >
                 <X size={24} strokeWidth={2.5} />
@@ -425,18 +437,23 @@ const Discover = () => {
                 onClick={() => setShowCompatibility(true)}
                 className="w-10 h-10 rounded-full border border-border/30 flex items-center justify-center text-muted-foreground/50 hover:text-champagne hover:border-champagne/30 transition-all duration-200 active:scale-95"
                 title="Compatibilité"
+                aria-label="Compatibilité"
               >
                 <BarChart3 size={16} />
               </button>
               <button
                 onClick={() => setReportTarget(currentProfile)}
                 className="w-10 h-10 rounded-full border border-border/30 flex items-center justify-center text-muted-foreground/50 hover:text-accent hover:border-accent/30 transition-all duration-200 active:scale-95"
+                aria-label="Signaler"
+                title="Signaler"
               >
                 <Shield size={16} />
               </button>
               <button
                 onClick={() => handleSwipe("right")}
                 disabled={!!swiping}
+                aria-label="J'aime"
+                title="J'aime"
                 className="w-[72px] h-[72px] rounded-full bg-champagne flex items-center justify-center text-primary-foreground shadow-premium hover:bg-champagne/90 transition-all duration-200 active:scale-95"
               >
                 <Heart size={30} strokeWidth={2} />
