@@ -11,14 +11,21 @@ export function isProfileComplete(profile: {
   display_name?: string | null;
   gender?: string | null;
   age?: number | null;
+  date_of_birth?: string | null;
   looking_for?: string | null;
+  city?: string | null;
+  avatar_url?: string | null;
 } | null): boolean {
   if (!profile) return false;
   return Boolean(
     profile.display_name?.trim() &&
       profile.gender &&
+      profile.date_of_birth &&
       profile.age &&
-      profile.looking_for,
+      profile.age >= 18 &&
+      profile.looking_for &&
+      profile.city?.trim() &&
+      profile.avatar_url,
   );
 }
 
@@ -32,7 +39,7 @@ export function useProfileComplete() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("display_name, gender, age, looking_for")
+        .select("display_name, gender, age, date_of_birth, looking_for, city, avatar_url")
         .eq("user_id", user.id)
         .maybeSingle();
 
