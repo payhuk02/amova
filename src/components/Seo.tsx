@@ -108,10 +108,10 @@ export function WebsiteJsonLd() {
     url: SITE_URL,
     description: DEFAULT_DESCRIPTION,
     inLanguage: "fr-FR",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: `${SITE_URL}/faq?q={search_term_string}`,
-      "query-input": "required name=search_term_string",
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: SITE_URL,
     },
   };
 }

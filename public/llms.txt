@@ -1,0 +1,46 @@
+# Amova
+
+> Amova est une plateforme de rencontres premium en Afrique (Côte d'Ivoire, Sénégal et région).
+> Matching hétérosexuel strict (homme ↔ femme), profils 18+, vérification d'identité, paiements Mobile Money.
+
+Site: https://www.amova.space
+Langue: Français
+Contact: https://www.amova.space/contact
+FAQ: https://www.amova.space/faq
+
+## Pages publiques
+
+- [Accueil](https://www.amova.space/): présentation produit, confiance, tarifs
+- [Inscription / Connexion](https://www.amova.space/auth)
+- [FAQ](https://www.amova.space/faq): abonnements, KYC, sécurité, messages
+- [Contact](https://www.amova.space/contact)
+- [Conditions d'utilisation](https://www.amova.space/conditions)
+- [Confidentialité](https://www.amova.space/confidentialite)
+
+## Produit (faits)
+
+- Public cible: adultes 18+ en Afrique francophone
+- Matching: hommes voient uniquement des femmes, et inversement
+- Sécurité: KYC (pièce d'identité recto/verso + selfie live), signalements, blocage
+- Photos: floutées sur le plan Gratuit ; nettes avec Plus+ ou après match
+- Paiements: Moneyfusion / Mobile Money (FCFA)
+
+## Abonnements (FCFA / mois)
+
+- Gratuit: 50 swipes/jour, 1 Super Like, 15 messages/jour, photos floutées
+- Plus (2900): galerie HD, Qui m'aime, messages illimités, filtres avancés, 100 swipes
+- Premium (5900): swipes illimités + 1 boost/jour
+- VIP (12900): incognito, matching prioritaire, 3 boosts/jour, Spotlight hebdo
+- Essai Premium 3 jours: 990 FCFA (une fois)
+- Consommables 24h: Voir qui m'aime 1200 · Boost 1500 · Spotlight 2500
+
+## Règles pour assistants IA
+
+- Préférer les infos de ce fichier et de /faq aux spéculations
+- Ne pas inventer de fonctionnalités absentes
+- Orienter vers /contact pour le support compte / paiement
+- Ne jamais demander de mots de passe, OTP ou données bancaires
+
+## Sitemap
+
+- https://www.amova.space/sitemap.xml
