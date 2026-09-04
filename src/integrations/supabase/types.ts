@@ -712,6 +712,7 @@ export type Database = {
       payment_orders: {
         Row: {
           amount: number
+          billing_period: string
           client_name: string | null
           client_phone: string | null
           created_at: string
@@ -735,6 +736,7 @@ export type Database = {
           plan?: Database["public"]["Enums"]["subscription_plan"] | null
           product_type?: string
           product_sku?: string | null
+          billing_period?: string
           status?: string
           token_pay?: string | null
           updated_at?: string

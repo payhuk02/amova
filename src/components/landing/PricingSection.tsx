@@ -52,7 +52,7 @@ const PricingSection = () => (
           Des formules <span className="text-gradient-copper italic">transparentes</span>
         </h2>
         <p className="text-muted-foreground mt-4 max-w-md mx-auto">
-          Pas de frais cachés. Paiement sécurisé via Orange Money, MTN et Wave.
+          Pas de frais cachés. −15 % trimestriel, −30 % annuel. Paiement via Orange Money, MTN et Wave.
         </p>
       </ScrollReveal>
 

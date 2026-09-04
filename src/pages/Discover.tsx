@@ -300,7 +300,7 @@ const Discover = () => {
             availableInterests={availableInterests}
             canUseAdvancedFilters={canUseAdvancedFilters}
             onPremiumRequired={() => {
-              toast.error("Les filtres avancés sont réservés aux membres Premium.");
+              toast.error("Les filtres avancés sont réservés aux membres Plus et plus.");
               navigate("/premium");
             }}
           />

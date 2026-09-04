@@ -5,11 +5,14 @@ import {
   getAppUrl,
   getServiceClient,
   normalizePhone,
-  PLAN_PRICES,
   CONSUMABLE_PRICES,
+  getSubscriptionAmount,
   type PaidPlan,
   type ConsumableSku,
+  type BillingPeriod,
 } from "../_shared/moneyfusion.ts";
+
+const VALID_PERIODS = new Set(["monthly", "quarterly", "yearly"]);
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -26,7 +29,7 @@ serve(async (req) => {
   }
 
   try {
-    const { plan, phone, clientName, isRenewal, productSku } = await req.json();
+    const { plan, phone, clientName, isRenewal, productSku, billingPeriod } = await req.json();
 
     const supabase = getServiceClient();
     const appUrl = getAppUrl();
@@ -61,6 +64,7 @@ serve(async (req) => {
           is_renewal: false,
           product_type: "consumable",
           product_sku: sku,
+          billing_period: "monthly",
         })
         .select("id")
         .single();
@@ -106,8 +110,16 @@ serve(async (req) => {
       });
     }
 
+    const periodRaw = String(billingPeriod || "monthly");
+    if (!VALID_PERIODS.has(periodRaw)) {
+      return new Response(JSON.stringify({ error: "Période invalide" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const period = periodRaw as BillingPeriod;
     const paidPlan = plan as PaidPlan;
-    const amount = PLAN_PRICES[paidPlan];
+    const amount = getSubscriptionAmount(paidPlan, period);
 
     const { data: order, error: orderError } = await supabase
       .from("payment_orders")
@@ -121,6 +133,7 @@ serve(async (req) => {
         is_renewal: Boolean(isRenewal),
         product_type: "subscription",
         product_sku: null,
+        billing_period: period,
       })
       .select("id")
       .single();
@@ -131,7 +144,7 @@ serve(async (req) => {
 
     const payment = await createMoneyfusionPayment({
       totalPrice: amount,
-      articleLabel: `Amova ${paidPlan}`,
+      articleLabel: `Amova ${paidPlan} (${period})`,
       phone: normalizePhone(String(phone)),
       clientName: String(clientName).trim(),
       orderId: order.id,

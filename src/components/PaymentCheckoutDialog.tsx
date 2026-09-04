@@ -16,10 +16,13 @@ import { toast } from "sonner";
 import type { PlanType } from "@/hooks/useSubscription";
 import {
   PLAN_LABELS,
-  PLAN_PRICES,
   CONSUMABLE_LABELS,
   CONSUMABLE_PRICES,
+  BILLING_PERIODS,
+  getSubscriptionAmount,
+  formatFcfa,
   type ConsumableSku,
+  type BillingPeriod,
 } from "@/lib/plans";
 import PaymentReassurance from "@/components/PaymentReassurance";
 import { trackEvent } from "@/lib/analytics";
@@ -27,6 +30,7 @@ import { trackEvent } from "@/lib/analytics";
 interface PaymentCheckoutDialogProps {
   plan?: Exclude<PlanType, "free"> | null;
   productSku?: ConsumableSku | null;
+  billingPeriod?: BillingPeriod;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isRenewal?: boolean;
@@ -48,6 +52,7 @@ async function getInvokeErrorMessage(error: unknown): Promise<string> {
 export default function PaymentCheckoutDialog({
   plan = null,
   productSku = null,
+  billingPeriod = "monthly",
   open,
   onOpenChange,
   isRenewal = false,
@@ -58,15 +63,18 @@ export default function PaymentCheckoutDialog({
   const [loading, setLoading] = useState(false);
 
   const isConsumable = Boolean(productSku);
+  const periodMeta = BILLING_PERIODS[billingPeriod];
   const title = isConsumable
     ? CONSUMABLE_LABELS[productSku!]
     : plan
       ? `${isRenewal ? "Renouveler" : "Paiement"} ${PLAN_LABELS[plan]}`
       : "";
   const priceLabel = isConsumable
-    ? `${CONSUMABLE_PRICES[productSku!].toLocaleString("fr-FR")} FCFA`
+    ? formatFcfa(CONSUMABLE_PRICES[productSku!])
     : plan
-      ? `${PLAN_PRICES[plan].toLocaleString("fr-FR")} FCFA / mois${isRenewal ? " — prolongation de 30 jours" : ""}`
+      ? `${formatFcfa(getSubscriptionAmount(plan, billingPeriod))} — ${periodMeta.label}${
+          isRenewal ? ` (prolongation ${periodMeta.days} j)` : ""
+        }`
       : "";
 
   const handlePay = async () => {
@@ -90,6 +98,7 @@ export default function PaymentCheckoutDialog({
             phone: phone.trim(),
             clientName: clientName.trim(),
             isRenewal,
+            billingPeriod,
           };
 
       const { data, error } = await supabase.functions.invoke("create-payment", { body });
@@ -102,7 +111,7 @@ export default function PaymentCheckoutDialog({
 
       trackEvent(
         isConsumable ? "Consumable Checkout" : isRenewal ? "Renewal Checkout" : "Premium Checkout",
-        isConsumable ? { productSku } : { plan },
+        isConsumable ? { productSku } : { plan, billingPeriod },
       );
 
       window.location.href = data.url;

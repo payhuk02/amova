@@ -8,6 +8,26 @@ export const PLAN_PRICES = {
 
 export type PaidPlan = keyof typeof PLAN_PRICES;
 
+export type BillingPeriod = "monthly" | "quarterly" | "yearly";
+
+export const BILLING_PERIODS: Record<
+  BillingPeriod,
+  { months: number; days: number; discount: number }
+> = {
+  monthly: { months: 1, days: 30, discount: 0 },
+  quarterly: { months: 3, days: 90, discount: 0.15 },
+  yearly: { months: 12, days: 365, discount: 0.3 },
+};
+
+export function getSubscriptionAmount(
+  plan: PaidPlan,
+  period: BillingPeriod = "monthly",
+): number {
+  const base = PLAN_PRICES[plan];
+  const { months, discount } = BILLING_PERIODS[period];
+  return Math.round(base * months * (1 - discount));
+}
+
 export const CONSUMABLE_PRICES = {
   likes_reveal_24h: 1200,
   boost_24h: 1500,

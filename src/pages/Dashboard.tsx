@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
+import { getLimitErrorMessage } from "@/lib/limits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Heart, Search, SlidersHorizontal, Compass } from "lucide-react";
@@ -33,6 +35,8 @@ interface Profile {
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { currentPlan } = useSubscription();
+  const canFilter = currentPlan !== "free";
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
@@ -102,7 +106,15 @@ const Dashboard = () => {
       setMatchedIds((prev) => { const next = new Set(prev); next.delete(toUserId); return next; });
     } else {
       const { error } = await supabase.from("likes").insert({ from_user_id: user.id, to_user_id: toUserId });
-      if (error) return;
+      if (error) {
+        const limitMsg = getLimitErrorMessage(error);
+        toast.error(limitMsg || "Impossible d'aimer ce profil", {
+          action: limitMsg
+            ? { label: "Offres", onClick: () => navigate("/premium") }
+            : undefined,
+        });
+        return;
+      }
       setLikedIds((prev) => new Set(prev).add(toUserId));
 
       const { data: reverse } = await supabase.rpc("has_liked_me", {
@@ -111,9 +123,19 @@ const Dashboard = () => {
 
       if (reverse) {
         setMatchedIds((prev) => new Set(prev).add(toUserId));
-        toast.success("C'est un match ! 🎉");
+        toast.success("C'est un match !");
       }
     }
+  };
+
+  const requestFilters = () => {
+    if (!canFilter) {
+      toast.error("Les filtres de recherche sont réservés aux membres Plus et plus.", {
+        action: { label: "Voir Plus", onClick: () => navigate("/premium") },
+      });
+      return;
+    }
+    setShowFilters(!showFilters);
   };
 
   const filteredProfiles = profiles.filter((p) => {
@@ -158,14 +180,14 @@ const Dashboard = () => {
                 <Button variant="default" size="sm" onClick={() => navigate("/discover")} className="shrink-0 snap-start touch-manipulation text-xs sm:text-sm">
                   <Compass size={14} /> Mode swipe
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)} className="border-border/50 shrink-0 snap-start touch-manipulation text-xs sm:text-sm">
-                  <SlidersHorizontal size={14} /> Filtres
+                <Button variant="outline" size="sm" onClick={requestFilters} className="border-border/50 shrink-0 snap-start touch-manipulation text-xs sm:text-sm">
+                  <SlidersHorizontal size={14} /> Filtres{!canFilter ? " · Plus" : ""}
                 </Button>
               </div>
             </div>
           </ScrollReveal>
 
-          {showFilters && (
+          {showFilters && canFilter && (
             <ScrollReveal>
               <div className="glass-card rounded-xl p-3 sm:p-5 mb-5 sm:mb-8 space-y-3 sm:space-y-0 sm:flex sm:flex-row sm:gap-4">
                 <div className="flex-1">

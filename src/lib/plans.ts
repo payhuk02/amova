@@ -13,6 +13,31 @@ export const PLAN_LABELS: Record<PlanType, string> = {
   vip: "VIP",
 };
 
+export type BillingPeriod = "monthly" | "quarterly" | "yearly";
+
+export const BILLING_PERIODS: Record<
+  BillingPeriod,
+  { label: string; months: number; days: number; discount: number }
+> = {
+  monthly: { label: "Mensuel", months: 1, days: 30, discount: 0 },
+  quarterly: { label: "Trimestriel", months: 3, days: 90, discount: 0.15 },
+  yearly: { label: "Annuel", months: 12, days: 365, discount: 0.3 },
+};
+
+/** Total FCFA for a plan × billing period (discounts applied). */
+export function getSubscriptionAmount(
+  plan: Exclude<PlanType, "free">,
+  period: BillingPeriod = "monthly",
+): number {
+  const base = PLAN_PRICES[plan];
+  const { months, discount } = BILLING_PERIODS[period];
+  return Math.round(base * months * (1 - discount));
+}
+
+export function formatFcfa(amount: number): string {
+  return `${amount.toLocaleString("fr-FR")} FCFA`;
+}
+
 /** One-shot purchases (Moneyfusion consumables) */
 export const CONSUMABLE_PRICES = {
   likes_reveal_24h: 1200,

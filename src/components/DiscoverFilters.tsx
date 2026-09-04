@@ -139,7 +139,7 @@ const DiscoverFilters = ({
       {/* Advanced filters — Premium */}
       <div className="space-y-2 pt-2 border-t border-border/30">
         <p className="text-[10px] uppercase tracking-wider text-champagne/80 font-medium">
-          Filtres avancés {!canUseAdvancedFilters && "· Premium"}
+          Filtres avancés {!canUseAdvancedFilters && "· Plus"}
         </p>
         <div className="flex items-center justify-between py-1">
           <label className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -169,7 +169,7 @@ const DiscoverFilters = ({
           <label className="text-xs text-muted-foreground mb-1.5 block flex items-center gap-1">
             <Sparkles size={12} /> Centres d&apos;intérêt
             {!canUseAdvancedFilters && (
-              <span className="text-[10px] text-champagne/70 ml-1">Premium</span>
+              <span className="text-[10px] text-champagne/70 ml-1">Plus</span>
             )}
           </label>
           <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto no-scrollbar">

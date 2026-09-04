@@ -1,18 +1,31 @@
 import LegalLayout from "@/components/legal/LegalLayout";
 import { Link } from "react-router-dom";
+import { PLAN_PRICES, CONSUMABLE_PRICES, formatFcfa } from "@/lib/plans";
 
 const faqs = [
   {
-    q: "Comment fonctionne la vérification des profils ?",
-    a: "Vous pouvez soumettre une demande de vérification depuis votre profil. Notre équipe examine votre photo et vous attribue le badge « Vérifié » une fois validé.",
+    q: "Qu’est-ce qui est gratuit sur Amova ?",
+    a: "Le plan Gratuit permet de découvrir la plateforme : 50 swipes/jour, 1 Super Like/jour, 15 messages/jour, et l’avatar des profils. La galerie photos HD, « Qui m’aime » et les messages illimités sont réservés aux abonnés Plus et plus.",
   },
   {
-    q: "Quelle est la différence entre Premium et VIP ?",
-    a: "Premium débloque les swipes illimités, les filtres avancés et la liste « Qui m'aime ». VIP ajoute le mode incognito, le matching prioritaire et plus de boosts quotidiens.",
+    q: "Quelle est la différence entre Plus, Premium et VIP ?",
+    a: `Plus (${formatFcfa(PLAN_PRICES.plus)}/mois) : galerie photos, voir qui vous aime, messages illimités, filtres avancés, 100 swipes/jour. Premium (${formatFcfa(PLAN_PRICES.premium)}/mois) : swipes illimités + 1 boost/jour. VIP (${formatFcfa(PLAN_PRICES.vip)}/mois) : mode incognito, matching prioritaire et 3 boosts/jour.`,
+  },
+  {
+    q: "Puis-je payer sans m’abonner ?",
+    a: `Oui. Des passes 24h sont disponibles : Voir qui m’aime (${formatFcfa(CONSUMABLE_PRICES.likes_reveal_24h)}), Boost (${formatFcfa(CONSUMABLE_PRICES.boost_24h)}), Spotlight (${formatFcfa(CONSUMABLE_PRICES.spotlight_24h)}).`,
+  },
+  {
+    q: "Y a-t-il des réductions sur les abonnements longs ?",
+    a: "Oui : −15 % sur le trimestriel et −30 % sur l’annuel, depuis la page Abonnements.",
+  },
+  {
+    q: "Comment fonctionne la vérification des profils ?",
+    a: "Depuis Vérification, vous envoyez une pièce d’identité (recto/verso), un selfie caméra en direct et des photos récentes. Un administrateur valide manuellement — pas d’approbation automatique.",
   },
   {
     q: "Mes données sont-elles sécurisées ?",
-    a: "Oui. Nous utilisons le chiffrement, des politiques d'accès strictes (RLS) et une modération active. Vous pouvez exporter ou supprimer vos données à tout moment.",
+    a: "Oui. Nous utilisons le chiffrement, des politiques d’accès strictes (RLS) et une modération active. Vous pouvez exporter ou supprimer vos données à tout moment.",
   },
   {
     q: "Comment signaler un profil ?",
@@ -20,7 +33,7 @@ const faqs = [
   },
   {
     q: "Puis-je utiliser Amova sans partager ma position ?",
-    a: "Oui. La géolocalisation est optionnelle et activée uniquement si vous l'autorisez dans les Paramètres.",
+    a: "Oui. La géolocalisation est optionnelle et activée uniquement si vous l’autorisez dans les Paramètres.",
   },
 ];
 

@@ -7,8 +7,14 @@ import PaymentCheckoutDialog from "@/components/PaymentCheckoutDialog";
 import PaymentReassurance from "@/components/PaymentReassurance";
 import AppShell from "@/components/AppShell";
 import { cn } from "@/lib/utils";
-import { PLAN_PRICES, CONSUMABLE_PRICES } from "@/lib/plans";
-import type { ConsumableSku } from "@/lib/plans";
+import {
+  CONSUMABLE_PRICES,
+  BILLING_PERIODS,
+  getSubscriptionAmount,
+  formatFcfa,
+  type ConsumableSku,
+  type BillingPeriod,
+} from "@/lib/plans";
 
 const comparisonRows = [
   { label: "Super Likes / jour", free: "1", plus: "2", premium: "5", vip: "Illimités" },
@@ -22,42 +28,6 @@ const comparisonRows = [
   { label: "Matching prioritaire", free: false, plus: false, premium: false, vip: true },
   { label: "Support prioritaire", free: false, plus: false, premium: false, vip: true },
 ] as const;
-
-const plans = [
-  {
-    id: "free" as PlanType,
-    name: "Gratuit",
-    price: "0 FCFA",
-    period: "",
-    icon: Heart,
-    description: "Découvrir la plateforme",
-  },
-  {
-    id: "plus" as PlanType,
-    name: "Plus",
-    price: `${PLAN_PRICES.plus.toLocaleString("fr-FR")} FCFA`,
-    period: "/mois",
-    icon: Zap,
-    description: "Photos, likes & messages",
-  },
-  {
-    id: "premium" as PlanType,
-    name: "Premium",
-    price: `${PLAN_PRICES.premium.toLocaleString("fr-FR")} FCFA`,
-    period: "/mois",
-    icon: Sparkles,
-    description: "L'expérience complète",
-    popular: true,
-  },
-  {
-    id: "vip" as PlanType,
-    name: "VIP",
-    price: `${PLAN_PRICES.vip.toLocaleString("fr-FR")} FCFA`,
-    period: "/mois",
-    icon: Crown,
-    description: "Visibilité maximale",
-  },
-];
 
 function CellValue({ value }: { value: string | boolean }) {
   if (typeof value === "boolean") {
@@ -73,9 +43,54 @@ function CellValue({ value }: { value: string | boolean }) {
 export default function Premium() {
   const { currentPlan, isExpired, subscription } = useSubscription();
   const [searchParams] = useSearchParams();
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>("monthly");
   const [checkoutPlan, setCheckoutPlan] = useState<Exclude<PlanType, "free"> | null>(null);
   const [checkoutSku, setCheckoutSku] = useState<ConsumableSku | null>(null);
   const [isRenewalCheckout, setIsRenewalCheckout] = useState(false);
+
+  const periodMeta = BILLING_PERIODS[billingPeriod];
+  const priceSuffix =
+    billingPeriod === "monthly" ? "/mois" : billingPeriod === "quarterly" ? "/3 mois" : "/an";
+
+  const plans = [
+    {
+      id: "free" as PlanType,
+      name: "Gratuit",
+      price: "0 FCFA",
+      period: "",
+      icon: Heart,
+      description: "Découvrir la plateforme",
+      savings: null as string | null,
+    },
+    {
+      id: "plus" as PlanType,
+      name: "Plus",
+      price: formatFcfa(getSubscriptionAmount("plus", billingPeriod)),
+      period: priceSuffix,
+      icon: Zap,
+      description: "Photos, likes & messages",
+      savings: periodMeta.discount > 0 ? `−${Math.round(periodMeta.discount * 100)} %` : null,
+    },
+    {
+      id: "premium" as PlanType,
+      name: "Premium",
+      price: formatFcfa(getSubscriptionAmount("premium", billingPeriod)),
+      period: priceSuffix,
+      icon: Sparkles,
+      description: "L'expérience complète",
+      popular: true,
+      savings: periodMeta.discount > 0 ? `−${Math.round(periodMeta.discount * 100)} %` : null,
+    },
+    {
+      id: "vip" as PlanType,
+      name: "VIP",
+      price: formatFcfa(getSubscriptionAmount("vip", billingPeriod)),
+      period: priceSuffix,
+      icon: Crown,
+      description: "Visibilité maximale",
+      savings: periodMeta.discount > 0 ? `−${Math.round(periodMeta.discount * 100)} %` : null,
+    },
+  ];
 
   useEffect(() => {
     if (searchParams.get("renew") !== "1") return;
@@ -126,6 +141,31 @@ export default function Premium() {
           </p>
         </div>
 
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex rounded-full border border-border/40 bg-secondary/30 p-1 gap-0.5">
+            {(Object.keys(BILLING_PERIODS) as BillingPeriod[]).map((key) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setBillingPeriod(key)}
+                className={cn(
+                  "px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors",
+                  billingPeriod === key
+                    ? "bg-champagne text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {BILLING_PERIODS[key].label}
+                {BILLING_PERIODS[key].discount > 0 && (
+                  <span className="ml-1 opacity-80">
+                    −{Math.round(BILLING_PERIODS[key].discount * 100)}%
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {(currentPlan !== "free" || isExpired) && (
           <div className="mb-6 flex justify-center">
             <Button variant="outline" size="sm" onClick={openRenewal} className="border-champagne/30">
@@ -153,6 +193,11 @@ export default function Premium() {
                 {plan.popular && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-champagne text-primary-foreground text-xs font-semibold px-3 py-0.5 rounded-full">
                     Populaire
+                  </span>
+                )}
+                {plan.savings && (
+                  <span className="absolute top-3 right-3 text-[10px] font-semibold text-champagne">
+                    {plan.savings}
                   </span>
                 )}
 
@@ -206,7 +251,7 @@ export default function Premium() {
               >
                 <p className="text-sm font-medium">{desc}</p>
                 <p className="text-champagne text-sm mt-1 tabular-nums">
-                  {CONSUMABLE_PRICES[sku].toLocaleString("fr-FR")} FCFA
+                  {formatFcfa(CONSUMABLE_PRICES[sku])}
                 </p>
               </button>
             ))}
@@ -263,6 +308,7 @@ export default function Premium() {
         <PaymentCheckoutDialog
           plan={checkoutPlan}
           productSku={checkoutSku}
+          billingPeriod={billingPeriod}
           open={checkoutPlan !== null || checkoutSku !== null}
           onOpenChange={(open) => {
             if (!open) {

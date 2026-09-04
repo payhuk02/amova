@@ -386,7 +386,7 @@ const Messages = () => {
     if (limitMsg) {
       toast.error(limitMsg, {
         action: {
-          label: "Premium",
+          label: "Plus",
           onClick: () => navigate("/premium"),
         },
       });
