@@ -1,18 +1,25 @@
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { Search, ShieldCheck, Sparkles, Wifi, Heart } from "lucide-react";
+import { Search, ShieldCheck, Sparkles, Wifi } from "lucide-react";
 
 export interface DiscoverFiltersState {
   city: string;
   ageMin: string;
   ageMax: string;
-  gender: string;
   verifiedOnly: boolean;
   onlineOnly: boolean;
-  lookingFor: string;
   hasInterests: string[];
 }
+
+export const DEFAULT_DISCOVER_FILTERS: DiscoverFiltersState = {
+  city: "",
+  ageMin: "18",
+  ageMax: "60",
+  verifiedOnly: false,
+  onlineOnly: false,
+  hasInterests: [],
+};
 
 interface DiscoverFiltersProps {
   filters: DiscoverFiltersState;
@@ -51,9 +58,16 @@ const DiscoverFilters = ({
   const ageMin = parseInt(filters.ageMin) || 18;
   const ageMax = parseInt(filters.ageMax) || 60;
 
+  const hasActiveFilters =
+    Boolean(filters.city) ||
+    filters.verifiedOnly ||
+    filters.onlineOnly ||
+    filters.hasInterests.length > 0 ||
+    filters.ageMin !== "18" ||
+    filters.ageMax !== "60";
+
   return (
     <div className="w-full max-w-sm glass-card rounded-xl p-4 mb-6 space-y-4 animate-in slide-in-from-top-2 duration-200">
-      {/* City search */}
       <div>
         <label className="text-xs text-muted-foreground mb-1 block">Ville</label>
         <div className="relative">
@@ -67,10 +81,9 @@ const DiscoverFilters = ({
         </div>
       </div>
 
-      {/* Age range slider */}
       <div>
         <label className="text-xs text-muted-foreground mb-2 block flex items-center justify-between">
-          <span>Tranche d'âge</span>
+          <span>Tranche d&apos;âge</span>
           <span className="text-foreground/70 tabular-nums font-medium">{ageMin} – {ageMax} ans</span>
         </label>
         <div className="px-1">
@@ -85,35 +98,10 @@ const DiscoverFilters = ({
         </div>
       </div>
 
-      {/* Gender filter removed: Amova is heterosexual (H↔F) server-side */}
+      <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
+        Matching hétérosexuel uniquement : les hommes voient les femmes, et inversement.
+      </p>
 
-      {/* Looking for — optional refine among opposite gender who seek you */}
-      <div>
-        <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
-          <Heart size={12} /> Recherche (profils)
-        </label>
-        <div className="flex gap-2">
-          {[
-            { v: "", l: "Tout" },
-            { v: "homme", l: "Cherche hommes" },
-            { v: "femme", l: "Cherche femmes" },
-          ].map((opt) => (
-            <button
-              key={opt.v}
-              onClick={() => update({ lookingFor: opt.v })}
-              className={`flex-1 h-8 rounded-lg border text-[11px] font-medium transition-all active:scale-[0.97] ${
-                filters.lookingFor === opt.v
-                  ? "border-accent bg-accent/10 text-foreground"
-                  : "border-border/50 bg-secondary/30 text-muted-foreground"
-              }`}
-            >
-              {opt.l}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Advanced filters — Plus+ */}
       <div className="space-y-2 pt-2 border-t border-border/30">
         <p className="text-[10px] uppercase tracking-wider text-champagne/80 font-medium">
           Filtres avancés {!canUseAdvancedFilters && "· Plus"}
@@ -140,7 +128,6 @@ const DiscoverFilters = ({
         </div>
       </div>
 
-      {/* Interest tags */}
       {availableInterests.length > 0 && (
         <div>
           <label className="text-xs text-muted-foreground mb-1.5 block flex items-center gap-1">
@@ -153,6 +140,7 @@ const DiscoverFilters = ({
             {availableInterests.slice(0, 20).map((interest) => (
               <button
                 key={interest}
+                type="button"
                 onClick={() => requirePremium(() => toggleInterest(interest))}
                 className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all active:scale-[0.97] ${
                   filters.hasInterests.includes(interest)
@@ -167,24 +155,22 @@ const DiscoverFilters = ({
         </div>
       )}
 
-      {/* Active filters count */}
-      {(filters.verifiedOnly || filters.onlineOnly || filters.hasInterests.length > 0 || filters.city || filters.gender || filters.lookingFor) && (
+      {hasActiveFilters && (
         <div className="flex items-center justify-between pt-2 border-t border-border/30">
           <span className="text-[10px] text-muted-foreground">
             {[
               filters.city && "Ville",
-              filters.gender && "Genre",
-              filters.lookingFor && "Recherche",
+              (filters.ageMin !== "18" || filters.ageMax !== "60") && "Âge",
               filters.verifiedOnly && "Vérifié",
               filters.onlineOnly && "En ligne",
               filters.hasInterests.length > 0 && `${filters.hasInterests.length} intérêt(s)`,
-            ].filter(Boolean).join(" · ")}
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </span>
           <button
-            onClick={() => onChange({
-              city: "", ageMin: "18", ageMax: "60", gender: "",
-              verifiedOnly: false, onlineOnly: false, lookingFor: "", hasInterests: [],
-            })}
+            type="button"
+            onClick={() => onChange({ ...DEFAULT_DISCOVER_FILTERS })}
             className="text-[10px] text-accent hover:text-accent/80 font-medium"
           >
             Réinitialiser

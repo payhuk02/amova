@@ -15,6 +15,7 @@ import {
   RELATIONSHIP_TYPES,
   RELIGIONS,
 } from "@/lib/profile-options";
+import { oppositeGender } from "@/lib/gender";
 import { toast } from "sonner";
 import { Camera, Loader2, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -149,7 +150,8 @@ const ProfileSetup = () => {
     const dob = parseDobParts(form.dobYear, form.dobMonth, form.dobDay);
     if ("error" in dob) return toast.error(dob.error);
 
-    const lookingFor = form.gender === "homme" ? "femme" : "homme";
+    const lookingFor = oppositeGender(form.gender);
+    if (!lookingFor) return toast.error("Sélectionnez Homme ou Femme");
 
     setLoading(true);
     try {

@@ -4,7 +4,8 @@ const TermsPage = () => (
   <LegalLayout title="Conditions d'utilisation">
     <p>
       En utilisant Amova, vous acceptez les présentes conditions. Amova est une plateforme de
-      rencontres réservée aux personnes majeures (18 ans et plus).
+      rencontres hétérosexuelles (homme ↔ femme) réservée aux personnes majeures (18 ans et plus).
+      Le matching et la découverte de profils sont strictement opposés selon le genre déclaré.
     </p>
     <h2 className="font-display text-xl text-foreground mt-8 mb-3">Comportement attendu</h2>
     <ul className="list-disc pl-5 space-y-2">

@@ -12,7 +12,7 @@ import { isOnline, formatLastSeen } from "@/hooks/useOnlineStatus";
 import SuperLikeButton from "@/components/SuperLikeButton";
 import BoostButton from "@/components/BoostButton";
 import CompatibilityModal from "@/components/CompatibilityModal";
-import DiscoverFilters, { type DiscoverFiltersState } from "@/components/DiscoverFilters";
+import DiscoverFilters, { type DiscoverFiltersState, DEFAULT_DISCOVER_FILTERS } from "@/components/DiscoverFilters";
 import EmptyState from "@/components/ui/empty-state";
 import { TrustBadge, OnlineStatus, InterestTag } from "@/components/TrustBadge";
 import type { ProfileRow } from "@/types/profile";
@@ -23,6 +23,7 @@ import type { LikeInsert, PassInsert } from "@/lib/supabase-helpers";
 import { useSubscription } from "@/hooks/useSubscription";
 import { sortDiscoverProfiles } from "@/lib/discover-sort";
 import BlurredPhoto from "@/components/BlurredPhoto";
+import { oppositeGender } from "@/lib/gender";
 
 interface Profile {
   id: string;
@@ -61,16 +62,7 @@ const Discover = () => {
   const canUseAdvancedFilters = currentPlan !== "free";
   const blurPhotos = !limits.canViewFullGallery;
   const aiCandidateLimit = limits.priorityMatching ? 40 : 20;
-  const [filters, setFilters] = useState<DiscoverFiltersState>({
-    city: "",
-    ageMin: "18",
-    ageMax: "60",
-    gender: "",
-    verifiedOnly: false,
-    onlineOnly: false,
-    lookingFor: "",
-    hasInterests: [],
-  });
+  const [filters, setFilters] = useState<DiscoverFiltersState>({ ...DEFAULT_DISCOVER_FILTERS });
 
   // Collect all unique interests from profiles
   const availableInterests = useMemo(() => {
@@ -97,8 +89,8 @@ const Discover = () => {
         p_city: filters.city || null,
         p_age_min: parseInt(filters.ageMin, 10) || null,
         p_age_max: parseInt(filters.ageMax, 10) || null,
-        p_gender: filters.gender || null,
-        p_looking_for: filters.lookingFor || null,
+        p_gender: null,
+        p_looking_for: null,
         p_verified_only: filters.verifiedOnly,
         p_online_only: filters.onlineOnly,
         p_interests: filters.hasInterests.length > 0 ? filters.hasInterests : null,
@@ -110,7 +102,10 @@ const Discover = () => {
         return;
       }
 
-      const filtered = (discovered || []) as Profile[];
+      const targetGender = oppositeGender(myProfile.gender);
+      const filtered = ((discovered || []) as Profile[]).filter(
+        (p) => targetGender != null && p.gender === targetGender,
+      );
       const candidateIds = filtered.map((p) => p.user_id);
 
       const [{ data: boostedRaw }, { data: vipRaw }] = await Promise.all([

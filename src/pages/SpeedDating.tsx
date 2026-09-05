@@ -119,7 +119,7 @@ const SpeedDating = () => {
     const { data, error } = await supabase.rpc("join_speed_dating_queue");
 
     if (error) {
-      toast.error("Impossible de rejoindre la file d'attente");
+      toast.error(getLimitErrorMessage(error) || "Impossible de rejoindre la file d'attente");
       setStatus("idle");
       return;
     }

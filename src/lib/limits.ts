@@ -30,5 +30,11 @@ export function getLimitErrorMessage(error: { message?: string } | null): string
     if (msg.includes("must_be_18_or_older")) {
       return "Amova est réservé aux personnes majeures (18 ans et plus).";
     }
+    if (msg.includes("hetero_only_matching")) {
+      return "Amova est réservé aux rencontres homme ↔ femme.";
+    }
+    if (msg.includes("profile_gender_required")) {
+      return "Complétez votre genre dans votre profil pour continuer.";
+    }
     return null;
 }

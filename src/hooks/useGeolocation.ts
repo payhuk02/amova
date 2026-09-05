@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { oppositeGender } from "@/lib/gender";
 
 interface GeoPosition {
   latitude: number;
@@ -65,12 +66,20 @@ export const useSmartMatches = () => {
     if (!user) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc("get_smart_matches", {
-        p_max_distance: maxDistance,
-        p_limit: 50,
-      });
+      const [{ data: me }, { data, error }] = await Promise.all([
+        supabase.from("profiles").select("gender").eq("user_id", user.id).maybeSingle(),
+        supabase.rpc("get_smart_matches", {
+          p_max_distance: maxDistance,
+          p_limit: 50,
+        }),
+      ]);
       if (!error && data) {
-        setMatches(data);
+        const target = oppositeGender(me?.gender);
+        setMatches(
+          target
+            ? data.filter((m: { gender?: string | null }) => m.gender === target)
+            : [],
+        );
       }
     } catch (e) {
       console.error("Smart match error:", e);

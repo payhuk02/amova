@@ -16,6 +16,7 @@ import EmptyState from "@/components/ui/empty-state";
 import { useBlockedUsers } from "@/hooks/useBlockedUsers";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { isProfileComplete } from "@/hooks/useProfileComplete";
+import { oppositeGender } from "@/lib/gender";
 import { toast } from "sonner";
 
 interface Profile {
@@ -94,7 +95,12 @@ const Dashboard = () => {
       toast.error("Impossible de charger les profils");
       setProfiles([]);
     } else {
-      setProfiles((discovered || []) as Profile[]);
+      const targetGender = oppositeGender((myProfile as Profile).gender);
+      setProfiles(
+        ((discovered || []) as Profile[]).filter(
+          (p) => targetGender != null && p.gender === targetGender,
+        ),
+      );
     }
     setLoading(false);
   }, [user, navigate, filters.city, filters.ageMin, filters.ageMax]);

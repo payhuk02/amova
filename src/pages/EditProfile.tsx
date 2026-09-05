@@ -20,6 +20,7 @@ import {
   RELATIONSHIP_TYPES,
   RELIGIONS,
 } from "@/lib/profile-options";
+import { oppositeGender } from "@/lib/gender";
 import { cn } from "@/lib/utils";
 
 interface Photo {
@@ -175,8 +176,7 @@ const EditProfile = () => {
       display_name: form.display_name,
       city: form.city,
       country: form.country || null,
-      looking_for:
-        form.gender === "homme" ? "femme" : form.gender === "femme" ? "homme" : form.looking_for,
+      looking_for: oppositeGender(form.gender) ?? form.looking_for,
       bio: form.bio,
       religion: form.religion || null,
       relationship_type: form.relationship_type || null,

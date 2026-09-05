@@ -27,6 +27,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getLimitErrorMessage } from "@/lib/limits";
 import BlurredPhoto from "@/components/BlurredPhoto";
+import { genderLabel, lookingForLabel } from "@/lib/gender";
 
 interface ProfileData {
   user_id: string;
@@ -295,12 +296,12 @@ const ProfilePage = () => {
               {profile.gender && (
                 <span className="flex items-center gap-1">
                   <User size={11} />
-                  {profile.gender === "homme" ? "Homme" : profile.gender === "femme" ? "Femme" : profile.gender}
+                  {genderLabel(profile.gender)}
                 </span>
               )}
               {profile.looking_for && (
                 <span>
-                  Cherche : {profile.looking_for === "homme" ? "Hommes" : profile.looking_for === "femme" ? "Femmes" : "Les deux"}
+                  Cherche : {lookingForLabel(profile.looking_for)}
                 </span>
               )}
               <span className="flex items-center gap-1">

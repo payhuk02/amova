@@ -6,6 +6,10 @@ import { SITE_URL } from "@/lib/seo";
 
 const faqs = [
   {
+    q: "Amova est-elle réservée aux rencontres homme ↔ femme ?",
+    a: "Oui. Amova est une plateforme de matching hétérosexuel : les hommes voient uniquement les femmes, et les femmes voient uniquement les hommes. Il n’est pas possible de rechercher le même genre.",
+  },
+  {
     q: "Qu’est-ce qui est gratuit sur Amova ?",
     a: "Le plan Gratuit permet de découvrir la plateforme : 50 swipes/jour, 1 Super Like/jour, 15 messages/jour. Les photos de profil sont floutées ; la galerie HD et « Qui m’aime » sont réservés aux abonnés Plus (ou débloqués après un match).",
   },

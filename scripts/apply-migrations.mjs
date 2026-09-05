@@ -40,6 +40,8 @@ const pending = [
   "20260904230000_hetero_match_and_profile_rls.sql",
   "20260904240000_hotfix_admin_mass_and_hetero.sql",
   "20260904250000_admin_owner_profile_fields.sql",
+  "20260905140000_strict_hetero_filters_and_likes.sql",
+  "20260905150000_hetero_looking_for_check_and_likes_rls.sql",
 ];
 
 if (!token) {
