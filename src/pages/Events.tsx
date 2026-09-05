@@ -8,7 +8,6 @@ import { CalendarDays, MapPin, Users, Plus, X, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import AppShell from "@/components/AppShell";
-import ScrollReveal from "@/components/ScrollReveal";
 
 interface EventRow {
   id: string;
@@ -142,7 +141,6 @@ const Events = () => {
         </div>
 
         {showCreate && (
-          <ScrollReveal>
             <div className="glass-card rounded-xl p-4 sm:p-6 mb-5 sm:mb-8 space-y-3 sm:space-y-4">
               <h2 className="font-display text-lg sm:text-xl font-medium">Nouvel événement</h2>
               <div>
@@ -205,7 +203,6 @@ const Events = () => {
                 {creating ? "Création..." : "Créer l'événement"}
               </Button>
             </div>
-          </ScrollReveal>
         )}
 
         {events.length === 0 ? (
@@ -225,8 +222,7 @@ const Events = () => {
               const isCreator = event.creator_id === user?.id;
 
               return (
-                <ScrollReveal key={event.id}>
-                  <div className="glass-card rounded-xl p-4 sm:p-5 space-y-2 sm:space-y-3">
+                  <div key={event.id} className="glass-card rounded-xl p-4 sm:p-5 space-y-2 sm:space-y-3">
                     <div className="flex items-start justify-between gap-2 sm:gap-3">
                       <h3 className="font-display text-base sm:text-lg font-medium">{event.title}</h3>
                       {isCreator && (
@@ -275,7 +271,6 @@ const Events = () => {
                       </div>
                     )}
                   </div>
-                </ScrollReveal>
               );
             })}
           </div>

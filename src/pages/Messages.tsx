@@ -108,38 +108,49 @@ const Messages = () => {
     async (partnerIds: string[]) => {
       if (!user || partnerIds.length === 0) return {} as Record<string, ConversationMeta>;
 
+      const partnerSet = new Set(partnerIds);
       const meta: Record<string, ConversationMeta> = {};
-      await Promise.all(
-        partnerIds.map(async (partnerId) => {
-          const { data: lastMsg } = await supabase
-            .from("messages")
-            .select("content, created_at, message_type")
-            .or(
-              `and(sender_id.eq.${user.id},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${user.id})`,
-            )
-            .order("created_at", { ascending: false })
-            .limit(1);
+      for (const id of partnerIds) {
+        meta[id] = { lastMessage: "", lastMessageTime: "", unreadCount: 0 };
+      }
 
-          const { count: unread } = await supabase
-            .from("messages")
-            .select("*", { count: "exact", head: true })
-            .eq("sender_id", partnerId)
-            .eq("receiver_id", user.id)
-            .eq("read", false);
+      // 2 queries total instead of 2N (last preview + unread per partner)
+      const [{ data: unreadRows }, { data: recent }] = await Promise.all([
+        supabase
+          .from("messages")
+          .select("sender_id")
+          .eq("receiver_id", user.id)
+          .eq("read", false)
+          .in("sender_id", partnerIds),
+        supabase
+          .from("messages")
+          .select("sender_id, receiver_id, content, created_at, message_type")
+          .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+          .order("created_at", { ascending: false })
+          .limit(Math.min(Math.max(partnerIds.length * 8, 120), 800)),
+      ]);
 
-          meta[partnerId] = {
-            lastMessage: lastMsg?.[0]
-              ? lastMsg[0].message_type === "audio"
-                ? "🎤 Message vocal"
-                : lastMsg[0].message_type === "image"
-                  ? "📷 Photo"
-                  : lastMsg[0].content
-              : "",
-            lastMessageTime: lastMsg?.[0]?.created_at || "",
-            unreadCount: unread || 0,
-          };
-        }),
-      );
+      for (const row of unreadRows || []) {
+        if (!partnerSet.has(row.sender_id)) continue;
+        meta[row.sender_id].unreadCount += 1;
+      }
+
+      for (const msg of recent || []) {
+        const partnerId =
+          msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
+        if (!partnerSet.has(partnerId) || meta[partnerId].lastMessageTime) continue;
+        meta[partnerId] = {
+          ...meta[partnerId],
+          lastMessage:
+            msg.message_type === "audio"
+              ? "Message vocal"
+              : msg.message_type === "image"
+                ? "Photo"
+                : msg.content || "",
+          lastMessageTime: msg.created_at || "",
+        };
+      }
+
       return meta;
     },
     [user],

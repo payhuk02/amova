@@ -7,7 +7,6 @@ import { getLimitErrorMessage } from "@/lib/limits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Heart, Search, SlidersHorizontal, Compass } from "lucide-react";
-import ScrollReveal from "@/components/ScrollReveal";
 import AppShell from "@/components/AppShell";
 import BlockReportDialog from "@/components/BlockReportDialog";
 import PullToRefreshIndicator from "@/components/PullToRefreshIndicator";
@@ -177,81 +176,74 @@ const Dashboard = () => {
       <main ref={containerRef} className="flex-1 overflow-y-auto">
         <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} />
         <div className="container py-4 sm:py-6 md:py-12 px-3 sm:px-4 md:px-6">
-          <ScrollReveal>
-            <div className="mb-5 sm:mb-8 flex flex-col gap-3 sm:gap-4">
-              <div>
-                <h2 className="font-display text-xl sm:text-2xl md:text-3xl lg:text-4xl font-light mb-1 sm:mb-2">
-                  Bonjour, <span className="text-foreground">{profile?.display_name}</span>
-                </h2>
-                <p className="text-muted-foreground text-xs sm:text-sm">Profils correspondant à votre recherche.</p>
-              </div>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar snap-x-mandatory">
-                <Button variant="default" size="sm" onClick={() => navigate("/discover")} className="shrink-0 snap-start touch-manipulation text-xs sm:text-sm">
-                  <Compass size={14} /> Mode swipe
-                </Button>
-                <Button variant="outline" size="sm" onClick={requestFilters} className="border-border/50 shrink-0 snap-start touch-manipulation text-xs sm:text-sm">
-                  <SlidersHorizontal size={14} /> Filtres{!canFilter ? " · Plus" : ""}
-                </Button>
-              </div>
+          <div className="mb-5 sm:mb-8 flex flex-col gap-3 sm:gap-4">
+            <div>
+              <h2 className="font-display text-xl sm:text-2xl md:text-3xl lg:text-4xl font-light mb-1 sm:mb-2">
+                Bonjour, <span className="text-foreground">{profile?.display_name}</span>
+              </h2>
+              <p className="text-muted-foreground text-xs sm:text-sm">Profils correspondant à votre recherche.</p>
             </div>
-          </ScrollReveal>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar snap-x-mandatory">
+              <Button variant="default" size="sm" onClick={() => navigate("/discover")} className="shrink-0 snap-start touch-manipulation text-xs sm:text-sm">
+                <Compass size={14} /> Mode swipe
+              </Button>
+              <Button variant="outline" size="sm" onClick={requestFilters} className="border-border/50 shrink-0 snap-start touch-manipulation text-xs sm:text-sm">
+                <SlidersHorizontal size={14} /> Filtres{!canFilter ? " · Plus" : ""}
+              </Button>
+            </div>
+          </div>
 
           {showFilters && canFilter && (
-            <ScrollReveal>
-              <div className="rounded-xl border border-border/50 bg-card p-3 sm:p-5 mb-5 sm:mb-8 space-y-3 sm:space-y-0 sm:flex sm:flex-row sm:gap-4">
-                <div className="flex-1">
-                  <label className="text-xs text-muted-foreground mb-1 block">Ville</label>
-                  <div className="relative">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    <Input value={filters.city} onChange={e => setFilters(f => ({ ...f, city: e.target.value }))}
-                      placeholder="Rechercher une ville" className="pl-9 h-10 bg-secondary/50 border-border/50 text-sm" />
-                  </div>
-                </div>
-                <div className="flex gap-3 sm:gap-4">
-                  <div className="flex-1 sm:w-24 sm:flex-initial">
-                    <label className="text-xs text-muted-foreground mb-1 block">Âge min</label>
-                    <Input type="number" min={18} value={filters.ageMin} onChange={e => setFilters(f => ({ ...f, ageMin: e.target.value }))}
-                      placeholder="18" className="h-10 bg-secondary/50 border-border/50 text-sm tabular-nums" />
-                  </div>
-                  <div className="flex-1 sm:w-24 sm:flex-initial">
-                    <label className="text-xs text-muted-foreground mb-1 block">Âge max</label>
-                    <Input type="number" max={120} value={filters.ageMax} onChange={e => setFilters(f => ({ ...f, ageMax: e.target.value }))}
-                      placeholder="60" className="h-10 bg-secondary/50 border-border/50 text-sm tabular-nums" />
-                  </div>
+            <div className="rounded-xl border border-border/50 bg-card p-3 sm:p-5 mb-5 sm:mb-8 space-y-3 sm:space-y-0 sm:flex sm:flex-row sm:gap-4">
+              <div className="flex-1">
+                <label className="text-xs text-muted-foreground mb-1 block">Ville</label>
+                <div className="relative">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input value={filters.city} onChange={e => setFilters(f => ({ ...f, city: e.target.value }))}
+                    placeholder="Rechercher une ville" className="pl-9 h-10 bg-secondary/50 border-border/50 text-sm" />
                 </div>
               </div>
-            </ScrollReveal>
+              <div className="flex gap-3 sm:gap-4">
+                <div className="flex-1 sm:w-24 sm:flex-initial">
+                  <label className="text-xs text-muted-foreground mb-1 block">Âge min</label>
+                  <Input type="number" min={18} value={filters.ageMin} onChange={e => setFilters(f => ({ ...f, ageMin: e.target.value }))}
+                    placeholder="18" className="h-10 bg-secondary/50 border-border/50 text-sm tabular-nums" />
+                </div>
+                <div className="flex-1 sm:w-24 sm:flex-initial">
+                  <label className="text-xs text-muted-foreground mb-1 block">Âge max</label>
+                  <Input type="number" max={120} value={filters.ageMax} onChange={e => setFilters(f => ({ ...f, ageMax: e.target.value }))}
+                    placeholder="60" className="h-10 bg-secondary/50 border-border/50 text-sm tabular-nums" />
+                </div>
+              </div>
+            </div>
           )}
 
           {filteredProfiles.length === 0 ? (
-            <ScrollReveal>
-              <EmptyState
-                icon={Heart}
-                title="Pas encore de profils"
-                description="Aucun profil pour le moment. Élargissez la ville ou la tranche d'âge, ou revenez plus tard."
-                action={{
-                  label: "Mode swipe",
-                  onClick: () => navigate("/discover"),
-                  variant: "hero",
-                }}
-              />
-            </ScrollReveal>
+            <EmptyState
+              icon={Heart}
+              title="Pas encore de profils"
+              description="Aucun profil pour le moment. Élargissez la ville ou la tranche d'âge, ou revenez plus tard."
+              action={{
+                label: "Mode swipe",
+                onClick: () => navigate("/discover"),
+                variant: "hero",
+              }}
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
-              {filteredProfiles.map((p, i) => (
-                <ScrollReveal key={p.id} delay={i * 80} className="h-full">
-                  <ProfileCard
-                    profile={p}
-                    isLiked={likedIds.has(p.user_id)}
-                    isMatched={matchedIds.has(p.user_id)}
-                    blurPhoto={blurPhotos}
-                    onLike={() => handleLike(p.user_id)}
-                    onMessage={() => navigate(`/messages?with=${p.user_id}`)}
-                    onViewProfile={() => navigate(`/profile/${p.user_id}`)}
-                    onReport={() => setReportTarget(p)}
-                    className="h-full"
-                  />
-                </ScrollReveal>
+              {filteredProfiles.map((p) => (
+                <ProfileCard
+                  key={p.id}
+                  profile={p}
+                  isLiked={likedIds.has(p.user_id)}
+                  isMatched={matchedIds.has(p.user_id)}
+                  blurPhoto={blurPhotos}
+                  onLike={() => handleLike(p.user_id)}
+                  onMessage={() => navigate(`/messages?with=${p.user_id}`)}
+                  onViewProfile={() => navigate(`/profile/${p.user_id}`)}
+                  onReport={() => setReportTarget(p)}
+                  className="h-full"
+                />
               ))}
             </div>
           )}

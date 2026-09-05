@@ -6,7 +6,6 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
 import { Heart, User, MapPin, MessageCircle, ShieldCheck, Eye, Sparkles, Check } from "lucide-react";
 import AppShell from "@/components/AppShell";
-import ScrollReveal from "@/components/ScrollReveal";
 import EmptyState from "@/components/ui/empty-state";
 import { isOnline, formatLastSeen } from "@/hooks/useOnlineStatus";
 import { toast } from "sonner";
@@ -117,7 +116,6 @@ const LikedMe = () => {
   return (
     <AppShell>
       <main className="container max-w-2xl py-4 sm:py-6 md:py-8 px-3 sm:px-4 md:px-6">
-        <ScrollReveal>
           <div className="mb-5 sm:mb-6 md:mb-8">
             <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-light mb-0.5 sm:mb-1">
               Qui m'a <span className="text-gradient-copper italic">aimé(e)</span>
@@ -148,10 +146,8 @@ const LikedMe = () => {
               <p className="mt-2 text-xs text-champagne">Passe « qui m&apos;aime » actif (24h)</p>
             )}
           </div>
-        </ScrollReveal>
 
         {likers.length === 0 ? (
-          <ScrollReveal>
             <EmptyState
               icon={Heart}
               title="Pas encore de likes"
@@ -162,19 +158,17 @@ const LikedMe = () => {
                 variant: "hero-outline",
               }}
             />
-          </ScrollReveal>
         ) : (
           <div className="space-y-2 sm:space-y-3">
-            {likers.map((liker, i) => {
+            {likers.map((liker) => {
               const likerUserId = liker.user_id;
               const isLikedBack = likerUserId ? likedBackIds.has(likerUserId) : false;
-              const isMatch = likerUserId ? matchedIds.has(likerUserId) : false;
               const isRevealed = liker.is_revealed;
               const online = isOnline(liker.last_seen);
 
               return (
-                <ScrollReveal key={liker.like_id} delay={i * 60}>
                   <div
+                    key={liker.like_id}
                     className={`glass-card rounded-xl p-3 sm:p-4 md:p-5 transition-all duration-300 ${
                       liker.is_super ? "border-gold-soft/40 ring-1 ring-gold-soft/20" : ""
                     }`}
@@ -315,7 +309,6 @@ const LikedMe = () => {
                       )}
                     </div>
                   </div>
-                </ScrollReveal>
               );
             })}
           </div>
