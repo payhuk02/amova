@@ -8,7 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import CookieConsent from "@/components/CookieConsent";
-import AiChatbot from "@/components/AiChatbot";
+import AiChatbotLazy from "@/components/AiChatbotLazy";
 import RouteSeo from "@/components/RouteSeo";
 
 /** Landing + auth stay eager for first paint / login funnel. */
@@ -107,7 +107,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
-          <AiChatbot />
+          <AiChatbotLazy />
           <CookieConsent />
         </BrowserRouter>
       </TooltipProvider>

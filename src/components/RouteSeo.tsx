@@ -11,6 +11,7 @@ const PUBLIC_SEO: Record<string, { title: string; description: string; noIndex?:
     title: "Connexion & inscription",
     description:
       "Créez votre compte Amova ou connectez-vous pour rencontrer des profils vérifiés en Afrique.",
+    noIndex: true,
   },
   "/faq": {
     title: "FAQ — Questions fréquentes",

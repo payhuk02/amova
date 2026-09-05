@@ -8,6 +8,10 @@ const HeroSection = () => (
       <img
         src={heroBg}
         alt="Couple africain élégant et amoureux"
+        width={1536}
+        height={1024}
+        decoding="async"
+        fetchPriority="high"
         className="w-full h-full object-cover object-[65%_center] scale-105"
       />
       <div className="absolute inset-0 hero-overlay" />

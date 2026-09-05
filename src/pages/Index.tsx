@@ -1,13 +1,15 @@
+import { lazy, Suspense } from "react";
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
-import HowItWorksSection from "@/components/landing/HowItWorksSection";
-import FeaturesSection from "@/components/landing/FeaturesSection";
-import PricingSection from "@/components/landing/PricingSection";
-import TestimonialsSection from "@/components/landing/TestimonialsSection";
-import CTASection from "@/components/landing/CTASection";
-import Footer from "@/components/landing/Footer";
 import Seo, { OrganizationJsonLd, WebsiteJsonLd } from "@/components/Seo";
 import { DEFAULT_DESCRIPTION } from "@/lib/seo";
+
+const HowItWorksSection = lazy(() => import("@/components/landing/HowItWorksSection"));
+const FeaturesSection = lazy(() => import("@/components/landing/FeaturesSection"));
+const PricingSection = lazy(() => import("@/components/landing/PricingSection"));
+const TestimonialsSection = lazy(() => import("@/components/landing/TestimonialsSection"));
+const CTASection = lazy(() => import("@/components/landing/CTASection"));
+const Footer = lazy(() => import("@/components/landing/Footer"));
 
 const Index = () => {
   return (
@@ -20,12 +22,14 @@ const Index = () => {
       />
       <Navbar />
       <HeroSection />
-      <HowItWorksSection />
-      <FeaturesSection />
-      <PricingSection />
-      <TestimonialsSection />
-      <CTASection />
-      <Footer />
+      <Suspense fallback={null}>
+        <HowItWorksSection />
+        <FeaturesSection />
+        <PricingSection />
+        <TestimonialsSection />
+        <CTASection />
+        <Footer />
+      </Suspense>
     </div>
   );
 };
