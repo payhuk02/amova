@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getErrorMessage } from "@/lib/supabase-helpers";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -212,8 +211,15 @@ const AuthPage = () => {
               toast.error("Confirmez avoir 18 ans et acceptez les conditions avant de continuer.");
               return;
             }
-            const { error } = await lovable.auth.signInWithOAuth("google", {
-              redirect_uri: `${window.location.origin}/auth`,
+            const { error } = await supabase.auth.signInWithOAuth({
+              provider: "google",
+              options: {
+                redirectTo: `${window.location.origin}/auth`,
+                queryParams: {
+                  access_type: "offline",
+                  prompt: "select_account",
+                },
+              },
             });
             if (error) toast.error(error.message || "Erreur Google");
           }}
