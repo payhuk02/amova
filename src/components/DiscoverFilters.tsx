@@ -103,9 +103,17 @@ const DiscoverFilters = ({
       </p>
 
       <div className="space-y-2 pt-2 border-t border-border/30">
-        <p className="text-[10px] uppercase tracking-wider text-champagne/80 font-medium">
+        <button
+          type="button"
+          onClick={() => {
+            if (!canUseAdvancedFilters) onPremiumRequired?.();
+          }}
+          className={`text-[10px] uppercase tracking-wider text-champagne/80 font-medium ${
+            !canUseAdvancedFilters ? "hover:text-champagne cursor-pointer" : "cursor-default"
+          }`}
+        >
           Filtres avancés {!canUseAdvancedFilters && "· Plus"}
-        </p>
+        </button>
         <div className="flex items-center justify-between py-1">
           <label className="text-xs text-muted-foreground flex items-center gap-1.5">
             <ShieldCheck size={13} className="text-emerald-500" />

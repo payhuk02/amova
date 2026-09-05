@@ -28,7 +28,26 @@ export default function BlurredPhoto({
   if (!src) return null;
 
   return (
-    <div className={cn("relative overflow-hidden", className)} onClick={onClick}>
+    <div
+      className={cn("relative overflow-hidden", onClick && "cursor-pointer", className)}
+      onClick={(e) => {
+        if (!onClick) return;
+        e.stopPropagation();
+        onClick();
+      }}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+    >
       <img
         src={src}
         alt={alt}

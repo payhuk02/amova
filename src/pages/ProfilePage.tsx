@@ -25,7 +25,7 @@ import { isOnline } from "@/hooks/useOnlineStatus";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { getLimitErrorMessage } from "@/lib/limits";
+import { getLimitErrorMessage, isUpgradeLimitError, PLANS_PATH, plansEnticement } from "@/lib/limits";
 import BlurredPhoto from "@/components/BlurredPhoto";
 import { genderLabel, lookingForLabel } from "@/lib/gender";
 
@@ -142,6 +142,7 @@ const ProfilePage = () => {
       if (error) {
         const limitMsg = getLimitErrorMessage(error);
         toast.error(limitMsg || "Impossible d'envoyer ce like");
+        if (isUpgradeLimitError(error)) navigate(PLANS_PATH);
         return;
       }
       setLiked(true);
@@ -218,7 +219,10 @@ const ProfilePage = () => {
                 className="w-full h-full cursor-pointer"
                 onClick={() => {
                   if (!blurMainPhoto) setSelectedPhoto(profile.avatar_url!);
-                  else navigate("/premium");
+                  else {
+                    toast.info(plansEnticement("Photos nettes"));
+                    navigate(PLANS_PATH);
+                  }
                 }}
               />
             ) : (
@@ -357,8 +361,10 @@ const ProfilePage = () => {
                 <button
                   key={photo.id}
                   onClick={() => {
-                    if (galleryLocked) navigate("/premium");
-                    else setSelectedPhoto(photo.photo_url);
+                    if (galleryLocked) {
+                      toast.info(plansEnticement("Galerie photos"));
+                      navigate(PLANS_PATH);
+                    } else setSelectedPhoto(photo.photo_url);
                   }}
                   className="aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-secondary/30 hover:opacity-90 transition-opacity touch-manipulation"
                 >
@@ -385,7 +391,7 @@ const ProfilePage = () => {
                 Passez Plus pour voir les photos nettes, ou matchez pour débloquer ce profil.
               </p>
             </div>
-            <Button variant="hero" size="sm" onClick={() => navigate("/premium")}>
+            <Button variant="hero" size="sm" onClick={() => navigate(PLANS_PATH)}>
               Voir les offres
             </Button>
           </div>

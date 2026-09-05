@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
-import { getLimitErrorMessage } from "@/lib/limits";
+import { getLimitErrorMessage, isUpgradeLimitError, PLANS_PATH, plansEnticement } from "@/lib/limits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Heart, Search, SlidersHorizontal, Compass } from "lucide-react";
@@ -38,7 +38,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { currentPlan, limits } = useSubscription();
   const canFilter = currentPlan !== "free";
-  const blurPhotos = !limits.canViewFullGallery;  const [profile, setProfile] = useState<Profile | null>(null);
+  const blurPhotos = !limits.canViewFullGallery;
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
@@ -120,11 +121,10 @@ const Dashboard = () => {
       const { error } = await supabase.from("likes").insert({ from_user_id: user.id, to_user_id: toUserId });
       if (error) {
         const limitMsg = getLimitErrorMessage(error);
-        toast.error(limitMsg || "Impossible d'aimer ce profil", {
-          action: limitMsg
-            ? { label: "Offres", onClick: () => navigate("/premium") }
-            : undefined,
-        });
+        toast.error(limitMsg || "Impossible d'aimer ce profil");
+        if (isUpgradeLimitError(error)) {
+          navigate(PLANS_PATH);
+        }
         return;
       }
       setLikedIds((prev) => new Set(prev).add(toUserId));
@@ -142,9 +142,8 @@ const Dashboard = () => {
 
   const requestFilters = () => {
     if (!canFilter) {
-      toast.error("Les filtres de recherche sont réservés aux membres Plus et plus.", {
-        action: { label: "Voir Plus", onClick: () => navigate("/premium") },
-      });
+      toast.info(plansEnticement("Filtres de recherche"));
+      navigate(PLANS_PATH);
       return;
     }
     setShowFilters(!showFilters);
@@ -241,6 +240,10 @@ const Dashboard = () => {
                   onLike={() => handleLike(p.user_id)}
                   onMessage={() => navigate(`/messages?with=${p.user_id}`)}
                   onViewProfile={() => navigate(`/profile/${p.user_id}`)}
+                  onUnlockPhoto={() => {
+                    toast.info(plansEnticement("Photos nettes"));
+                    navigate(PLANS_PATH);
+                  }}
                   onReport={() => setReportTarget(p)}
                   className="h-full"
                 />

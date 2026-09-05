@@ -15,26 +15,49 @@ export function getLimitErrorMessage(error: { message?: string } | null): string
   if (msg.includes("incognito_requires_vip")) {
     return "Le mode incognito est réservé au plan VIP.";
   }
-    if (msg.includes("vip_weekly_spotlight_already_claimed")) {
-      return "Spotlight VIP déjà utilisé cette semaine. Revenez dans quelques jours.";
-    }
-    if (msg.includes("vip_spotlight_requires_vip")) {
-      return "Le Spotlight hebdomadaire gratuit est réservé au plan VIP.";
-    }
-    if (msg.includes("gender_locked")) {
-      return "Le genre ne peut plus être modifié après validation.";
-    }
-    if (msg.includes("date_of_birth_locked")) {
-      return "La date de naissance ne peut plus être modifiée après validation.";
-    }
-    if (msg.includes("must_be_18_or_older")) {
-      return "Amova est réservé aux personnes majeures (18 ans et plus).";
-    }
-    if (msg.includes("hetero_only_matching")) {
-      return "Amova est réservé aux rencontres homme ↔ femme.";
-    }
-    if (msg.includes("profile_gender_required")) {
-      return "Complétez votre genre dans votre profil pour continuer.";
-    }
-    return null;
+  if (msg.includes("vip_weekly_spotlight_already_claimed")) {
+    return "Spotlight VIP déjà utilisé cette semaine. Revenez dans quelques jours.";
+  }
+  if (msg.includes("vip_spotlight_requires_vip")) {
+    return "Le Spotlight hebdomadaire gratuit est réservé au plan VIP.";
+  }
+  if (msg.includes("gender_locked")) {
+    return "Le genre ne peut plus être modifié après validation.";
+  }
+  if (msg.includes("date_of_birth_locked")) {
+    return "La date de naissance ne peut plus être modifiée après validation.";
+  }
+  if (msg.includes("must_be_18_or_older")) {
+    return "Amova est réservé aux personnes majeures (18 ans et plus).";
+  }
+  if (msg.includes("hetero_only_matching")) {
+    return "Amova est réservé aux rencontres homme ↔ femme.";
+  }
+  if (msg.includes("profile_gender_required")) {
+    return "Complétez votre genre dans votre profil pour continuer.";
+  }
+  return null;
+}
+
+/** True when a backend/limit error should send the user to subscription plans. */
+export function isUpgradeLimitError(error: { message?: string } | null): boolean {
+  const msg = error?.message ?? "";
+  return (
+    msg.includes("daily_swipe_limit_reached") ||
+    msg.includes("daily_super_like_limit_reached") ||
+    msg.includes("daily_boost_limit_reached") ||
+    msg.includes("daily_message_limit_reached") ||
+    msg.includes("incognito_requires_vip") ||
+    msg.includes("vip_spotlight_requires_vip")
+  );
+}
+
+export const PLANS_PATH = "/premium";
+
+/** Toast copy when redirecting a free user to plans. */
+export function plansEnticement(feature?: string): string {
+  if (feature) {
+    return `${feature} : réservé aux abonnés. Choisissez un plan pour débloquer.`;
+  }
+  return "Fonctionnalité réservée aux abonnés. Choisissez un plan pour débloquer.";
 }

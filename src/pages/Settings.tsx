@@ -15,7 +15,7 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useBlockedUsers } from "@/hooks/useBlockedUsers";
-import { getLimitErrorMessage } from "@/lib/limits";
+import { getLimitErrorMessage, isUpgradeLimitError, PLANS_PATH, plansEnticement } from "@/lib/limits";
 import type { ProfileUpdate } from "@/lib/supabase-helpers";
 
 const Settings = () => {
@@ -124,7 +124,8 @@ const Settings = () => {
   const toggleIncognito = async (checked: boolean) => {
     if (!user) return;
     if (checked && !limits.incognitoMode) {
-      toast.error("Le mode incognito est réservé au plan VIP.");
+      toast.info(plansEnticement("Mode incognito (VIP)"));
+      navigate(PLANS_PATH);
       return;
     }
     setSettings((s) => ({ ...s, incognito_mode: checked }));
@@ -136,6 +137,7 @@ const Settings = () => {
       const limitMsg = getLimitErrorMessage(error);
       toast.error(limitMsg || "Impossible d'activer le mode incognito");
       setSettings((s) => ({ ...s, incognito_mode: !checked }));
+      if (isUpgradeLimitError(error)) navigate(PLANS_PATH);
       return;
     }
     toast.success(checked ? "Mode incognito activé" : "Mode incognito désactivé");

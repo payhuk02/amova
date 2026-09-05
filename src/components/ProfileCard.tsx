@@ -28,6 +28,8 @@ interface ProfileCardProps {
   onLike?: () => void;
   onMessage?: () => void;
   onViewProfile?: () => void;
+  /** When photo is locked (free plan), e.g. open subscription plans. */
+  onUnlockPhoto?: () => void;
   onReport?: () => void;
   className?: string;
 }
@@ -40,6 +42,7 @@ export default function ProfileCard({
   onLike,
   onMessage,
   onViewProfile,
+  onUnlockPhoto,
   onReport,
   className,
 }: ProfileCardProps) {
@@ -56,7 +59,25 @@ export default function ProfileCard({
       )}
     >
       {/* Photo — fixed ratio for equal cards */}
-      <div className="aspect-[4/3] bg-secondary/30 relative shrink-0">
+      <div
+        className={cn(
+          "aspect-[4/3] bg-secondary/30 relative shrink-0",
+          shouldBlur && onUnlockPhoto && "cursor-pointer",
+        )}
+        onClick={shouldBlur && onUnlockPhoto ? onUnlockPhoto : undefined}
+        role={shouldBlur && onUnlockPhoto ? "button" : undefined}
+        tabIndex={shouldBlur && onUnlockPhoto ? 0 : undefined}
+        onKeyDown={
+          shouldBlur && onUnlockPhoto
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onUnlockPhoto();
+                }
+              }
+            : undefined
+        }
+      >
         {profile.avatar_url ? (
           <BlurredPhoto
             src={profile.avatar_url}

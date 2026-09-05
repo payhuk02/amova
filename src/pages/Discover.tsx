@@ -18,7 +18,7 @@ import { TrustBadge, OnlineStatus, InterestTag } from "@/components/TrustBadge";
 import type { ProfileRow } from "@/types/profile";
 import { useCheckAndAwardBadges } from "@/hooks/useBadges";
 import BadgesDisplay from "@/components/BadgesDisplay";
-import { getLimitErrorMessage } from "@/lib/limits";
+import { getLimitErrorMessage, isUpgradeLimitError, PLANS_PATH, plansEnticement } from "@/lib/limits";
 import type { LikeInsert, PassInsert } from "@/lib/supabase-helpers";
 import { useSubscription } from "@/hooks/useSubscription";
 import { sortDiscoverProfiles } from "@/lib/discover-sort";
@@ -198,6 +198,7 @@ const Discover = () => {
           const limitMsg = getLimitErrorMessage(error);
           if (limitMsg) {
             toast.error(limitMsg);
+            if (isUpgradeLimitError(error)) navigate(PLANS_PATH);
           } else {
             toast.error("Impossible d'envoyer ce like");
           }
@@ -327,8 +328,8 @@ const Discover = () => {
             availableInterests={availableInterests}
             canUseAdvancedFilters={canUseAdvancedFilters}
             onPremiumRequired={() => {
-              toast.error("Les filtres avancés sont réservés aux membres Plus et plus.");
-              navigate("/premium");
+              toast.info(plansEnticement("Filtres avancés"));
+              navigate(PLANS_PATH);
             }}
           />
         )}
@@ -385,6 +386,14 @@ const Discover = () => {
                       blurred={blurPhotos}
                       className="w-full h-full"
                       draggable={false}
+                      onClick={
+                        blurPhotos
+                          ? () => {
+                              toast.info(plansEnticement("Photos nettes"));
+                              navigate(PLANS_PATH);
+                            }
+                          : undefined
+                      }
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">

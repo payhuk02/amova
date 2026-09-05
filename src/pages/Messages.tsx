@@ -36,7 +36,7 @@ import { toast } from "sonner";
 import { isOnline } from "@/hooks/useOnlineStatus";
 import type { MessageInsert } from "@/lib/supabase-helpers";
 import { getErrorMessage } from "@/lib/supabase-helpers";
-import { getLimitErrorMessage } from "@/lib/limits";
+import { getLimitErrorMessage, isUpgradeLimitError, PLANS_PATH } from "@/lib/limits";
 
 interface Match {
   user_id: string;
@@ -395,12 +395,10 @@ const Messages = () => {
   const handleMessagingError = (error: unknown) => {
     const limitMsg = getLimitErrorMessage(error as { message?: string });
     if (limitMsg) {
-      toast.error(limitMsg, {
-        action: {
-          label: "Plus",
-          onClick: () => navigate("/premium"),
-        },
-      });
+      toast.error(limitMsg);
+      if (isUpgradeLimitError(error as { message?: string })) {
+        navigate(PLANS_PATH);
+      }
       return;
     }
     const message = getErrorMessage(error);

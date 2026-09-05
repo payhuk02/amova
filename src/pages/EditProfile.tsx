@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
-import { getLimitErrorMessage } from "@/lib/limits";
+import { getLimitErrorMessage, PLANS_PATH, plansEnticement } from "@/lib/limits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -168,7 +168,8 @@ const EditProfile = () => {
   const handleSave = async () => {
     if (!user) return;
     if (form.incognito_mode && !limits.incognitoMode) {
-      toast.error("Le mode incognito est réservé au plan VIP.");
+      toast.info(plansEnticement("Mode incognito (VIP)"));
+      navigate(PLANS_PATH);
       return;
     }
 
@@ -529,8 +530,8 @@ const EditProfile = () => {
               checked={form.incognito_mode}
               onCheckedChange={(checked) => {
                 if (checked && !limits.incognitoMode) {
-                  toast.error("Le mode incognito est réservé au plan VIP.");
-                  navigate("/premium");
+                  toast.info(plansEnticement("Mode incognito (VIP)"));
+                  navigate(PLANS_PATH);
                   return;
                 }
                 setForm((f) => ({ ...f, incognito_mode: checked }));

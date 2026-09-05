@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getLimitErrorMessage } from "@/lib/limits";
+import { getLimitErrorMessage, isUpgradeLimitError, plansEnticement } from "@/lib/limits";
 
 describe("getLimitErrorMessage", () => {
   it("returns swipe limit message", () => {
@@ -25,5 +25,20 @@ describe("getLimitErrorMessage", () => {
   it("returns null for unknown errors", () => {
     expect(getLimitErrorMessage({ message: "other error" })).toBeNull();
     expect(getLimitErrorMessage(null)).toBeNull();
+  });
+});
+
+describe("isUpgradeLimitError", () => {
+  it("detects plan upgrade limits", () => {
+    expect(isUpgradeLimitError({ message: "daily_swipe_limit_reached" })).toBe(true);
+    expect(isUpgradeLimitError({ message: "daily_message_limit_reached" })).toBe(true);
+    expect(isUpgradeLimitError({ message: "incognito_requires_vip" })).toBe(true);
+    expect(isUpgradeLimitError({ message: "other error" })).toBe(false);
+  });
+});
+
+describe("plansEnticement", () => {
+  it("mentions the feature when provided", () => {
+    expect(plansEnticement("Filtres avancés")).toContain("Filtres avancés");
   });
 });
