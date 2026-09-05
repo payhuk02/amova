@@ -38,7 +38,6 @@ const LikedMe = () => {
   const canSeeWhoLiked = limits.canSeeWhoLiked;
   const [likers, setLikers] = useState<LikerProfile[]>([]);
   const [likedBackIds, setLikedBackIds] = useState<Set<string>>(new Set());
-  const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [revealCheckoutOpen, setRevealCheckoutOpen] = useState(false);
 
@@ -74,7 +73,6 @@ const LikedMe = () => {
       }
 
       setLikedBackIds(likedBack);
-      setMatchedIds(new Set(likedBack));
 
       setLikers(incomingLikers as LikerProfile[]);
       setLoading(false);
@@ -92,7 +90,6 @@ const LikedMe = () => {
 
       if (!error) {
         setLikedBackIds((prev) => new Set(prev).add(toUserId));
-        setMatchedIds((prev) => new Set(prev).add(toUserId));
         toast.success("C'est un match !");
         return;
       }
