@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getErrorMessage } from "@/lib/supabase-helpers";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,6 +8,14 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
+
+/** Safe in-app return path after login (blocks open redirects). */
+function safeReturnPath(from: unknown): string {
+  if (typeof from !== "string") return "/dashboard";
+  if (!from.startsWith("/") || from.startsWith("//")) return "/dashboard";
+  if (from.startsWith("/auth")) return "/dashboard";
+  return from;
+}
 
 const AuthPage = () => {
   const { user, loading: authLoading } = useAuth();
@@ -20,12 +28,14 @@ const AuthPage = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [confirmAdult, setConfirmAdult] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = safeReturnPath((location.state as { from?: string } | null)?.from);
 
   useEffect(() => {
     if (!authLoading && user) {
-      navigate("/dashboard", { replace: true });
+      navigate(returnTo, { replace: true });
     }
-  }, [authLoading, user, navigate]);
+  }, [authLoading, user, navigate, returnTo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +63,7 @@ const AuthPage = () => {
         if (error) throw error;
         toast.success("Connexion réussie");
         trackEvent("Login");
-        navigate("/dashboard");
+        navigate(returnTo, { replace: true });
       } else {
         const { data, error } = await supabase.auth.signUp({
           email,

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import {
   absoluteUrl,
   DEFAULT_DESCRIPTION,
+  DEFAULT_OG_IMAGE,
   DEFAULT_TITLE,
   pageTitle,
   SITE_NAME,
@@ -48,7 +49,7 @@ export default function Seo({
   title,
   description = DEFAULT_DESCRIPTION,
   path = "/",
-  image = `${SITE_URL}/logo.png`,
+  image = DEFAULT_OG_IMAGE,
   noIndex = false,
   type = "website",
   jsonLd,
@@ -69,6 +70,9 @@ export default function Seo({
     upsertMeta("property", "og:description", description);
     upsertMeta("property", "og:url", url);
     upsertMeta("property", "og:image", image);
+    upsertMeta("property", "og:image:width", "1200");
+    upsertMeta("property", "og:image:height", "630");
+    upsertMeta("property", "og:image:alt", fullTitle);
 
     upsertMeta("name", "twitter:card", "summary_large_image");
     upsertMeta("name", "twitter:title", fullTitle);

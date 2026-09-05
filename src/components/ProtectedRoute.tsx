@@ -29,7 +29,13 @@ const ProtectedRoute = ({ children, requireProfile = true }: ProtectedRouteProps
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace state={{ from: location.pathname }} />;
+    return (
+      <Navigate
+        to="/auth"
+        replace
+        state={{ from: `${location.pathname}${location.search}` }}
+      />
+    );
   }
 
   // Fail closed: never allow app access if completeness cannot be verified
