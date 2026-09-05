@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
+import { SITE_URL } from "@/lib/seo";
 
 const AuthPage = () => {
   const { user, loading: authLoading } = useAuth();
@@ -20,6 +21,20 @@ const AuthPage = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [confirmAdult, setConfirmAdult] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get("error_description") || params.get("error");
+    if (oauthError) {
+      const readable = decodeURIComponent(oauthError.replace(/\+/g, " "));
+      toast.error(
+        readable.includes("exchange external code")
+          ? "Connexion Google échouée. Réessayez, ou vérifiez la config Google dans Supabase."
+          : readable,
+      );
+      window.history.replaceState({}, "", "/auth");
+    }
+  }, []);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -214,9 +229,9 @@ const AuthPage = () => {
             const { error } = await supabase.auth.signInWithOAuth({
               provider: "google",
               options: {
-                redirectTo: `${window.location.origin}/auth`,
+                // Always use production canonical origin (avoid amova.space vs www mismatch)
+                redirectTo: `${SITE_URL}/auth`,
                 queryParams: {
-                  access_type: "offline",
                   prompt: "select_account",
                 },
               },
