@@ -1,7 +1,7 @@
 {
   "name": "Amova — Rencontres sincères",
   "short_name": "Amova",
-  "description": "Plateforme de rencontres premium en Afrique : profils vérifiés, matching H↔F, Mobile Money.",
+  "description": "Rencontres homme ↔ femme en Afrique : vérification manuelle, matching H↔F, Mobile Money.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#100A14",

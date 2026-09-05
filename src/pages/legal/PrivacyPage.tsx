@@ -5,7 +5,7 @@ const PrivacyPage = () => (
     <p>
       Amova (« nous ») s&apos;engage à protéger vos données personnelles. Cette politique décrit
       comment nous collectons, utilisons et sécurisons vos informations dans le cadre de notre
-      service de rencontres premium.
+      service de rencontres homme ↔ femme.
     </p>
     <h2 className="font-display text-xl text-foreground mt-8 mb-3">Données collectées</h2>
     <ul className="list-disc pl-5 space-y-2">

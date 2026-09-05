@@ -24,16 +24,11 @@ export default function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <div
-      className={cn(
-        "glass-card rounded-2xl p-8 sm:p-12 text-center border border-border/40",
-        className,
-      )}
-    >
-      <div className="w-16 h-16 rounded-2xl bg-secondary/50 border border-border/40 flex items-center justify-center mx-auto mb-5">
-        <Icon className="w-7 h-7 text-champagne" strokeWidth={1.5} />
+    <div className={cn("rounded-2xl border border-border/40 bg-card/50 p-8 sm:p-10 text-center", className)}>
+      <div className="w-12 h-12 rounded-xl bg-secondary/60 flex items-center justify-center mx-auto mb-4">
+        <Icon className="w-6 h-6 text-muted-foreground" strokeWidth={1.5} />
       </div>
-      <h3 className="font-display text-xl sm:text-2xl font-light mb-2">{title}</h3>
+      <h3 className="font-display text-lg sm:text-xl font-medium mb-2">{title}</h3>
       <p className="text-muted-foreground text-sm max-w-sm mx-auto leading-relaxed">{description}</p>
       {action && (
         <Button

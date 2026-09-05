@@ -15,7 +15,7 @@ export default {
     extend: {
       fontFamily: {
         display: ['"Fraunces"', 'Georgia', 'serif'],
-        body: ['"Inter"', 'system-ui', 'sans-serif'],
+        body: ['"Source Sans 3"', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -90,8 +90,8 @@ export default {
         xl: "calc(var(--radius) + 4px)",
       },
       boxShadow: {
-        premium: "0 4px 24px hsla(220, 13%, 4%, 0.45), inset 0 1px 0 hsla(40, 20%, 94%, 0.04)",
-        "premium-sm": "0 2px 12px hsla(220, 13%, 4%, 0.3)",
+        premium: "0 2px 16px hsla(285, 28%, 4%, 0.35)",
+        "premium-sm": "0 1px 8px hsla(285, 28%, 4%, 0.25)",
       },
       keyframes: {
         "accordion-down": {

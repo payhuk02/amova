@@ -148,7 +148,7 @@ const ProfilePage = () => {
       const { data: rev } = await supabase.rpc("has_liked_me", { p_user_id: userId });
       if (rev) {
         setIsMatch(true);
-        toast.success("C'est un match ! 🎉");
+        toast.success("C'est un match !");
       }
     }
   };

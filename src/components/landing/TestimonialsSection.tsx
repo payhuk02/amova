@@ -1,51 +1,36 @@
 import ScrollReveal from "@/components/ScrollReveal";
 
-const testimonials = [
+const points = [
   {
-    quote: "J'ai trouvé quelqu'un qui comprend le besoin de discrétion. Amova a changé ma vision des rencontres.",
-    name: "Camille R.",
-    age: 34,
-    initials: "CR",
+    title: "Matching H↔F",
+    text: "Découverte strictement homme ↔ femme.",
   },
   {
-    quote: "La qualité des profils est incomparable. On sent que chaque membre est là pour les bonnes raisons.",
-    name: "Marc D.",
-    age: 41,
-    initials: "MD",
+    title: "Vérification manuelle",
+    text: "Identité validée par un administrateur, pas par un bot.",
   },
   {
-    quote: "Enfin un espace où je peux être moi-même sans craindre le jugement. L'anonymat ici est réel.",
-    name: "Sophie L.",
-    age: 29,
-    initials: "SL",
+    title: "Mobile Money",
+    text: "Orange Money, MTN et Wave pour les abonnements.",
   },
 ];
 
+/** Trust strip — no fabricated testimonials */
 const TestimonialsSection = () => (
-  <section id="testimonials" className="py-24 md:py-32 bg-secondary/20">
+  <section id="testimonials" className="py-20 md:py-24 bg-secondary/20 border-y border-border/30">
     <div className="container">
-      <ScrollReveal className="text-center mb-16">
-        <p className="text-copper-light text-sm uppercase tracking-[0.25em] mb-4">Ils nous font confiance</p>
-        <h2 className="font-display text-4xl md:text-5xl font-light">
-          Des rencontres <span className="text-gradient-copper italic">inoubliables</span>
+      <ScrollReveal className="text-center mb-12">
+        <p className="text-champagne-light text-sm uppercase tracking-[0.2em] mb-3">Engagements</p>
+        <h2 className="font-display text-3xl md:text-4xl font-light text-foreground">
+          Ce que vous pouvez attendre
         </h2>
       </ScrollReveal>
-      <div className="grid md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
-        {testimonials.map((t, i) => (
-          <ScrollReveal key={t.name} delay={i * 100}>
-            <div className="glass-card rounded-xl p-6 md:p-8 flex flex-col h-full">
-              <p className="text-foreground/80 italic leading-relaxed flex-1 font-display text-lg">
-                "{t.quote}"
-              </p>
-              <div className="mt-6 pt-6 border-t border-border/50 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-copper text-sm font-medium">
-                  {t.initials}
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">{t.name}</p>
-                  <p className="text-xs text-muted-foreground">{t.age} ans · Membre vérifié</p>
-                </div>
-              </div>
+      <div className="grid md:grid-cols-3 gap-8 md:gap-10 max-w-4xl mx-auto">
+        {points.map((p, i) => (
+          <ScrollReveal key={p.title} delay={i * 60}>
+            <div className="text-center md:text-left">
+              <h3 className="font-display text-lg font-medium mb-2 text-champagne-light">{p.title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{p.text}</p>
             </div>
           </ScrollReveal>
         ))}

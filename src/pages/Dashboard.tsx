@@ -181,9 +181,9 @@ const Dashboard = () => {
             <div className="mb-5 sm:mb-8 flex flex-col gap-3 sm:gap-4">
               <div>
                 <h2 className="font-display text-xl sm:text-2xl md:text-3xl lg:text-4xl font-light mb-1 sm:mb-2">
-                  Bonjour, <span className="text-gradient-copper italic">{profile?.display_name}</span>
+                  Bonjour, <span className="text-foreground">{profile?.display_name}</span>
                 </h2>
-                <p className="text-muted-foreground text-xs sm:text-sm">Découvrez les profils qui correspondent à vos envies.</p>
+                <p className="text-muted-foreground text-xs sm:text-sm">Profils correspondant à votre recherche.</p>
               </div>
               <div className="flex gap-2 overflow-x-auto no-scrollbar snap-x-mandatory">
                 <Button variant="default" size="sm" onClick={() => navigate("/discover")} className="shrink-0 snap-start touch-manipulation text-xs sm:text-sm">
@@ -198,7 +198,7 @@ const Dashboard = () => {
 
           {showFilters && canFilter && (
             <ScrollReveal>
-              <div className="glass-card rounded-xl p-3 sm:p-5 mb-5 sm:mb-8 space-y-3 sm:space-y-0 sm:flex sm:flex-row sm:gap-4">
+              <div className="rounded-xl border border-border/50 bg-card p-3 sm:p-5 mb-5 sm:mb-8 space-y-3 sm:space-y-0 sm:flex sm:flex-row sm:gap-4">
                 <div className="flex-1">
                   <label className="text-xs text-muted-foreground mb-1 block">Ville</label>
                   <div className="relative">
@@ -228,7 +228,7 @@ const Dashboard = () => {
               <EmptyState
                 icon={Heart}
                 title="Pas encore de profils"
-                description="Nous sélectionnons les premiers membres de votre région. Revenez très bientôt ou élargissez vos filtres."
+                description="Aucun profil pour le moment. Élargissez la ville ou la tranche d'âge, ou revenez plus tard."
                 action={{
                   label: "Mode swipe",
                   onClick: () => navigate("/discover"),

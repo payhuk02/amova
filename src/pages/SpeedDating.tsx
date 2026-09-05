@@ -67,7 +67,7 @@ const SpeedDating = () => {
           setPartner(profile as PartnerProfile);
           setStatus("active");
           setTimeLeft(SESSION_DURATION);
-          toast.success("Partenaire trouvé ! 🎉");
+          toast.success("Partenaire trouvé !");
         }
       }
     }, 2000);
@@ -137,7 +137,7 @@ const SpeedDating = () => {
       if (profile) {
         setPartner(profile as PartnerProfile);
         setStatus("active");
-        toast.success("Partenaire trouvé ! 🎉");
+        toast.success("Partenaire trouvé !");
       }
     }
   };
@@ -171,7 +171,7 @@ const SpeedDating = () => {
       toast.error(getLimitErrorMessage(error) || "Impossible d'envoyer ce like");
       return;
     }
-    toast.success("Like envoyé ! Si c'est réciproque, vous aurez un match 💕");
+    toast.success("Like envoyé. Si c'est réciproque, vous aurez un match.");
   };
 
   const formatTime = (s: number) => {

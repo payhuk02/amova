@@ -41,8 +41,7 @@ const ScrollReveal = forwardRef<HTMLDivElement, ScrollRevealProps>(
         style={{
           opacity: isVisible ? 1 : 0,
           transform: isVisible ? "translate(0)" : transforms[direction],
-          filter: isVisible ? "blur(0)" : "blur(4px)",
-          transition: `all 700ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
+          transition: `opacity 500ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform 500ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
         }}
       >
         {children}

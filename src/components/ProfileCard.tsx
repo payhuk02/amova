@@ -50,7 +50,7 @@ export default function ProfileCard({
   return (
     <article
       className={cn(
-        "glass-card rounded-2xl overflow-hidden group hover:border-champagne/20 transition-all duration-300",
+        "rounded-2xl overflow-hidden border border-border/50 bg-card group hover:border-border transition-colors duration-200",
         "flex flex-col h-full min-h-[420px]",
         className,
       )}

@@ -94,7 +94,7 @@ const LikedMe = () => {
       if (!error) {
         setLikedBackIds((prev) => new Set(prev).add(toUserId));
         setMatchedIds((prev) => new Set(prev).add(toUserId));
-        toast.success("C'est un match ! 🎉");
+        toast.success("C'est un match !");
         return;
       }
 
@@ -155,7 +155,7 @@ const LikedMe = () => {
             <EmptyState
               icon={Heart}
               title="Pas encore de likes"
-              description="Complétez votre profil et restez actif pour attirer des connexions authentiques."
+              description="Complétez votre profil et restez actif pour apparaître dans les suggestions."
               action={{
                 label: "Découvrir des profils",
                 onClick: () => navigate("/discover"),
@@ -309,8 +309,8 @@ const LikedMe = () => {
 
                       {/* Super like badge */}
                       {liker.is_super && (
-                        <div className="shrink-0 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gold-soft/15 text-[8px] sm:text-[10px] font-medium text-gold-soft self-start">
-                          ⭐ <span className="hidden sm:inline">Super Like</span>
+                        <div className="shrink-0 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md bg-champagne/10 text-[8px] sm:text-[10px] font-medium text-champagne self-start">
+                          Super Like
                         </div>
                       )}
                     </div>

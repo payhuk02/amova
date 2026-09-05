@@ -99,7 +99,7 @@ const AuthPage = () => {
         <p className="text-muted-foreground text-sm sm:text-base mb-6 sm:mb-8">
           {isLogin
             ? "Accédez à votre espace personnel sécurisé."
-            : "Rejoignez une plateforme premium, vérifiée et sécurisée."}
+            : "Matching homme ↔ femme. Vérification d'identité et Mobile Money."}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">

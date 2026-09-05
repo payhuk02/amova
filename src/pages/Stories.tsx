@@ -178,7 +178,7 @@ const Stories = () => {
     // Send like as notification via secured RPC
     await supabase.rpc("notify_story_like", { p_story_id: story.id });
     
-    toast.success("❤️");
+    toast.success("Like envoyé");
   };
 
   const viewStory = (group: StoryGroup, index = 0) => {

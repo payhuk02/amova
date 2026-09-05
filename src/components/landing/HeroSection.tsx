@@ -14,8 +14,8 @@ const HeroSection = () => (
     </div>
     <div className="container relative z-10 text-center py-20 md:py-32 px-6">
       <div className="reveal-up max-w-3xl mx-auto">
-        <p className="text-champagne-light font-body text-xs sm:text-sm uppercase tracking-[0.25em] mb-6">
-          Rencontres vérifiées & sécurisées
+        <p className="text-champagne-light font-body text-xs sm:text-sm uppercase tracking-[0.2em] mb-6">
+          Amova
         </p>
         <h1 className="font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-light leading-[0.95] mb-8">
           Des rencontres
@@ -23,29 +23,21 @@ const HeroSection = () => (
           <span className="text-gradient-brand font-medium italic">qui comptent</span>
         </h1>
         <p className="text-muted-foreground text-base sm:text-lg md:text-xl max-w-xl mx-auto mb-10 md:mb-12 leading-relaxed">
-          Une plateforme sélective où des profils authentiques se rencontrent en toute confiance. Discrétion, vérification et modération active.
+          Matching homme ↔ femme, vérification d&apos;identité manuelle, paiement Mobile Money.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button variant="hero" size="xl" className="w-full sm:w-auto glow-champagne" asChild>
+          <Button variant="hero" size="xl" className="w-full sm:w-auto" asChild>
             <Link to="/auth">Créer mon compte</Link>
           </Button>
-          <Button variant="hero-outline" size="xl" className="w-full sm:w-auto border-champagne/30 hover:border-champagne/50 hover:bg-champagne/10" asChild>
-            <a href="#how">En savoir plus</a>
+          <Button
+            variant="hero-outline"
+            size="xl"
+            className="w-full sm:w-auto border-champagne/30 hover:border-champagne/50 hover:bg-champagne/10"
+            asChild
+          >
+            <a href="#how">Comment ça marche</a>
           </Button>
         </div>
-      </div>
-
-      <div className="reveal-fade mt-16 md:mt-24 grid grid-cols-3 gap-4 max-w-lg mx-auto">
-        {[
-          { value: "100%", label: "Profils vérifiés" },
-          { value: "24h", label: "Modération active" },
-          { value: "Sécurisé", label: "Paiement protégé" },
-        ].map((stat) => (
-          <div key={stat.label} className="text-center">
-            <p className="font-display text-2xl sm:text-3xl text-gradient-brand font-semibold tabular-nums">{stat.value}</p>
-            <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
-          </div>
-        ))}
       </div>
     </div>
   </section>

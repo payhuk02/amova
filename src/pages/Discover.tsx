@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Heart, X, User, MapPin, MessageCircle, Sparkles, SlidersHorizontal, Shield, Star, BarChart3 } from "lucide-react";
+import { Heart, X, User, MapPin, MessageCircle, Users, SlidersHorizontal, Shield, Star, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import AppShell from "@/components/AppShell";
 import BlockReportDialog from "@/components/BlockReportDialog";
@@ -188,11 +188,11 @@ const Discover = () => {
               name: currentProfile.display_name || "quelqu'un",
               userId: currentProfile.user_id,
             });
-            toast.success("C'est un match ! 🎉");
+            toast.success("C'est un match !");
             setTimeout(() => setMatchTarget(null), 2500);
             checkBadges();
           } else if (isSuper) {
-            toast.success("Super Like envoyé ! ⭐");
+            toast.success("Super Like envoyé");
           }
         } else {
           const limitMsg = getLimitErrorMessage(error);
@@ -335,9 +335,9 @@ const Discover = () => {
 
         {!currentProfile ? (
           <EmptyState
-            icon={Sparkles}
+            icon={Users}
             title="Plus de profils pour le moment"
-            description="Revenez plus tard pour découvrir de nouvelles personnes sélectionnées pour vous."
+            description="Revenez plus tard ou assouplissez vos filtres (ville, âge)."
             action={{
               label: "Retour au tableau de bord",
               onClick: () => navigate("/dashboard"),

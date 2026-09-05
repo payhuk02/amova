@@ -1,7 +1,7 @@
 # Amova
 
-> Amova est une plateforme de rencontres premium en Afrique (Côte d'Ivoire, Sénégal et région).
-> Matching hétérosexuel strict (homme ↔ femme), profils 18+, vérification d'identité, paiements Mobile Money.
+> Amova est une plateforme de rencontres homme ↔ femme en Afrique (Côte d'Ivoire, Sénégal et région).
+> Matching hétérosexuel strict, profils 18+, vérification d'identité manuelle, paiements Mobile Money.
 
 Site: https://www.amova.space
 Langue: Français

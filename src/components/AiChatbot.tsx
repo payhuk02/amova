@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Bot, MessageCircle, Send, X, Sparkles } from "lucide-react";
+import { HelpCircle, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,16 +14,24 @@ interface Msg {
 }
 
 const GUEST_SUGGESTIONS = [
-  "Comment s'inscrire sur Amova ?",
-  "Quels sont les tarifs Plus / Premium ?",
-  "Comment fonctionne la vérification ?",
+  "Comment s'inscrire ?",
+  "Quels sont les tarifs ?",
+  "Comment se faire vérifier ?",
 ];
 
 const MEMBER_SUGGESTIONS = [
-  "Comment améliorer mon profil ?",
-  "Que dire en premier message ?",
-  "Différence Gratuit et Plus ?",
+  "Améliorer mon profil",
+  "Premier message",
+  "Gratuit vs Plus",
 ];
+
+const MARKETING_PATHS = new Set([
+  "/",
+  "/confidentialite",
+  "/conditions",
+  "/faq",
+  "/contact",
+]);
 
 function parseSseChunk(buffer: string): { events: string[]; rest: string } {
   const events: string[] = [];
@@ -50,7 +58,7 @@ export default function AiChatbot() {
     {
       role: "assistant",
       content:
-        "Bonjour ! Je suis l'assistant Amova. Posez-moi vos questions sur l'inscription, les abonnements, la sécurité ou les conseils de rencontres.",
+        "Bonjour. Posez vos questions sur l'inscription, les abonnements ou la vérification d'identité.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -59,8 +67,10 @@ export default function AiChatbot() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const hide =
+    MARKETING_PATHS.has(location.pathname) ||
     location.pathname.startsWith("/admin") ||
     location.pathname === "/coach" ||
+    location.pathname === "/auth" ||
     location.pathname.startsWith("/premium/callback");
 
   useEffect(() => {
@@ -122,7 +132,7 @@ export default function AiChatbot() {
 
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}));
-        toast.error(err.error || "Assistant indisponible pour le moment");
+        toast.error(err.error || "Aide indisponible pour le moment");
         setLoading(false);
         return;
       }
@@ -172,47 +182,39 @@ export default function AiChatbot() {
           if (last?.role === "assistant" && !last.content) {
             copy[copy.length - 1] = {
               role: "assistant",
-              content:
-                "Je n'ai pas pu générer de réponse. Consultez la FAQ ou contactez le support.",
+              content: "Consultez la FAQ ou la page Contact pour une réponse détaillée.",
             };
           }
           return copy;
         });
       }
     } catch {
-      toast.error("Erreur réseau avec l'assistant");
+      toast.error("Erreur réseau");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed bottom-20 right-3 sm:bottom-6 sm:right-6 z-[90] flex flex-col items-end gap-3 pointer-events-none">
+    <div className="fixed bottom-20 right-3 sm:bottom-6 sm:right-6 z-[90] flex flex-col items-end gap-2 pointer-events-none">
       {open && (
         <div
           className={cn(
-            "pointer-events-auto w-[min(100vw-1.5rem,380px)] h-[min(70vh,520px)]",
-            "rounded-2xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl",
-            "flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200",
+            "pointer-events-auto w-[min(100vw-1.5rem,360px)] h-[min(65vh,480px)]",
+            "rounded-xl border border-border/50 bg-background shadow-premium",
+            "flex flex-col overflow-hidden",
           )}
         >
-          <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border/40 bg-secondary/30">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-9 h-9 rounded-full bg-champagne/15 flex items-center justify-center shrink-0">
-                <Bot className="w-4 h-4 text-champagne" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium truncate">Assistant Amova</p>
-                <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" /> IA · Support & conseils
-                </p>
-              </div>
+          <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border/40">
+            <div className="min-w-0">
+              <p className="text-sm font-medium">Aide Amova</p>
+              <p className="text-[11px] text-muted-foreground">Inscription, tarifs, vérification</p>
             </div>
             <button
               type="button"
               onClick={() => setOpen(false)}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-              aria-label="Fermer le chatbot"
+              aria-label="Fermer l'aide"
             >
               <X size={16} />
             </button>
@@ -226,10 +228,10 @@ export default function AiChatbot() {
               >
                 <div
                   className={cn(
-                    "max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed",
+                    "max-w-[85%] rounded-lg px-3 py-2 text-sm leading-relaxed",
                     m.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-br-md"
-                      : "bg-secondary/60 text-foreground rounded-bl-md",
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary/50 text-foreground",
                   )}
                 >
                   {m.content || (loading && i === messages.length - 1 ? "…" : "")}
@@ -243,7 +245,7 @@ export default function AiChatbot() {
                     key={s}
                     type="button"
                     onClick={() => void send(s)}
-                    className="text-[11px] px-2.5 py-1.5 rounded-full border border-border/50 bg-secondary/40 text-muted-foreground hover:text-foreground hover:border-champagne/40 transition-colors"
+                    className="text-[11px] px-2.5 py-1.5 rounded-md border border-border/50 bg-secondary/30 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {s}
                   </button>
@@ -271,7 +273,7 @@ export default function AiChatbot() {
             <Button
               type="submit"
               size="icon"
-              variant="hero"
+              variant="default"
               disabled={loading || !input.trim()}
               className="h-10 w-10 shrink-0"
               aria-label="Envoyer"
@@ -284,13 +286,13 @@ export default function AiChatbot() {
 
       <Button
         type="button"
-        variant="hero"
+        variant="secondary"
         size="lg"
         onClick={() => setOpen((v) => !v)}
-        className="pointer-events-auto h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-lg p-0"
-        aria-label={open ? "Fermer l'assistant" : "Ouvrir l'assistant Amova"}
+        className="pointer-events-auto h-11 w-11 rounded-xl border border-border/50 shadow-premium-sm p-0"
+        aria-label={open ? "Fermer l'aide" : "Ouvrir l'aide Amova"}
       >
-        {open ? <X size={22} /> : <MessageCircle size={22} />}
+        {open ? <X size={18} /> : <HelpCircle size={18} />}
       </Button>
     </div>
   );

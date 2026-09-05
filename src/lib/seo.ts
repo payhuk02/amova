@@ -3,7 +3,7 @@ export const SITE_URL = "https://www.amova.space";
 export const SITE_NAME = "Amova";
 export const DEFAULT_TITLE = "Amova — Rencontres sincères, histoires vraies";
 export const DEFAULT_DESCRIPTION =
-  "Amova, la plateforme de rencontres premium en Afrique : profils vérifiés, matching homme ↔ femme, photos sécurisées et paiements Mobile Money.";
+  "Amova : rencontres homme ↔ femme en Afrique, vérification d'identité manuelle et paiements Mobile Money.";
 
 export type SeoProps = {
   title?: string;
