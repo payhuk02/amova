@@ -93,6 +93,12 @@ const DatingCoach = () => {
         return;
       }
 
+      if (resp.status === 403) {
+        toast.info(plansEnticement("Coach dating"));
+        navigate(PLANS_PATH);
+        setIsLoading(false);
+        return;
+      }
       if (resp.status === 429) {
         toast.error("Trop de requêtes, réessayez dans un instant");
         setIsLoading(false);

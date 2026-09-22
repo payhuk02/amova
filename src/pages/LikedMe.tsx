@@ -12,7 +12,7 @@ import { isOnline, formatLastSeen } from "@/hooks/useOnlineStatus";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
-import { getLimitErrorMessage } from "@/lib/limits";
+import { getLimitErrorMessage, isUpgradeLimitError, PLANS_PATH } from "@/lib/limits";
 import PaymentCheckoutDialog from "@/components/PaymentCheckoutDialog";
 import { CONSUMABLE_PRICES } from "@/lib/plans";
 
@@ -97,8 +97,9 @@ const LikedMe = () => {
 
       const limitMsg = getLimitErrorMessage(error);
       toast.error(limitMsg || "Impossible d'envoyer ce like");
+      if (isUpgradeLimitError(error)) navigate(PLANS_PATH);
     },
-    [user]
+    [user, navigate]
   );
 
   if (loading) {

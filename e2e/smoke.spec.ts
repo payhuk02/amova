@@ -9,7 +9,7 @@ test.describe("Amova smoke tests", () => {
 
   test("auth page loads", async ({ page }) => {
     await page.goto("/auth", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: /Bon retour|Rejoignez-nous/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Connexion|Créer un compte/i })).toBeVisible();
     await expect(page.getByPlaceholder("votre@email.com")).toBeVisible();
     await expect(page.getByRole("button", { name: /Se connecter|Créer mon compte/i })).toBeVisible();
   });

@@ -28,6 +28,7 @@ const comparisonRows = [
   { label: "Messages / jour", free: "15", plus: "Illimités", premium: "Illimités", vip: "Illimités" },
   { label: "Photos nettes (défloutées)", free: false, plus: true, premium: true, vip: true },
   { label: "Galerie photos HD", free: false, plus: true, premium: true, vip: true },
+  { label: "Coach dating IA", free: false, plus: true, premium: true, vip: true },
   { label: "Voir qui vous aime", free: false, plus: true, premium: true, vip: true },
   { label: "Filtres avancés", free: false, plus: true, premium: true, vip: true },
   { label: "Boosts / jour", free: "—", plus: "—", premium: "1", vip: "3" },

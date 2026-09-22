@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,8 +15,9 @@ import {
   MapPin,
 } from "lucide-react";
 import AppShell from "@/components/AppShell";
+import BlurredPhoto from "@/components/BlurredPhoto";
 import { toast } from "sonner";
-import { getLimitErrorMessage } from "@/lib/limits";
+import { getLimitErrorMessage, isUpgradeLimitError, PLANS_PATH } from "@/lib/limits";
 
 const SESSION_DURATION = 180;
 
@@ -32,6 +34,8 @@ interface PartnerProfile {
 const SpeedDating = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { limits } = useSubscription();
+  const blurPhotos = !limits.canViewFullGallery;
   const [status, setStatus] = useState<"idle" | "waiting" | "active" | "ended">("idle");
   const [partner, setPartner] = useState<PartnerProfile | null>(null);
   const [timeLeft, setTimeLeft] = useState(SESSION_DURATION);
@@ -169,6 +173,7 @@ const SpeedDating = () => {
       .insert({ from_user_id: user.id, to_user_id: partner.user_id });
     if (error) {
       toast.error(getLimitErrorMessage(error) || "Impossible d'envoyer ce like");
+      if (isUpgradeLimitError(error)) navigate(PLANS_PATH);
       return;
     }
     toast.success("Like envoyé. Si c'est réciproque, vous aurez un match.");
@@ -192,8 +197,8 @@ const SpeedDating = () => {
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-accent/15 flex items-center justify-center mx-auto mb-4 sm:mb-6">
                 <Zap className="w-7 h-7 sm:w-9 sm:h-9 text-accent" strokeWidth={1.5} />
               </div>
-              <h2 className="font-display text-2xl sm:text-3xl font-light mb-2 sm:mb-3">
-                Speed <span className="text-gradient-copper italic">Dating</span>
+              <h2 className="font-display text-2xl sm:text-3xl font-medium mb-2 sm:mb-3">
+                Speed dating
               </h2>
               <p className="text-muted-foreground text-xs sm:text-sm mb-6 sm:mb-8 leading-relaxed">
                 Discutez pendant 3 minutes avec un inconnu. Si vous accrochez, likez-vous
@@ -231,9 +236,15 @@ const SpeedDating = () => {
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/15 flex items-center justify-center overflow-hidden">
                     {partner.avatar_url ? (
-                      <img src={partner.avatar_url} alt="" className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover" />
+                      <BlurredPhoto
+                        src={partner.avatar_url}
+                        blurred={blurPhotos}
+                        showLock={false}
+                        className="w-full h-full rounded-full"
+                        imgClassName="rounded-full"
+                      />
                     ) : (
-                      <User size={16} className="text-copper" />
+                      <User size={16} className="text-brand" />
                     )}
                   </div>
                   <div>
