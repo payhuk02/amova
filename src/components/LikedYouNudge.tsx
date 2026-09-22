@@ -4,6 +4,7 @@ import { Heart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PLANS_PATH } from "@/lib/limits";
+import { playSmsTone } from "@/lib/smsTone";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -109,6 +110,11 @@ export default function LikedYouNudge() {
       window.removeEventListener("touchmove", onTouchMove);
     };
   }, [user, currentPlan, planLoading, pathBlocked, location.pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    void playSmsTone();
+  }, [open]);
 
   const goToPlans = () => {
     setOpen(false);
