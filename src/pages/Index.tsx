@@ -4,6 +4,7 @@ import HeroSection from "@/components/landing/HeroSection";
 import Seo, { OrganizationJsonLd, WebsiteJsonLd } from "@/components/Seo";
 import { DEFAULT_DESCRIPTION } from "@/lib/seo";
 
+const TrustKycSection = lazy(() => import("@/components/landing/TrustKycSection"));
 const HowItWorksSection = lazy(() => import("@/components/landing/HowItWorksSection"));
 const FeaturesSection = lazy(() => import("@/components/landing/FeaturesSection"));
 const PricingSection = lazy(() => import("@/components/landing/PricingSection"));
@@ -23,6 +24,7 @@ const Index = () => {
       <Navbar />
       <HeroSection />
       <Suspense fallback={null}>
+        <TrustKycSection />
         <HowItWorksSection />
         <FeaturesSection />
         <PricingSection />

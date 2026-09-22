@@ -57,6 +57,16 @@
     <!-- Remplacez CONTENT par le code fourni dans Google Search Console (méthode balise meta) -->
     <!-- <meta name="google-site-verification" content="VOTRE_CODE_VERIFICATION" /> -->
 
+    <script>
+      (function () {
+        try {
+          if (localStorage.getItem("amova-theme") === "light") {
+            document.documentElement.classList.add("light");
+          }
+        } catch (_) {}
+      })();
+    </script>
+
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",

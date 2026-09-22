@@ -4,121 +4,129 @@
 
 @layer base {
   :root {
-    /* Amova — deep plum + magenta/violet (logo) */
-    --background: 285 28% 6%;
-    --foreground: 300 15% 94%;
+    /* Amova — Agence privée: plum profond + magenta retenu */
+    --background: 285 26% 7%;
+    --foreground: 40 12% 94%;
 
-    --card: 285 24% 10%;
-    --card-foreground: 300 15% 94%;
+    --card: 285 22% 11%;
+    --card-foreground: 40 12% 94%;
 
-    --popover: 285 22% 12%;
-    --popover-foreground: 300 15% 94%;
+    --popover: 285 20% 12%;
+    --popover-foreground: 40 12% 94%;
 
-    --primary: 330 85% 58%;
+    --primary: 330 72% 52%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 285 20% 14%;
-    --secondary-foreground: 285 12% 68%;
+    --secondary: 285 18% 14%;
+    --secondary-foreground: 285 10% 70%;
 
-    --muted: 285 18% 16%;
-    --muted-foreground: 285 10% 52%;
+    --muted: 285 16% 16%;
+    --muted-foreground: 285 8% 58%;
 
-    --accent: 285 62% 52%;
+    --accent: 285 45% 42%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 8 62% 65%;
-    --destructive-foreground: 300 15% 98%;
+    --destructive: 8 55% 58%;
+    --destructive-foreground: 40 12% 98%;
 
-    --success: 152 60% 62%;
-    --success-foreground: 285 28% 6%;
+    --success: 152 45% 48%;
+    --success-foreground: 0 0% 100%;
 
-    --border: 285 18% 18%;
-    --input: 285 18% 18%;
-    --ring: 330 85% 58%;
+    --border: 285 14% 20%;
+    --input: 285 14% 20%;
+    --ring: 330 72% 52%;
 
-    --radius: 0.75rem;
+    --radius: 0.625rem;
 
-    --sidebar-background: 285 26% 8%;
-    --sidebar-foreground: 285 12% 68%;
-    --sidebar-primary: 330 85% 58%;
+    --sidebar-background: 285 24% 8%;
+    --sidebar-foreground: 285 10% 68%;
+    --sidebar-primary: 330 72% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 285 20% 14%;
-    --sidebar-accent-foreground: 300 15% 94%;
-    --sidebar-border: 285 18% 18%;
-    --sidebar-ring: 330 85% 58%;
+    --sidebar-accent: 285 18% 14%;
+    --sidebar-accent-foreground: 40 12% 94%;
+    --sidebar-border: 285 14% 18%;
+    --sidebar-ring: 330 72% 52%;
 
-    /* Brand tokens — logo gradient */
-    --champagne: 330 85% 58%;
-    --champagne-light: 340 90% 72%;
-    --champagne-dark: 285 65% 45%;
-    --trust: 285 62% 52%;
-    --trust-muted: 285 30% 42%;
-    --elevated: 285 22% 12%;
-    --magenta: 330 85% 58%;
-    --violet: 285 65% 45%;
+    /* Brand — magenta retenu, violet secondaire discret */
+    --brand: 330 72% 52%;
+    --brand-light: 338 70% 68%;
+    --brand-dark: 285 42% 38%;
+    --trust: 285 45% 42%;
+    --trust-muted: 285 22% 40%;
+    --elevated: 285 20% 12%;
+    --magenta: 330 72% 52%;
+    --violet: 285 42% 38%;
+    /* Plum stays dark in both themes (hero ink) */
     --plum: 285 28% 6%;
 
-    /* Legacy aliases (backward compat) */
-    --copper: var(--champagne);
-    --copper-light: var(--champagne-light);
-    --gold-soft: var(--champagne-light);
+    /* Legacy aliases */
+    --champagne: var(--brand);
+    --champagne-light: var(--brand-light);
+    --champagne-dark: var(--brand-dark);
+    --copper: var(--brand);
+    --copper-light: var(--brand-light);
+    --gold-soft: var(--brand-light);
     --rose-warm: var(--trust);
   }
 
   .light {
-    --background: 300 20% 97%;
-    --foreground: 285 30% 12%;
+    /* Ivoire chaud discret — rassurant, pas cream IA saturé */
+    --background: 36 28% 97%;
+    --foreground: 285 28% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 285 30% 12%;
+    --card-foreground: 285 28% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 285 30% 12%;
+    --popover-foreground: 285 28% 14%;
 
-    --primary: 330 75% 48%;
+    --primary: 330 68% 44%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 285 18% 93%;
-    --secondary-foreground: 285 20% 30%;
+    --secondary: 36 18% 94%;
+    --secondary-foreground: 285 18% 28%;
 
-    --muted: 285 15% 92%;
-    --muted-foreground: 285 12% 42%;
+    --muted: 36 14% 93%;
+    --muted-foreground: 285 10% 40%;
 
-    --accent: 285 50% 45%;
+    --accent: 285 38% 38%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 8 58% 52%;
+    --destructive: 8 55% 46%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 152 50% 40%;
+    --success: 152 42% 36%;
     --success-foreground: 0 0% 100%;
 
-    --border: 285 15% 88%;
-    --input: 285 15% 88%;
-    --ring: 330 75% 48%;
+    --border: 36 12% 88%;
+    --input: 36 12% 88%;
+    --ring: 330 68% 44%;
 
-    --sidebar-background: 300 18% 96%;
-    --sidebar-foreground: 285 20% 30%;
-    --sidebar-primary: 330 75% 48%;
+    --sidebar-background: 36 22% 96%;
+    --sidebar-foreground: 285 18% 28%;
+    --sidebar-primary: 330 68% 44%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 285 18% 93%;
-    --sidebar-accent-foreground: 285 20% 30%;
-    --sidebar-border: 285 15% 88%;
-    --sidebar-ring: 330 75% 48%;
+    --sidebar-accent: 36 18% 94%;
+    --sidebar-accent-foreground: 285 28% 14%;
+    --sidebar-border: 36 12% 88%;
+    --sidebar-ring: 330 68% 44%;
 
-    --champagne: 330 75% 48%;
-    --champagne-light: 340 80% 58%;
-    --champagne-dark: 285 55% 38%;
-    --trust: 285 50% 45%;
-    --trust-muted: 285 18% 55%;
+    --brand: 330 68% 44%;
+    --brand-light: 338 62% 52%;
+    --brand-dark: 285 38% 32%;
+    --trust: 285 38% 38%;
+    --trust-muted: 285 12% 48%;
     --elevated: 0 0% 100%;
-    --magenta: 330 75% 48%;
-    --violet: 285 55% 38%;
-    --plum: 300 20% 97%;
+    --magenta: 330 68% 44%;
+    --violet: 285 38% 32%;
+    --plum: 285 28% 6%;
 
-    --copper: var(--champagne);
-    --copper-light: var(--champagne-light);
-    --gold-soft: var(--champagne-light);
+    --champagne: var(--brand);
+    --champagne-light: var(--brand-light);
+    --champagne-dark: var(--brand-dark);
+    --copper: var(--brand);
+    --copper-light: var(--brand-light);
+    --gold-soft: var(--brand-light);
     --rose-warm: var(--trust);
   }
 }
@@ -151,16 +159,16 @@
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(
       135deg,
-      hsl(var(--champagne-light)),
-      hsl(var(--champagne)),
+      hsl(var(--brand-light)),
+      hsl(var(--brand)),
       hsl(var(--violet))
     );
   }
 
   .hero-overlay {
     background:
-      linear-gradient(to right, hsl(var(--plum) / 0.92) 0%, hsl(var(--plum) / 0.5) 48%, hsl(var(--plum) / 0.12) 100%),
-      linear-gradient(to top, hsl(var(--plum)) 0%, transparent 55%);
+      linear-gradient(to right, hsl(var(--plum) / 0.94) 0%, hsl(var(--plum) / 0.55) 42%, hsl(var(--plum) / 0.18) 72%, hsl(var(--plum) / 0.08) 100%),
+      linear-gradient(to top, hsl(var(--plum) / 0.88) 0%, transparent 50%);
   }
 
   .glass-card {
@@ -181,6 +189,10 @@
 
   .reveal-fade {
     animation: revealFade 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .reveal-up-delay {
+    animation: revealUp 800ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
   }
 
   .safe-area-bottom {

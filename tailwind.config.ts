@@ -58,6 +58,11 @@ export default {
         magenta: "hsl(var(--magenta))",
         violet: "hsl(var(--violet))",
         plum: "hsl(var(--plum))",
+        brand: {
+          DEFAULT: "hsl(var(--brand))",
+          light: "hsl(var(--brand-light))",
+          dark: "hsl(var(--brand-dark))",
+        },
         champagne: {
           DEFAULT: "hsl(var(--champagne))",
           light: "hsl(var(--champagne-light))",
@@ -72,6 +77,7 @@ export default {
         "copper-light": "hsl(var(--copper-light))",
         "rose-warm": "hsl(var(--rose-warm))",
         "gold-soft": "hsl(var(--gold-soft))",
+
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

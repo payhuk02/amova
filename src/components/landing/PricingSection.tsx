@@ -47,7 +47,7 @@ const PricingSection = () => (
   <section id="pricing" className="py-24 md:py-32">
     <div className="container">
       <ScrollReveal className="text-center mb-16 md:mb-20">
-        <p className="text-champagne-light text-sm uppercase tracking-[0.2em] mb-4">Tarifs</p>
+        <p className="text-brand-light text-sm uppercase tracking-[0.2em] mb-4 font-body">Tarifs</p>
         <h2 className="font-display text-4xl md:text-5xl font-light text-foreground">
           Formules claires
         </h2>
@@ -62,12 +62,12 @@ const PricingSection = () => (
             <div
               className={`rounded-2xl p-6 md:p-7 h-full flex flex-col border bg-card transition-colors ${
                 plan.highlighted
-                  ? "border-champagne/40 relative"
+                  ? "border-brand/40 relative"
                   : "border-border/50 hover:border-border"
               }`}
             >
               {plan.highlighted && (
-                <span className="absolute top-0 left-4 -translate-y-1/2 bg-background border border-champagne/40 text-champagne text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-md">
+                <span className="absolute top-0 left-4 -translate-y-1/2 bg-background border border-brand/40 text-brand text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-md">
                   Populaire
                 </span>
               )}

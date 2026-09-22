@@ -7,10 +7,10 @@ import Logo from "@/components/Logo";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
-  { href: "#how", label: "Comment ça marche" },
-  { href: "#features", label: "Fonctionnalités" },
+  { href: "#trust", label: "Confiance" },
+  { href: "#how", label: "Parcours" },
+  { href: "#features", label: "Ce qui compte" },
   { href: "#pricing", label: "Tarifs" },
-  { href: "#testimonials", label: "Témoignages" },
 ];
 
 const Navbar = () => {
@@ -19,7 +19,6 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   return (
-    <>
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/30 bg-background/80 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between">
         <a href="/" className="flex items-center text-foreground hover:opacity-90 transition-opacity">
@@ -51,9 +50,12 @@ const Navbar = () => {
           )}
         </div>
 
-        <button onClick={() => setOpen(!open)} className="lg:hidden p-2 text-foreground" aria-label="Menu">
-          {open ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        <div className="flex lg:hidden items-center gap-1">
+          <ThemeToggle />
+          <button onClick={() => setOpen(!open)} className="p-2 text-foreground" aria-label="Menu">
+            {open ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </div>
 
       {open && (
@@ -84,7 +86,6 @@ const Navbar = () => {
         </div>
       )}
     </nav>
-    </>
   );
 };
 
