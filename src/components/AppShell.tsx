@@ -13,6 +13,7 @@ import { useWebPush } from "@/hooks/useWebPush";
 import { useNativePush } from "@/hooks/useNativePush";
 import { useAdmin } from "@/hooks/useAdmin";
 import IncomingCallOverlay from "@/components/IncomingCallOverlay";
+import LikedYouNudge from "@/components/LikedYouNudge";
 import { navGroups, mobileNavItems, isNavActive, type NavItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
@@ -124,6 +125,7 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex h-[100dvh] overflow-hidden bg-background amova-canvas">
       <IncomingCallOverlay />
+      <LikedYouNudge />
 
       <aside className="hidden lg:flex flex-col w-64 border-r border-border/40 bg-elevated z-40">
         <div className="flex items-center h-16 px-5 border-b border-border/40">
