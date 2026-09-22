@@ -37,10 +37,16 @@ const HeroSection = () => (
 
         <div className="hairline w-24 mb-6 md:mb-8" aria-hidden />
 
-        <p className="reveal-up-delay font-display text-xl sm:text-2xl md:text-[1.75rem] font-normal italic text-white/92 leading-snug mb-4 max-w-lg">
+        <p
+          className="reveal-up-delay font-display text-xl sm:text-2xl md:text-[1.75rem] font-normal italic leading-snug mb-4 max-w-lg text-white"
+          style={{ color: "#ffffff", textShadow: "0 1px 12px rgba(0,0,0,0.45)" }}
+        >
           Des rencontres vérifiées, entre adultes sérieux.
         </p>
-        <p className="reveal-up-delay text-white/60 text-sm sm:text-[0.95rem] max-w-md mb-10 md:mb-12 leading-relaxed font-body">
+        <p
+          className="reveal-up-delay text-sm sm:text-[0.95rem] max-w-md mb-10 md:mb-12 leading-relaxed font-body text-white"
+          style={{ color: "rgba(255,255,255,0.85)", textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}
+        >
           Identité contrôlée à la main · Matching homme ↔ femme · Paiement Mobile Money
         </p>
         <div className="reveal-up-delay-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
