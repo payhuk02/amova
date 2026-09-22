@@ -10,6 +10,7 @@ import AdminRoute from "@/components/AdminRoute";
 import CookieConsent from "@/components/CookieConsent";
 import AiChatbotLazy from "@/components/AiChatbotLazy";
 import RouteSeo from "@/components/RouteSeo";
+import PageViewTracker from "@/components/PageViewTracker";
 
 /** Landing + auth stay eager for first paint / login funnel. */
 import Index from "./pages/Index.tsx";
@@ -53,6 +54,7 @@ const AdminEvents = lazy(() => import("./pages/admin/Events.tsx"));
 const AdminNotifications = lazy(() => import("./pages/admin/Notifications.tsx"));
 const AdminAI = lazy(() => import("./pages/admin/AI.tsx"));
 const AdminAdmins = lazy(() => import("./pages/admin/Admins.tsx"));
+const AdminVisitors = lazy(() => import("./pages/admin/Visitors.tsx"));
 
 const queryClient = new QueryClient();
 
@@ -70,6 +72,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <RouteSeo />
+          <PageViewTracker />
           <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -101,6 +104,7 @@ const App = () => (
               <Route path="/verification" element={<ProtectedRoute><VerificationPage /></ProtectedRoute>} />
 
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+              <Route path="/admin/visitors" element={<AdminRoute><AdminVisitors /></AdminRoute>} />
               <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
               <Route path="/admin/admins" element={<AdminRoute><AdminAdmins /></AdminRoute>} />
               <Route path="/admin/verifications" element={<AdminRoute><AdminVerifications /></AdminRoute>} />

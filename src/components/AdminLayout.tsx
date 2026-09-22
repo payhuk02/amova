@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import {
   Users, Flag, LayoutDashboard, LogOut, ShieldCheck, CreditCard,
-  Crown, MessageSquare, Calendar, Bell, Shield, Menu, X, Bot,
+  Crown, MessageSquare, Calendar, Bell, Shield, Menu, X, Bot, Eye,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdmin } from "@/hooks/useAdmin";
@@ -12,6 +12,7 @@ import Logo from "@/components/Logo";
 
 const navItems = [
   { path: "/admin", icon: LayoutDashboard, label: "Tableau de bord", exact: true },
+  { path: "/admin/visitors", icon: Eye, label: "Visiteurs" },
   { path: "/admin/users", icon: Users, label: "Utilisateurs" },
   { path: "/admin/admins", icon: Shield, label: "Administrateurs" },
   { path: "/admin/verifications", icon: ShieldCheck, label: "Vérifications" },

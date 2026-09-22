@@ -1,13 +1,17 @@
 /**
- * Privacy-friendly analytics via Plausible.
- * Set VITE_PLAUSIBLE_DOMAIN=amova.space in production.
+ * Analytics: Plausible (optional) + first-party page views for admin.
  */
+
+import { supabase } from "@/integrations/supabase/client";
 
 declare global {
   interface Window {
     plausible?: (event: string, options?: { props?: Record<string, string> }) => void;
   }
 }
+
+const SESSION_KEY = "amova_visit_sid";
+const LAST_PATH_KEY = "amova_visit_last";
 
 let initialized = false;
 
@@ -32,6 +36,66 @@ export function trackEvent(name: string, props?: Record<string, string>) {
   }
 }
 
-export function trackPageView() {
+function getOrCreateSessionId(): string {
+  try {
+    let id = sessionStorage.getItem(SESSION_KEY);
+    if (!id || !/^[0-9a-f-]{36}$/i.test(id)) {
+      id = crypto.randomUUID();
+      sessionStorage.setItem(SESSION_KEY, id);
+    }
+    return id;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
+
+function detectDevice(): "mobile" | "desktop" | "tablet" | "unknown" {
+  if (typeof navigator === "undefined") return "unknown";
+  const ua = navigator.userAgent || "";
+  if (/iPad|Tablet/i.test(ua)) return "tablet";
+  if (/Mobi|Android|iPhone|iPod/i.test(ua)) return "mobile";
+  if (ua) return "desktop";
+  return "unknown";
+}
+
+function referrerHost(): string | null {
+  try {
+    if (!document.referrer) return null;
+    const host = new URL(document.referrer).hostname;
+    if (!host || host === window.location.hostname) return null;
+    return host;
+  } catch {
+    return null;
+  }
+}
+
+/** Record SPA navigation for the admin Visiteurs dashboard. */
+export async function trackPageView(path?: string) {
   trackEvent("pageview");
+
+  if (typeof window === "undefined") return;
+
+  const pathname = path ?? window.location.pathname;
+  // Don't flood the DB with admin polling while looking at visitors
+  if (pathname.startsWith("/admin/visitors")) return;
+
+  try {
+    const last = sessionStorage.getItem(LAST_PATH_KEY);
+    const now = Date.now();
+    if (last) {
+      const [prevPath, prevTs] = last.split("|");
+      if (prevPath === pathname && now - Number(prevTs) < 15_000) return;
+    }
+    sessionStorage.setItem(LAST_PATH_KEY, `${pathname}|${now}`);
+  } catch {
+    // ignore storage errors
+  }
+
+  const sessionId = getOrCreateSessionId();
+  void supabase.rpc("record_page_view", {
+    p_path: pathname,
+    p_session_id: sessionId,
+    p_referrer_host: referrerHost(),
+    p_device: detectDevice(),
+  });
 }

@@ -954,6 +954,16 @@ export type Database = {
         Returns: undefined
       }
       admin_get_stats: { Args: Record<PropertyKey, never>; Returns: Json }
+      admin_get_visitor_stats: { Args: { p_days?: number }; Returns: Json }
+      record_page_view: {
+        Args: {
+          p_path: string
+          p_session_id: string
+          p_referrer_host?: string | null
+          p_device?: string
+        }
+        Returns: undefined
+      }
       admin_review_verification: {
         Args: {
           p_request_id: string
