@@ -119,13 +119,13 @@ const AuthPage = () => {
           </h1>
           <p className="text-muted-foreground text-sm mb-6 sm:mb-8 leading-relaxed">
             {isLogin
-              ? "Accédez à votre espace personnel."
-              : "Des rencontres vérifiées, entre adultes sérieux."}
+              ? "Connectez-vous à votre espace Amova."
+              : "Créez votre compte pour des rencontres vérifiées."}
           </p>
 
           {!isLogin && (
-            <p className="text-xs text-muted-foreground/80 mb-6 leading-relaxed border-l-2 border-brand/40 pl-3">
-              Identité validée à la main · Matching homme ↔ femme · 18+
+            <p className="text-xs text-muted-foreground mb-6 leading-relaxed border-l-2 border-brand/50 pl-3">
+              18 ans et plus · Matching homme ↔ femme · Identité contrôlée à la main
             </p>
           )}
 

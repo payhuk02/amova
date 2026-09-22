@@ -8,9 +8,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { href: "#trust", label: "Confiance" },
+  { href: "#trust", label: "Sécurité" },
   { href: "#how", label: "Parcours" },
-  { href: "#features", label: "Ce qui compte" },
+  { href: "#features", label: "Engagements" },
   { href: "#pricing", label: "Tarifs" },
 ];
 

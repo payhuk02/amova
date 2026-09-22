@@ -4,7 +4,73 @@
 
 @layer base {
   :root {
-    /* Fond sombre ≠ surfaces UI (contraste volontaire) */
+    /* Fond blanc — surfaces et cartes distinctes */
+    --background: 0 0% 100%;
+    --foreground: 270 25% 12%;
+
+    /* Carte blanche avec bordure ; surface = bande gris très clair */
+    --card: 0 0% 100%;
+    --card-foreground: 270 25% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 270 25% 12%;
+
+    --primary: 330 72% 42%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 270 16% 95%;
+    --secondary-foreground: 270 18% 24%;
+
+    --muted: 270 14% 95%;
+    --muted-foreground: 270 10% 38%;
+
+    --accent: 330 45% 36%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 8 58% 46%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 48% 32%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 270 12% 86%;
+    --input: 270 12% 90%;
+    --ring: 330 72% 42%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 270 18% 24%;
+    --sidebar-primary: 330 72% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 270 16% 95%;
+    --sidebar-accent-foreground: 270 25% 12%;
+    --sidebar-border: 270 12% 88%;
+    --sidebar-ring: 330 72% 42%;
+
+    --brand: 330 72% 42%;
+    --brand-light: 338 55% 48%;
+    --brand-dark: 330 55% 30%;
+    --trust: 330 42% 38%;
+    --trust-muted: 270 10% 46%;
+    --elevated: 0 0% 100%;
+    --surface: 270 18% 96.5%;
+    --magenta: 330 72% 42%;
+    --violet: 300 24% 34%;
+    --plum: 270 16% 3%;
+    --gold: 32 42% 36%;
+    --gold-muted: 32 18% 42%;
+
+    --champagne: var(--brand);
+    --champagne-light: var(--brand-light);
+    --champagne-dark: var(--brand-dark);
+    --copper: var(--brand);
+    --copper-light: var(--brand-light);
+    --gold-soft: var(--gold);
+    --rose-warm: var(--trust);
+  }
+
+  .dark {
     --background: 270 14% 4%;
     --foreground: 40 18% 96%;
 
@@ -36,8 +102,6 @@
     --input: 270 8% 20%;
     --ring: 330 72% 54%;
 
-    --radius: 0.5rem;
-
     --sidebar-background: 270 12% 7%;
     --sidebar-foreground: 270 8% 78%;
     --sidebar-primary: 330 72% 54%;
@@ -68,69 +132,6 @@
     --gold-soft: var(--gold);
     --rose-warm: var(--trust);
   }
-
-  .light {
-    --background: 40 14% 94%;
-    --foreground: 270 20% 10%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 270 20% 10%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 270 20% 10%;
-
-    --primary: 330 68% 42%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 40 12% 88%;
-    --secondary-foreground: 270 14% 24%;
-
-    --muted: 40 10% 90%;
-    --muted-foreground: 270 10% 38%;
-
-    --accent: 330 40% 36%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 8 55% 44%;
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 152 42% 34%;
-    --success-foreground: 0 0% 100%;
-
-    --border: 40 10% 82%;
-    --input: 40 10% 86%;
-    --ring: 330 68% 42%;
-
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 270 14% 24%;
-    --sidebar-primary: 330 68% 42%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 12% 92%;
-    --sidebar-accent-foreground: 270 20% 10%;
-    --sidebar-border: 40 10% 86%;
-    --sidebar-ring: 330 68% 42%;
-
-    --brand: 330 68% 42%;
-    --brand-light: 338 55% 48%;
-    --brand-dark: 330 42% 28%;
-    --trust: 330 36% 38%;
-    --trust-muted: 270 8% 46%;
-    --elevated: 0 0% 100%;
-    --surface: 40 16% 97%;
-    --magenta: 330 68% 42%;
-    --violet: 300 22% 34%;
-    --plum: 270 16% 3%;
-    --gold: 38 45% 38%;
-    --gold-muted: 38 18% 42%;
-
-    --champagne: var(--brand);
-    --champagne-light: var(--brand-light);
-    --champagne-dark: var(--brand-dark);
-    --copper: var(--brand);
-    --copper-light: var(--brand-light);
-    --gold-soft: var(--gold);
-    --rose-warm: var(--trust);
-  }
 }
 
 @layer base {
@@ -138,9 +139,18 @@
     @apply border-border;
   }
 
+  html {
+    background-color: #ffffff;
+  }
+
+  html.dark {
+    background-color: hsl(270 14% 4%);
+  }
+
   body {
     @apply bg-background text-foreground font-body antialiased;
     font-feature-settings: "ss01", "kern", "liga";
+    background-color: hsl(var(--background));
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -167,7 +177,6 @@
     );
   }
 
-  /* Overlay cinéma — style poster Farata, teinte Amova */
   .hero-overlay {
     background:
       linear-gradient(
@@ -193,15 +202,18 @@
 
   .glass-card {
     @apply bg-card border border-border;
+    box-shadow: 0 1px 0 hsl(0 0% 100% / 0.8) inset, 0 8px 28px hsl(270 20% 10% / 0.06);
+  }
+
+  .dark .glass-card {
     box-shadow: 0 1px 0 hsl(0 0% 100% / 0.06) inset, 0 12px 40px hsl(270 20% 2% / 0.45);
   }
 
   .glow-copper,
   .glow-champagne {
-    box-shadow: 0 2px 12px hsl(270 20% 4% / 0.2);
+    box-shadow: 0 2px 12px hsl(270 20% 4% / 0.08);
   }
 
-  /* Toile premium — profondeur + grain (anti flat IA) */
   .amova-canvas {
     position: relative;
     isolation: isolate;
@@ -221,45 +233,45 @@
     overflow: hidden;
   }
 
+  /* Blanc par défaut — presque invisible */
   .amova-atmosphere__wells {
     position: absolute;
     inset: -20%;
+    background:
+      radial-gradient(ellipse 50% 35% at 12% 0%, hsl(330 40% 96% / 0.35), transparent 60%),
+      radial-gradient(ellipse 40% 30% at 88% 10%, hsl(40 30% 97% / 0.3), transparent 55%);
+  }
+
+  .dark .amova-atmosphere__wells {
     background:
       radial-gradient(ellipse 55% 40% at 8% 12%, hsl(330 45% 28% / 0.1), transparent 55%),
       radial-gradient(ellipse 45% 35% at 92% 18%, hsl(270 30% 22% / 0.08), transparent 50%),
       radial-gradient(ellipse 50% 40% at 78% 88%, hsl(330 40% 22% / 0.06), transparent 55%);
   }
 
-  .light .amova-atmosphere__wells {
-    background:
-      radial-gradient(ellipse 55% 40% at 10% 0%, hsl(330 40% 70% / 0.08), transparent 55%),
-      radial-gradient(ellipse 45% 35% at 90% 15%, hsl(38 40% 80% / 0.1), transparent 50%),
-      radial-gradient(ellipse 50% 40% at 50% 100%, hsl(270 15% 80% / 0.12), transparent 55%);
-  }
-
   .amova-atmosphere__grain {
     position: absolute;
     inset: 0;
-    opacity: 0.035;
-    mix-blend-mode: overlay;
+    opacity: 0.015;
+    mix-blend-mode: multiply;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-repeat: repeat;
     background-size: 180px 180px;
   }
 
-  .light .amova-atmosphere__grain {
-    opacity: 0.025;
-    mix-blend-mode: multiply;
+  .dark .amova-atmosphere__grain {
+    opacity: 0.035;
+    mix-blend-mode: overlay;
   }
 
   .amova-atmosphere__vignette {
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse 80% 75% at 50% 45%, transparent 45%, hsl(270 14% 3% / 0.4) 100%);
+    background: transparent;
   }
 
-  .light .amova-atmosphere__vignette {
-    background: radial-gradient(ellipse 85% 75% at 50% 40%, transparent 55%, hsl(40 10% 88% / 0.35) 100%);
+  .dark .amova-atmosphere__vignette {
+    background: radial-gradient(ellipse 80% 75% at 50% 45%, transparent 45%, hsl(270 14% 3% / 0.4) 100%);
   }
 
   .section-depth {
@@ -268,12 +280,22 @@
 
   .section-band {
     background-color: hsl(var(--surface));
-    border-block: 1px solid hsl(var(--border) / 0.7);
+    border-block: 1px solid hsl(var(--border));
   }
 
   .panel {
     @apply bg-card border border-border rounded-xl;
+    box-shadow:
+      0 1px 2px hsl(270 25% 12% / 0.04),
+      0 4px 16px hsl(270 25% 12% / 0.03);
+  }
+
+  .dark .panel {
     box-shadow: 0 1px 0 hsl(0 0% 100% / 0.04) inset;
+  }
+
+  .eyebrow {
+    @apply font-body text-xs sm:text-sm uppercase tracking-[0.2em] text-brand font-medium;
   }
 
   .hairline {

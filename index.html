@@ -13,7 +13,7 @@
       content="Amova, rencontres, dating, Afrique, Abidjan, Dakar, profils vérifiés, Mobile Money, matching"
     />
     <meta name="author" content="Amova" />
-    <meta name="theme-color" content="#0C0A10" />
+    <meta name="theme-color" content="#FFFFFF" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="googlebot" content="index, follow" />
     <link rel="canonical" href="https://www.amova.space/" />
@@ -60,8 +60,17 @@
     <script>
       (function () {
         try {
-          if (localStorage.getItem("amova-theme") === "light") {
-            document.documentElement.classList.add("light");
+          var KEY = "amova-color-mode";
+          var mode = localStorage.getItem(KEY);
+          /* Ancien défaut = sombre (amova-theme=dark) — on ne le reporte pas */
+          if (!mode) {
+            mode = "light";
+            localStorage.setItem(KEY, "light");
+          }
+          localStorage.removeItem("amova-theme");
+          document.documentElement.classList.remove("light", "dark");
+          if (mode === "dark") {
+            document.documentElement.classList.add("dark");
           }
         } catch (_) {}
       })();

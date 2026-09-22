@@ -21,7 +21,7 @@ export default function LegalLayout({ title, children }: LegalLayoutProps) {
           Retour à l&apos;accueil
         </Link>
         <h1 className="font-display text-3xl md:text-4xl font-light mb-8">{title}</h1>
-        <div className="prose prose-invert prose-sm md:prose-base max-w-none space-y-6 text-muted-foreground leading-relaxed">
+        <div className="prose dark:prose-invert prose-sm md:prose-base max-w-none space-y-6 text-muted-foreground leading-relaxed">
           {children}
         </div>
       </main>

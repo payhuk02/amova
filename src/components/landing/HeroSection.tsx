@@ -27,8 +27,8 @@ const HeroSection = () => (
 
     <div className="container relative z-10 w-full py-20 md:py-32 px-6">
       <div className="reveal-up max-w-2xl text-left">
-        <p className="reveal-fade font-body text-[11px] sm:text-xs uppercase tracking-[0.32em] text-gold mb-5 md:mb-7">
-          Rencontres sérieuses · Afrique
+        <p className="reveal-fade font-body text-[11px] sm:text-xs uppercase tracking-[0.28em] text-white/70 mb-5 md:mb-7">
+          Rencontres sérieuses en Afrique
         </p>
 
         <h1 className="font-display text-[clamp(3.5rem,13vw,8rem)] font-medium leading-[0.88] tracking-[-0.02em] text-white mb-5 md:mb-7">
@@ -37,11 +37,11 @@ const HeroSection = () => (
 
         <div className="hairline w-24 mb-6 md:mb-8" aria-hidden />
 
-        <p className="reveal-up-delay font-display text-xl sm:text-2xl md:text-[1.75rem] font-normal italic text-white/90 leading-snug mb-4 max-w-lg">
+        <p className="reveal-up-delay font-display text-xl sm:text-2xl md:text-[1.75rem] font-normal italic text-white/92 leading-snug mb-4 max-w-lg">
           Des rencontres vérifiées, entre adultes sérieux.
         </p>
-        <p className="reveal-up-delay text-white/55 text-sm sm:text-[0.95rem] max-w-md mb-10 md:mb-12 leading-relaxed font-body tracking-wide">
-          Identité validée à la main · Matching homme ↔ femme · Mobile Money
+        <p className="reveal-up-delay text-white/60 text-sm sm:text-[0.95rem] max-w-md mb-10 md:mb-12 leading-relaxed font-body">
+          Identité contrôlée à la main · Matching homme ↔ femme · Paiement Mobile Money
         </p>
         <div className="reveal-up-delay-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
           <Button variant="hero" size="xl" className="w-full sm:w-auto min-w-[200px]" asChild>
@@ -50,10 +50,10 @@ const HeroSection = () => (
           <Button
             variant="hero-outline"
             size="xl"
-            className="w-full sm:w-auto border-white/20 text-white/90 hover:bg-white/[0.06] hover:border-white/35"
+            className="w-full sm:w-auto border-white/25 text-white hover:bg-white/10 hover:border-white/40"
             asChild
           >
-            <a href="#trust">Comment on vérifie</a>
+            <a href="#trust">Notre vérification</a>
           </Button>
         </div>
       </div>

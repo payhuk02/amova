@@ -9,7 +9,7 @@ initAnalytics();
 if (Capacitor.isNativePlatform()) {
   void import("@capacitor/status-bar").then(({ StatusBar, Style }) => {
     void StatusBar.setStyle({ style: Style.Dark });
-    void StatusBar.setBackgroundColor({ color: "#0F1114" });
+    void StatusBar.setBackgroundColor({ color: "#FFFFFF" });
   });
   void import("@capacitor/splash-screen").then(({ SplashScreen }) => {
     void SplashScreen.hide();
