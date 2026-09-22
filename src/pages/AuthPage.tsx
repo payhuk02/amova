@@ -5,9 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Logo from "@/components/Logo";
 import { toast } from "sonner";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
+import { cn } from "@/lib/utils";
 
 /** Safe in-app return path after login (blocks open redirects). */
 function safeReturnPath(from: unknown): string {
@@ -75,14 +77,12 @@ const AuthPage = () => {
         if (error) throw error;
         trackEvent("Signup");
 
-        // Autoconfirm ON: session is returned immediately
         if (data.session) {
           toast.success("Inscription réussie — bienvenue sur Amova");
           navigate("/profile-setup");
           return;
         }
 
-        // Fallback if confirmation email is still required
         toast.success("Compte créé. Vérifiez votre e-mail pour confirmer, puis connectez-vous.");
         setIsLogin(true);
       }
@@ -94,81 +94,130 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col safe-area-top safe-area-bottom">
+    <div className="min-h-[100dvh] flex flex-col safe-area-top safe-area-bottom bg-background">
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
-      <div className="w-full max-w-sm">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8 sm:mb-10 touch-manipulation">
-          <ArrowLeft size={16} />
-          Retour
-        </Link>
-
-        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-light mb-2">
-          {isLogin ? "Bon retour" : "Rejoignez-nous"}
-        </h1>
-        <p className="text-muted-foreground text-sm sm:text-base mb-6 sm:mb-8">
-          {isLogin
-            ? "Accédez à votre espace personnel sécurisé."
-            : "Matching homme ↔ femme. Vérification d'identité et Mobile Money."}
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-          <div>
-            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Email</label>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="votre@email.com"
-              required
-              className="h-11 sm:h-12 bg-secondary/50 border-border/50 focus:border-primary/50 text-base"
-            />
+        <div className="w-full max-w-sm">
+          <div className="flex items-center justify-between mb-8 sm:mb-10">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors touch-manipulation"
+            >
+              <ArrowLeft size={16} />
+              Accueil
+            </Link>
+            <Logo variant="mark" className="opacity-90" />
           </div>
-          <div>
-            <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Mot de passe</label>
-            <div className="relative">
-              <Input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                minLength={8}
-                className="h-11 sm:h-12 bg-secondary/50 border-border/50 focus:border-primary/50 pr-12 text-base"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors touch-manipulation p-1"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </div>
+
+          <p className="font-display text-3xl sm:text-4xl font-medium tracking-tight text-foreground mb-2">
+            Amova
+          </p>
+          <h1 className="font-display text-xl sm:text-2xl font-light text-foreground/90 mb-2">
+            {isLogin ? "Connexion" : "Créer un compte"}
+          </h1>
+          <p className="text-muted-foreground text-sm mb-6 sm:mb-8 leading-relaxed">
+            {isLogin
+              ? "Accédez à votre espace personnel."
+              : "Des rencontres vérifiées, entre adultes sérieux."}
+          </p>
 
           {!isLogin && (
+            <p className="text-xs text-muted-foreground/80 mb-6 leading-relaxed border-l-2 border-brand/40 pl-3">
+              Identité validée à la main · Matching homme ↔ femme · 18+
+            </p>
+          )}
+
+          <div
+            className="flex mb-6 p-1 rounded-xl bg-secondary/50 border border-border/40"
+            role="tablist"
+            aria-label="Mode d’authentification"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={isLogin}
+              onClick={() => setIsLogin(true)}
+              className={cn(
+                "flex-1 h-10 rounded-lg text-sm font-medium transition-colors touch-manipulation",
+                isLogin
+                  ? "bg-background text-foreground shadow-premium-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              Connexion
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!isLogin}
+              onClick={() => setIsLogin(false)}
+              className={cn(
+                "flex-1 h-10 rounded-lg text-sm font-medium transition-colors touch-manipulation",
+                !isLogin
+                  ? "bg-background text-foreground shadow-premium-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              Inscription
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
             <div>
-              <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">
-                Confirmer le mot de passe
-              </label>
+              <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Email</label>
               <Input
-                type={showPassword ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="votre@email.com"
                 required
-                minLength={8}
+                autoComplete="email"
                 className="h-11 sm:h-12 bg-secondary/50 border-border/50 focus:border-primary/50 text-base"
               />
             </div>
-          )}
+            <div>
+              <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">Mot de passe</label>
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  minLength={8}
+                  autoComplete={isLogin ? "current-password" : "new-password"}
+                  className="h-11 sm:h-12 bg-secondary/50 border-border/50 focus:border-primary/50 pr-12 text-base"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors touch-manipulation p-1"
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
 
-          <Button variant="hero" size="xl" className="w-full touch-manipulation" disabled={loading}>
-            {loading ? "Chargement..." : isLogin ? "Se connecter" : "Créer mon compte"}
-          </Button>
-
-          <div className="space-y-2.5">
             {!isLogin && (
-              <>
+              <div>
+                <label className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 block">
+                  Confirmer le mot de passe
+                </label>
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  className="h-11 sm:h-12 bg-secondary/50 border-border/50 focus:border-primary/50 text-base"
+                />
+              </div>
+            )}
+
+            {!isLogin && (
+              <div className="space-y-2.5 pt-1">
                 <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer">
                   <input
                     type="checkbox"
@@ -187,31 +236,24 @@ const AuthPage = () => {
                   />
                   <span>
                     J&apos;accepte les{" "}
-                    <Link to="/conditions" className="text-champagne hover:underline">
+                    <Link to="/conditions" className="text-brand hover:underline">
                       conditions
                     </Link>{" "}
                     et la{" "}
-                    <Link to="/confidentialite" className="text-champagne hover:underline">
+                    <Link to="/confidentialite" className="text-brand hover:underline">
                       politique de confidentialité
                     </Link>
                     .
                   </span>
                 </label>
-              </>
+              </div>
             )}
-          </div>
-        </form>
 
-        <p className="text-center text-xs sm:text-sm text-muted-foreground mt-6 sm:mt-8">
-          {isLogin ? "Pas encore membre ?" : "Déjà membre ?"}{" "}
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-champagne hover:text-champagne-light transition-colors underline underline-offset-4 touch-manipulation"
-          >
-            {isLogin ? "Créer un compte" : "Se connecter"}
-          </button>
-        </p>
-      </div>
+            <Button variant="hero" size="xl" className="w-full touch-manipulation mt-1" disabled={loading}>
+              {loading ? "Chargement..." : isLogin ? "Se connecter" : "Créer mon compte"}
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );

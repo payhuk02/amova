@@ -117,7 +117,7 @@ export default function ProfileCard({
       <div className="p-4 sm:p-5 flex flex-col flex-1 min-h-0">
         <h3 className="font-display text-lg sm:text-xl font-medium mb-1 truncate">
           {onViewProfile ? (
-            <button onClick={onViewProfile} className="hover:text-champagne transition-colors text-left truncate max-w-full">
+            <button onClick={onViewProfile} className="hover:text-brand transition-colors text-left truncate max-w-full">
               {profile.display_name}
               {profile.age && (
                 <span className="text-muted-foreground font-light">, {profile.age}</span>
@@ -150,7 +150,9 @@ export default function ProfileCard({
         </div>
 
         {profile.occupation && (
-          <p className="text-[11px] text-muted-foreground/80 mb-2 truncate">{profile.occupation}</p>
+          <p className="text-xs sm:text-sm text-foreground/80 font-medium mb-2 truncate">
+            {profile.occupation}
+          </p>
         )}
 
         <div className="flex flex-wrap gap-1 mb-2 min-h-[1.5rem]">

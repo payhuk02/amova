@@ -17,8 +17,9 @@ import {
 } from "@/lib/profile-options";
 import { oppositeGender } from "@/lib/gender";
 import { toast } from "sonner";
-import { Camera, Loader2, ShieldCheck } from "lucide-react";
+import { Camera, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Logo from "@/components/Logo";
 
 const SELECT_CLASS =
   "h-11 sm:h-12 w-full rounded-lg border border-border/50 bg-secondary/50 px-3 text-sm text-foreground focus:outline-none focus:border-primary/50";
@@ -235,17 +236,23 @@ const ProfileSetup = () => {
     !uploading;
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 safe-area-top safe-area-bottom">
+    <div className="min-h-[100dvh] flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 safe-area-top safe-area-bottom bg-background">
       <div className="w-full max-w-md">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-champagne/10 text-champagne text-xs font-medium mb-4 border border-champagne/20">
-          <ShieldCheck size={14} />
-          Inscription sécurisée · 18+ · Matching H↔F
+        <div className="flex items-center justify-between mb-6">
+          <Logo variant="compact" />
         </div>
-        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-light mb-1 sm:mb-2">
-          Créez votre profil Amova
+
+        <p className="text-brand-light text-xs uppercase tracking-[0.18em] mb-3 font-body">
+          Votre profil
+        </p>
+        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-light mb-2">
+          Présentez-vous
         </h1>
-        <p className="text-muted-foreground text-xs sm:text-sm mb-6 sm:mb-8">
+        <p className="text-muted-foreground text-sm mb-3 leading-relaxed">
           Genre et date de naissance sont définitifs. Renseignez aussi votre situation et vos critères.
+        </p>
+        <p className="text-xs text-muted-foreground/80 mb-6 sm:mb-8 leading-relaxed border-l-2 border-brand/40 pl-3">
+          Matching homme ↔ femme · 18+ · Vérification d&apos;identité disponible ensuite
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
@@ -281,7 +288,7 @@ const ProfileSetup = () => {
 
           <div>
             <label className="text-xs sm:text-sm text-muted-foreground mb-1.5 block">
-              Vous êtes <span className="text-champagne">{genderLocked ? "(verrouillé)" : "(définitif)"}</span>
+              Vous êtes <span className="text-brand">{genderLocked ? "(verrouillé)" : "(définitif)"}</span>
             </label>
             <div className="flex gap-2 sm:gap-3">
               {[
@@ -469,7 +476,7 @@ const ProfileSetup = () => {
             />
             <span>
               Je confirme avoir au moins 18 ans et accepter les{" "}
-              <Link to="/conditions" className="text-champagne hover:underline">
+              <Link to="/conditions" className="text-brand hover:underline">
                 conditions d&apos;utilisation
               </Link>
               .

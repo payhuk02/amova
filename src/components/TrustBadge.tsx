@@ -5,9 +5,9 @@ import type { LucideIcon } from "lucide-react";
 type TrustBadgeVariant = "verified" | "premium" | "super" | "match" | "compatibility";
 
 const variantStyles: Record<TrustBadgeVariant, string> = {
-  verified: "bg-trust/15 text-trust border-trust/25",
-  premium: "bg-champagne/15 text-champagne border-champagne/25",
-  super: "bg-champagne/20 text-champagne-light border-champagne/30",
+  verified: "bg-background/85 text-trust border-trust/35",
+  premium: "bg-brand/15 text-brand border-brand/25",
+  super: "bg-brand/20 text-brand-light border-brand/30",
   match: "bg-success/15 text-success border-success/25",
   compatibility: "bg-secondary/80 text-foreground border-border/50",
 };
@@ -21,7 +21,7 @@ const variantIcons: Record<TrustBadgeVariant, LucideIcon> = {
 };
 
 const variantLabels: Record<TrustBadgeVariant, string> = {
-  verified: "Vérifié",
+  verified: "Identité vérifiée",
   premium: "Premium",
   super: "Super Like",
   match: "Match",
@@ -37,12 +37,15 @@ interface TrustBadgeProps {
 
 export function TrustBadge({ variant, label, compact, className }: TrustBadgeProps) {
   const Icon = variantIcons[variant];
-  const text = label ?? variantLabels[variant];
+  const text =
+    label ??
+    (compact && variant === "verified" ? "Vérifié" : variantLabels[variant]);
 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border font-medium backdrop-blur-sm",
+        "inline-flex items-center gap-1 border font-medium backdrop-blur-sm",
+        variant === "verified" ? "rounded-md" : "rounded-full",
         compact ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs",
         variantStyles[variant],
         className,
