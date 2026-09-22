@@ -38,15 +38,15 @@ export const navGroups: NavGroup[] = [
     items: [
       { path: "/stories", icon: BookOpen, label: "Stories" },
       { path: "/events", icon: Calendar, label: "Événements" },
-      { path: "/speed-dating", icon: Zap, label: "Speed Dating" },
+      { path: "/speed-dating", icon: Zap, label: "Speed dating" },
     ],
   },
   {
     label: "Mon espace",
     items: [
       { path: "/edit-profile", icon: User, label: "Mon profil" },
-      { path: "/verification", icon: ShieldCheck, label: "Vérification KYC" },
-      { path: "/coach", icon: Bot, label: "Coach Dating" },
+      { path: "/verification", icon: ShieldCheck, label: "Vérification" },
+      { path: "/coach", icon: Bot, label: "Coach" },
       { path: "/premium", icon: Crown, label: "Abonnements" },
       { path: "/settings", icon: Settings, label: "Paramètres" },
     ],

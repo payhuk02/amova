@@ -9,10 +9,10 @@ import {
   MapPin,
   User,
   ArrowLeft,
-  Calendar,
   UserX,
   ShieldAlert,
   Crown,
+  Briefcase,
 } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import BadgesDisplay from "@/components/BadgesDisplay";
@@ -27,7 +27,8 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getLimitErrorMessage, isUpgradeLimitError, PLANS_PATH, plansEnticement } from "@/lib/limits";
 import BlurredPhoto from "@/components/BlurredPhoto";
-import { genderLabel, lookingForLabel } from "@/lib/gender";
+import { lookingForLabel } from "@/lib/gender";
+import { labelForReligion, labelForRelationship } from "@/lib/profile-options";
 
 interface ProfileData {
   user_id: string;
@@ -35,6 +36,7 @@ interface ProfileData {
   bio: string | null;
   age: number | null;
   city: string | null;
+  country: string | null;
   gender: string | null;
   looking_for: string | null;
   avatar_url: string | null;
@@ -42,6 +44,9 @@ interface ProfileData {
   interests: string[] | null;
   is_verified: boolean;
   created_at: string;
+  occupation: string | null;
+  religion: string | null;
+  relationship_type: string | null;
 }
 
 interface Photo {
@@ -62,7 +67,6 @@ const ProfilePage = () => {
   const [liked, setLiked] = useState(false);
   const [isMatch, setIsMatch] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
-  const [stats, setStats] = useState({ likes: 0, matches: 0 });
   const [showBlockReport, setShowBlockReport] = useState(false);
   const { blockedIds } = useBlockedUsers();
 
@@ -82,8 +86,7 @@ const ProfilePage = () => {
         .select("id, photo_url, position")
         .eq("user_id", userId)
         .order("position");
-      const photoRows = (ph as Photo[]) || [];
-      setPhotos(photoRows);
+      setPhotos((ph as Photo[]) || []);
 
       const { data: myLike } = await supabase
         .from("likes")
@@ -105,15 +108,6 @@ const ProfilePage = () => {
       const isOwn = userId === user.id;
       const unlocked = isOwn || limits.canViewFullGallery || matched;
       setGalleryLocked(!unlocked);
-
-      const { data: stats } = await supabase.rpc("get_public_profile_stats", {
-        p_user_id: userId,
-      });
-      if (stats && stats.length > 0) {
-        setStats({ likes: Number(stats[0].like_count) || 0, matches: Number(stats[0].match_count) || 0 });
-      } else {
-        setStats({ likes: 0, matches: 0 });
-      }
 
       setLoading(false);
     };
@@ -182,25 +176,28 @@ const ProfilePage = () => {
   const online = isOnline(profile.last_seen);
   const isOwn = userId === user?.id;
   const blurMainPhoto = !isOwn && galleryLocked;
+  const place = [profile.city, profile.country].filter(Boolean).join(", ");
+
+  const details: { label: string; value: string }[] = [];
+  if (profile.occupation) details.push({ label: "Métier", value: profile.occupation });
+  if (profile.looking_for) details.push({ label: "Recherche", value: lookingForLabel(profile.looking_for) });
+  if (profile.relationship_type) {
+    details.push({ label: "Relation", value: labelForRelationship(profile.relationship_type) });
+  }
+  if (profile.religion) details.push({ label: "Religion", value: labelForReligion(profile.religion) });
 
   return (
     <AppShell>
-      {/* Lightbox — never open sharp photo while locked */}
       {selectedPhoto && !blurMainPhoto && (
         <div
           className="fixed inset-0 z-[100] bg-background/95 flex items-center justify-center p-3 sm:p-4 safe-area-top safe-area-bottom"
           onClick={() => setSelectedPhoto(null)}
         >
-          <img
-            src={selectedPhoto}
-            alt=""
-            className="max-w-full max-h-full object-contain rounded-xl"
-          />
+          <img src={selectedPhoto} alt="" className="max-w-full max-h-full object-contain rounded-xl" />
         </div>
       )}
 
       <main className="container max-w-2xl py-4 sm:py-6 md:py-8 px-3 sm:px-4 md:px-6">
-        {/* Back */}
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 sm:mb-6 touch-manipulation"
@@ -208,154 +205,146 @@ const ProfilePage = () => {
           <ArrowLeft size={16} /> Retour
         </button>
 
-        {/* Hero section */}
-        <div className="glass-card rounded-xl sm:rounded-2xl overflow-hidden mb-4 sm:mb-6">
-          {/* Main photo */}
-          <div className="aspect-[4/3] sm:aspect-[4/3] bg-secondary/30 relative">
-            {profile.avatar_url ? (
-              <BlurredPhoto
-                src={profile.avatar_url}
-                blurred={blurMainPhoto}
-                className="w-full h-full cursor-pointer"
-                onClick={() => {
-                  if (!blurMainPhoto) setSelectedPhoto(profile.avatar_url!);
-                  else {
-                    toast.info(plansEnticement("Photos nettes"));
-                    navigate(PLANS_PATH);
-                  }
-                }}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <User className="w-16 h-16 sm:w-20 sm:h-20 text-muted-foreground/30" strokeWidth={1} />
-              </div>
-            )}
-
-            <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
-              <OnlineStatus online={online} compact />
+        {/* Photo hero */}
+        <div className="aspect-[4/5] sm:aspect-[4/3] bg-secondary/30 relative overflow-hidden rounded-xl mb-6 sm:mb-8">
+          {profile.avatar_url ? (
+            <BlurredPhoto
+              src={profile.avatar_url}
+              blurred={blurMainPhoto}
+              className="w-full h-full cursor-pointer"
+              onClick={() => {
+                if (!blurMainPhoto) setSelectedPhoto(profile.avatar_url!);
+                else {
+                  toast.info(plansEnticement("Photos nettes"));
+                  navigate(PLANS_PATH);
+                }
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <User className="w-16 h-16 sm:w-20 sm:h-20 text-muted-foreground/30" strokeWidth={1} />
             </div>
+          )}
 
-            {profile.is_verified && (
-              <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
-                <TrustBadge variant="verified" />
-              </div>
-            )}
-
-            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-card to-transparent" />
+          <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
+            <OnlineStatus online={online} compact />
           </div>
 
-          <div className="p-4 sm:p-6 -mt-4 sm:-mt-6 relative">
-            <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-medium mb-0.5 sm:mb-1 flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              {profile.display_name}
-              {profile.age && (
-                <span className="text-muted-foreground font-light">, {profile.age}</span>
-              )}
-            </h1>
-
-            {profile.city && (
-              <p className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
-                <MapPin size={13} /> {profile.city}
-              </p>
-            )}
-
-            {/* Badges */}
-            <div className="mb-3 sm:mb-4">
-              <BadgesDisplay userId={userId!} />
+          {profile.is_verified && (
+            <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+              <TrustBadge variant="verified" />
             </div>
+          )}
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-4">
-              <div className="text-center p-1.5 sm:p-2 rounded-lg bg-secondary/30">
-                <p className="font-display text-lg sm:text-xl md:text-2xl font-medium">{stats.likes}</p>
-                <p className="text-[9px] sm:text-[10px] md:text-[11px] text-muted-foreground">Likes reçus</p>
-              </div>
-              <div className="text-center p-1.5 sm:p-2 rounded-lg bg-secondary/30">
-                <p className="font-display text-lg sm:text-xl md:text-2xl font-medium">{stats.matches}</p>
-                <p className="text-[9px] sm:text-[10px] md:text-[11px] text-muted-foreground">Matchs</p>
-              </div>
-              <div className="text-center p-1.5 sm:p-2 rounded-lg bg-secondary/30">
-                <p className="font-display text-sm sm:text-base md:text-2xl font-medium">
-                  {format(new Date(profile.created_at), "MMM yyyy", { locale: fr })}
-                </p>
-                <p className="text-[9px] sm:text-[10px] md:text-[11px] text-muted-foreground">Membre depuis</p>
-              </div>
-            </div>
-
-            {/* Interests */}
-            {profile.interests && profile.interests.length > 0 && (
-              <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-3 sm:mb-4">
-                {profile.interests.map((interest) => (
-                  <InterestTag key={interest}>{interest}</InterestTag>
-                ))}
-              </div>
-            )}
-
-            {/* Bio */}
-            {profile.bio && (
-              <p className="text-xs sm:text-sm text-foreground/70 leading-relaxed mb-4 sm:mb-6">{profile.bio}</p>
-            )}
-
-            {/* Info */}
-            <div className="flex flex-wrap gap-3 sm:gap-4 text-[10px] sm:text-xs text-muted-foreground mb-4 sm:mb-6">
-              {profile.gender && (
-                <span className="flex items-center gap-1">
-                  <User size={11} />
-                  {genderLabel(profile.gender)}
-                </span>
-              )}
-              {profile.looking_for && (
-                <span>
-                  Cherche : {lookingForLabel(profile.looking_for)}
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <Calendar size={11} />
-                Inscrit {format(new Date(profile.created_at), "d MMMM yyyy", { locale: fr })}
-              </span>
-            </div>
-
-            {/* Action buttons */}
-            {userId !== user?.id && (
-              <div className="flex gap-2 sm:gap-3">
-                <Button
-                  variant={liked ? "default" : "hero"}
-                  size="lg"
-                  className="flex-1 touch-manipulation h-11 sm:h-12"
-                  onClick={handleLike}
-                  disabled={blockedIds.has(userId!)}
-                >
-                  <Heart size={16} className={liked ? "fill-current" : ""} />
-                  {liked ? "Aimé" : "J'aime"}
-                </Button>
-                {isMatch && !blockedIds.has(userId!) && (
-                  <Button
-                    variant="trust"
-                    size="lg"
-                    className="touch-manipulation h-11 sm:h-12"
-                    onClick={() => navigate(`/messages?with=${userId}`)}
-                  >
-                    <MessageCircle size={16} />
-                    <span className="hidden sm:inline">Message</span>
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="touch-manipulation h-11 sm:h-12 px-3"
-                  onClick={() => setShowBlockReport(true)}
-                  title="Bloquer ou signaler"
-                >
-                  <ShieldAlert size={16} />
-                </Button>
-              </div>
-            )}
-          </div>
+          <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-background/80 to-transparent" />
         </div>
 
-        {/* Photo gallery */}
+        {/* Identity */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mb-2">
+            {profile.display_name}
+            {profile.age != null && (
+              <span className="text-muted-foreground font-light">, {profile.age}</span>
+            )}
+          </h1>
+
+          {place && (
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground mb-2">
+              <MapPin size={14} className="shrink-0" /> {place}
+            </p>
+          )}
+
+          {profile.occupation && (
+            <p className="flex items-center gap-1.5 text-sm text-foreground/85 font-medium mb-3">
+              <Briefcase size={14} className="shrink-0 text-brand" strokeWidth={1.75} />
+              {profile.occupation}
+            </p>
+          )}
+
+          <div className="mb-4">
+            <BadgesDisplay userId={userId!} />
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            Membre depuis {format(new Date(profile.created_at), "MMMM yyyy", { locale: fr })}
+          </p>
+        </div>
+
+        {/* Bio */}
+        {profile.bio && (
+          <section className="mb-6 sm:mb-8">
+            <h2 className="text-brand-light text-xs uppercase tracking-[0.16em] mb-3 font-body">À propos</h2>
+            <p className="text-sm sm:text-base text-foreground/80 leading-relaxed">{profile.bio}</p>
+          </section>
+        )}
+
+        {/* Details — editorial list, no cards */}
+        {details.length > 0 && (
+          <section className="mb-6 sm:mb-8 border-y border-border/40 py-5">
+            <h2 className="text-brand-light text-xs uppercase tracking-[0.16em] mb-4 font-body">Profil</h2>
+            <dl className="grid sm:grid-cols-2 gap-x-8 gap-y-3">
+              {details.map((d) => (
+                <div key={d.label}>
+                  <dt className="text-[11px] text-muted-foreground mb-0.5">{d.label}</dt>
+                  <dd className="text-sm text-foreground">{d.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
+
+        {/* Interests */}
+        {profile.interests && profile.interests.length > 0 && (
+          <section className="mb-6 sm:mb-8">
+            <h2 className="text-brand-light text-xs uppercase tracking-[0.16em] mb-3 font-body">Centres d&apos;intérêt</h2>
+            <div className="flex flex-wrap gap-1.5">
+              {profile.interests.map((interest) => (
+                <InterestTag key={interest}>{interest}</InterestTag>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Actions */}
+        {userId !== user?.id && (
+          <div className="flex gap-2 sm:gap-3 mb-8">
+            <Button
+              variant={liked ? "default" : "hero"}
+              size="lg"
+              className="flex-1 touch-manipulation h-11 sm:h-12"
+              onClick={handleLike}
+              disabled={blockedIds.has(userId!)}
+            >
+              <Heart size={16} className={liked ? "fill-current" : ""} />
+              {liked ? "Aimé" : "J'aime"}
+            </Button>
+            {isMatch && !blockedIds.has(userId!) && (
+              <Button
+                variant="trust"
+                size="lg"
+                className="touch-manipulation h-11 sm:h-12"
+                onClick={() => navigate(`/messages?with=${userId}`)}
+              >
+                <MessageCircle size={16} />
+                <span className="hidden sm:inline">Message</span>
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="lg"
+              className="touch-manipulation h-11 sm:h-12 px-3"
+              onClick={() => setShowBlockReport(true)}
+              title="Bloquer ou signaler"
+            >
+              <ShieldAlert size={16} />
+            </Button>
+          </div>
+        )}
+
+        {/* Gallery */}
         {photos.length > 0 && (
-          <div>
-            <h2 className="font-display text-lg sm:text-xl font-medium mb-3 sm:mb-4">Photos</h2>
+          <section className="mb-6">
+            <h2 className="text-brand-light text-xs uppercase tracking-[0.16em] mb-4 font-body">Photos</h2>
             <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
               {photos.map((photo) => (
                 <button
@@ -366,7 +355,7 @@ const ProfilePage = () => {
                       navigate(PLANS_PATH);
                     } else setSelectedPhoto(photo.photo_url);
                   }}
-                  className="aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-secondary/30 hover:opacity-90 transition-opacity touch-manipulation"
+                  className="aspect-square rounded-lg overflow-hidden bg-secondary/30 hover:opacity-90 transition-opacity touch-manipulation"
                 >
                   <BlurredPhoto
                     src={photo.photo_url}
@@ -377,18 +366,16 @@ const ProfilePage = () => {
                 </button>
               ))}
             </div>
-          </div>
+          </section>
         )}
 
         {galleryLocked && userId !== user?.id && (
-          <div className="mt-4 rounded-xl border border-champagne/25 bg-champagne/5 p-5 text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-champagne/15 flex items-center justify-center mx-auto">
-              <Crown size={22} className="text-champagne" />
-            </div>
+          <div className="mt-2 border border-brand/20 bg-brand/[0.04] p-5 sm:p-6 text-center space-y-3 rounded-xl">
+            <Crown size={22} className="text-brand mx-auto" strokeWidth={1.5} />
             <div>
-              <p className="font-medium">Photos floutées — plan Gratuit</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Passez Plus pour voir les photos nettes, ou matchez pour débloquer ce profil.
+              <p className="font-display text-base font-medium">Photos protégées</p>
+              <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed max-w-sm mx-auto">
+                Sur le plan Gratuit, les photos restent floutées jusqu&apos;à un match ou un abonnement Plus.
               </p>
             </div>
             <Button variant="hero" size="sm" onClick={() => navigate(PLANS_PATH)}>

@@ -58,6 +58,7 @@ export default {
         magenta: "hsl(var(--magenta))",
         violet: "hsl(var(--violet))",
         plum: "hsl(var(--plum))",
+        elevated: "hsl(var(--elevated))",
         brand: {
           DEFAULT: "hsl(var(--brand))",
           light: "hsl(var(--brand-light))",
