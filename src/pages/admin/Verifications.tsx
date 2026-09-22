@@ -261,7 +261,7 @@ export default function AdminVerifications() {
                         ))}
                       {!r.urls?.id_document && !r.urls?.selfie && (
                         <span className="text-xs text-muted-foreground">
-                          {r.provider === "sumsub" ? "Sumsub" : "Incomplet"}
+                          Incomplet
                         </span>
                       )}
                     </div>

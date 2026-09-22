@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, requireAuth } from "../_shared/auth.ts";
 import { getAiSettings, getModelForFeature, openRouterChat } from "../_shared/openrouter.ts";
 
@@ -7,10 +8,35 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const { error: authError } = await requireAuth(req);
-  if (authError) return authError;
+  const { user, error: authError } = await requireAuth(req);
+  if (authError || !user) return authError!;
 
   try {
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    );
+
+    const { data: sub } = await admin
+      .from("subscriptions")
+      .select("plan, status, expires_at")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .maybeSingle();
+
+    const plan = sub?.plan ?? "free";
+    const expired =
+      sub?.expires_at && new Date(sub.expires_at).getTime() < Date.now();
+    if (!sub || plan === "free" || expired) {
+      return new Response(
+        JSON.stringify({ error: "Coach réservé aux abonnés Plus+" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     const { messages, userProfile } = await req.json();
 
     const profileContext = userProfile

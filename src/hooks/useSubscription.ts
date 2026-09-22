@@ -124,8 +124,10 @@ export function useSubscription() {
     subscription?.expires_at != null &&
     new Date(subscription.expires_at) < new Date();
 
-  const upgrade = (newPlan: PlanType) => {
-    if (newPlan === currentPlan || newPlan === "free") return;
+  const upgrade = (_newPlan?: PlanType) => {
+    if (typeof window !== "undefined") {
+      window.location.assign("/premium");
+    }
   };
 
   return {

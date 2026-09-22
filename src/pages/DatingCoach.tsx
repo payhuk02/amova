@@ -1,11 +1,14 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User, Sparkles } from "lucide-react";
+import { Send, Bot, User, Sparkles, Crown } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { toast } from "sonner";
+import { PLANS_PATH, plansEnticement } from "@/lib/limits";
 
 interface Msg {
   role: "user" | "assistant";
@@ -21,11 +24,15 @@ const SUGGESTIONS = [
 
 const DatingCoach = () => {
   const { user } = useAuth();
+  const { currentPlan, isLoading: planLoading } = useSubscription();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const canUseCoach = currentPlan !== "free";
 
   useEffect(() => {
     if (!user) return;
@@ -34,7 +41,7 @@ const DatingCoach = () => {
       .select("*")
       .eq("user_id", user.id)
       .single()
-      .then(({ data }) => setProfile(data));
+      .then(({ data }) => setProfile(data as Record<string, unknown> | null));
   }, [user]);
 
   useEffect(() => {
@@ -43,6 +50,11 @@ const DatingCoach = () => {
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
+    if (!canUseCoach) {
+      toast.info(plansEnticement("Coach dating"));
+      navigate(PLANS_PATH);
+      return;
+    }
 
     const userMsg: Msg = { role: "user", content: text.trim() };
     setMessages((prev) => [...prev, userMsg]);
@@ -156,25 +168,38 @@ const DatingCoach = () => {
   return (
     <AppShell>
       <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full">
+        {!planLoading && !canUseCoach && (
+          <div className="mx-3 sm:mx-4 mt-4 panel p-5 text-center space-y-3">
+            <Crown className="w-6 h-6 text-brand mx-auto" strokeWidth={1.5} />
+            <p className="font-display text-lg font-medium">Coach réservé aux abonnés</p>
+            <p className="text-sm text-muted-foreground">
+              Passez Plus pour obtenir des conseils personnalisés sur votre profil et vos échanges.
+            </p>
+            <Button variant="hero" size="sm" onClick={() => navigate(PLANS_PATH)}>
+              Voir les offres
+            </Button>
+          </div>
+        )}
+
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-6 space-y-3 sm:space-y-4">
-          {messages.length === 0 && (
+          {messages.length === 0 && canUseCoach && (
             <div className="text-center py-8 sm:py-12">
               <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-copper" strokeWidth={1.5} />
+                <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-brand" strokeWidth={1.5} />
               </div>
-              <h2 className="font-display text-xl sm:text-2xl font-light mb-1.5 sm:mb-2">
-                Coach <span className="text-gradient-copper italic">Dating</span>
+              <h2 className="font-display text-xl sm:text-2xl font-medium mb-1.5 sm:mb-2">
+                Coach dating
               </h2>
               <p className="text-muted-foreground text-xs sm:text-sm mb-6 sm:mb-8 max-w-sm mx-auto px-4">
-                Votre assistant personnel pour des conseils de rencontres sur mesure.
+                Votre assistant pour des conseils de rencontres sur mesure.
               </p>
               <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center max-w-md mx-auto px-2">
                 {SUGGESTIONS.map((s) => (
                   <button
                     key={s}
                     onClick={() => sendMessage(s)}
-                    className="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full bg-secondary/50 border border-border/50 text-[10px] sm:text-xs font-medium text-foreground/70 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground transition-all touch-manipulation active:scale-[0.97]"
+                    className="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-secondary border border-border text-[10px] sm:text-xs font-medium text-foreground/70 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground transition-all touch-manipulation active:scale-[0.97]"
                   >
                     {s}
                   </button>
@@ -190,7 +215,7 @@ const DatingCoach = () => {
             >
               {msg.role === "assistant" && (
                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-1">
-                  <Bot size={14} className="text-copper" />
+                  <Bot size={14} className="text-brand" />
                 </div>
               )}
               <div
@@ -213,7 +238,7 @@ const DatingCoach = () => {
           {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
             <div className="flex gap-2 sm:gap-3">
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-                <Bot size={14} className="text-copper" />
+                <Bot size={14} className="text-brand" />
               </div>
               <div className="glass-card rounded-2xl rounded-bl-md px-3 sm:px-4 py-2.5 sm:py-3">
                 <div className="flex gap-1">
@@ -240,11 +265,16 @@ const DatingCoach = () => {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Posez votre question..."
+              placeholder={canUseCoach ? "Posez votre question..." : "Réservé aux abonnés Plus+"}
               className="bg-secondary/50 border-border/50 h-10 sm:h-11 text-base"
-              disabled={isLoading}
+              disabled={isLoading || !canUseCoach}
             />
-            <Button type="submit" size="icon" disabled={isLoading || !input.trim()} className="h-10 w-10 sm:h-11 sm:w-11 shrink-0 touch-manipulation">
+            <Button
+              type="submit"
+              size="icon"
+              disabled={isLoading || !input.trim() || !canUseCoach}
+              className="h-10 w-10 sm:h-11 sm:w-11 shrink-0 touch-manipulation"
+            >
               <Send size={16} />
             </Button>
           </form>

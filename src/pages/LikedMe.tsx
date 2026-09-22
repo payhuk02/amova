@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, User, MapPin, MessageCircle, ShieldCheck, Eye, Sparkles, Check } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import EmptyState from "@/components/ui/empty-state";
+import BlurredPhoto from "@/components/BlurredPhoto";
 import { isOnline, formatLastSeen } from "@/hooks/useOnlineStatus";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -179,15 +180,15 @@ const LikedMe = () => {
                       >
                         <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-primary/15 flex items-center justify-center overflow-hidden">
                           {liker.avatar_url ? (
-                            <img
+                            <BlurredPhoto
                               src={liker.avatar_url}
-                              alt=""
-                              className={`w-full h-full rounded-full object-cover transition-all ${
-                                !isRevealed && !isLikedBack ? "blur-md" : ""
-                              }`}
+                              blurred={!isRevealed && !isLikedBack}
+                              showLock={false}
+                              className="w-full h-full rounded-full"
+                              imgClassName="rounded-full"
                             />
                           ) : (
-                            <User className="w-5 h-5 sm:w-6 sm:h-6 text-copper" strokeWidth={1.5} />
+                            <User className="w-5 h-5 sm:w-6 sm:h-6 text-brand" strokeWidth={1.5} />
                           )}
                         </div>
                         <div

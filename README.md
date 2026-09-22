@@ -47,7 +47,7 @@ supabase db push
 Déployer les Edge Functions :
 
 ```bash
-supabase functions deploy ai-match icebreaker compatibility dating-coach delete-account create-payment verify-payment moneyfusion-webhook platform-cron sumsub-token sumsub-webhook verify-identity
+supabase functions deploy ai-match icebreaker compatibility dating-coach delete-account create-payment verify-payment moneyfusion-webhook platform-cron verify-identity ai-chatbot
 ```
 
 Configurer les secrets Supabase :

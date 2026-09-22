@@ -214,7 +214,13 @@ const Discover = () => {
         if (!error || error.code === "23505") {
           shouldAdvance = true;
         } else {
-          toast.error("Impossible d'enregistrer ce passage");
+          const limitMsg = getLimitErrorMessage(error);
+          if (limitMsg) {
+            toast.error(limitMsg);
+            if (isUpgradeLimitError(error)) navigate(PLANS_PATH);
+          } else {
+            toast.error("Impossible d'enregistrer ce passage");
+          }
         }
       }
 
@@ -226,7 +232,7 @@ const Discover = () => {
         }
       }, 300);
     },
-    [user, currentProfile, swiping, checkBadges]
+    [user, currentProfile, swiping, checkBadges, navigate],
   );
 
   const handlePointerDown = (e: React.PointerEvent) => {

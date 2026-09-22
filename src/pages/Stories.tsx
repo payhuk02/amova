@@ -314,12 +314,23 @@ const Stories = () => {
             </div>
           </div>
 
-          {/* Media */}
-          <img
-            src={viewing.group.stories[viewing.index].media_url}
-            alt=""
-            className="max-h-[70dvh] sm:max-h-[80vh] max-w-full object-contain rounded-lg"
-          />
+          {/* Media — flouté pour le plan Gratuit (sauf ses propres stories) */}
+          <div className="relative max-h-[70dvh] sm:max-h-[80vh] max-w-full">
+            {blurPhotos && viewing.group.user_id !== user?.id ? (
+              <BlurredPhoto
+                src={viewing.group.stories[viewing.index].media_url}
+                blurred
+                className="max-h-[70dvh] sm:max-h-[80vh] max-w-full rounded-lg"
+                imgClassName="max-h-[70dvh] sm:max-h-[80vh] object-contain"
+              />
+            ) : (
+              <img
+                src={viewing.group.stories[viewing.index].media_url}
+                alt=""
+                className="max-h-[70dvh] sm:max-h-[80vh] max-w-full object-contain rounded-lg"
+              />
+            )}
+          </div>
 
           {/* Caption */}
           {viewing.group.stories[viewing.index].caption && (
