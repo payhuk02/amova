@@ -3,22 +3,23 @@ import { Button } from "@/components/ui/button";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const CTASection = () => (
-  <section className="py-28 md:py-36 relative">
+  <section className="py-24 md:py-32 bg-background relative">
     <div className="absolute inset-x-0 top-0 hairline" aria-hidden />
     <div className="container">
-      <ScrollReveal className="max-w-xl">
-        <p className="text-gold text-xs uppercase tracking-[0.22em] mb-4 font-body">Rejoindre</p>
-        <h2 className="font-display text-3xl md:text-5xl font-medium mb-5 leading-[1.1] text-foreground">
-          Votre prochain chapitre commence ici
+      <ScrollReveal className="max-w-xl mx-auto text-center">
+        <p className="eyebrow mb-4">Inscription</p>
+        <h2 className="font-display text-3xl md:text-5xl font-medium mb-4 leading-[1.1] text-foreground">
+          Rejoindre Amova
         </h2>
-        <p className="text-muted-foreground text-base md:text-lg mb-10 leading-relaxed">
-          Inscription gratuite. Matching homme ↔ femme. Vérification d&apos;identité disponible après abonnement.
+        <p className="text-muted-foreground text-base md:text-lg mb-9 leading-relaxed">
+          Compte gratuit. Matching homme ↔ femme. La vérification d&apos;identité
+          est disponible après abonnement.
         </p>
         <Button variant="hero" size="xl" asChild>
           <Link to="/auth">Créer mon compte</Link>
         </Button>
-        <p className="text-muted-foreground/60 text-xs mt-7 tracking-wide">
-          18 ans et plus · Annulation à tout moment
+        <p className="text-muted-foreground text-xs mt-6">
+          Réservé aux 18 ans et plus · Résiliation à tout moment
         </p>
       </ScrollReveal>
     </div>

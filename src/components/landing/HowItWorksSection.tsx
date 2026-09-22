@@ -7,51 +7,51 @@ const steps = [
     step: "01",
     title: "Créez votre profil",
     description:
-      "Genre, ville, religion, métier et critères partenaires. Le genre et la date de naissance sont verrouillés après validation.",
+      "Présentez-vous : ville, métier, religion et critères. Le genre et la date de naissance sont définitifs après validation.",
   },
   {
     icon: Search,
     step: "02",
     title: "Découvrez l’autre genre",
     description:
-      "Explorez des profils opposés au vôtre. Filtrez par ville et âge ; les filtres avancés sont réservés aux abonnés Plus.",
+      "Parcourez uniquement des profils du genre opposé. Filtrez par ville et âge ; les filtres avancés sont inclus dès Plus.",
   },
   {
     icon: Heart,
     step: "03",
-    title: "Matchez et échangez",
+    title: "Matchez, puis échangez",
     description:
-      "Likez, matchez, puis discutez. Les photos restent floutées sur le plan Gratuit jusqu’à un match ou un abonnement.",
+      "Un like mutuel ouvre la conversation. Sur le plan Gratuit, les photos restent floutées jusqu’au match ou à un abonnement.",
   },
 ];
 
 const HowItWorksSection = () => (
   <section id="how" className="py-24 md:py-32 bg-background">
     <div className="container">
-      <ScrollReveal className="max-w-2xl mb-14 md:mb-20">
-        <p className="text-gold text-sm uppercase tracking-[0.22em] mb-4 font-body">
-          Le parcours
-        </p>
+      <ScrollReveal className="max-w-2xl mx-auto text-center mb-14 md:mb-20">
+        <p className="eyebrow mb-4">Parcours</p>
         <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-medium text-foreground">
-          Trois étapes simples
+          Trois étapes, sans détour
         </h2>
       </ScrollReveal>
 
-      <div className="max-w-3xl space-y-5 md:space-y-6">
+      <div className="grid sm:grid-cols-3 gap-4 md:gap-5 max-w-5xl mx-auto">
         {steps.map((step, i) => (
           <ScrollReveal key={step.step} delay={i * 80}>
-            <div className="panel flex gap-5 md:gap-8 items-start p-5 md:p-6">
-              <div className="flex-shrink-0 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-lg bg-secondary border border-border">
-                <step.icon className="w-5 h-5 md:w-6 md:h-6 text-brand" strokeWidth={1.5} />
+            <article className="panel flex flex-col items-center text-center p-6 md:p-8 h-full">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-brand mb-4">
+                <step.icon className="w-6 h-6" strokeWidth={1.5} />
               </div>
-              <div className="pt-0.5">
-                <p className="text-gold text-xs uppercase tracking-[0.15em] mb-2 font-body">
-                  Étape {step.step}
-                </p>
-                <h3 className="font-display text-2xl md:text-3xl font-medium mb-2">{step.title}</h3>
-                <p className="text-muted-foreground leading-relaxed max-w-md">{step.description}</p>
-              </div>
-            </div>
+              <p className="text-brand text-xs uppercase tracking-[0.16em] mb-2 font-body font-medium">
+                Étape {step.step}
+              </p>
+              <h3 className="font-display text-xl md:text-2xl font-medium mb-2 text-foreground">
+                {step.title}
+              </h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                {step.description}
+              </p>
+            </article>
           </ScrollReveal>
         ))}
       </div>
