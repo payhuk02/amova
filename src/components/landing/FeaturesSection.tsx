@@ -28,7 +28,7 @@ const FeaturesSection = () => (
   <section id="features" className="py-24 md:py-32">
     <div className="container">
       <ScrollReveal className="max-w-2xl mb-14 md:mb-20">
-        <p className="text-brand-light text-sm uppercase tracking-[0.2em] mb-4 font-body">
+        <p className="text-gold text-sm uppercase tracking-[0.22em] mb-4 font-body">
           Ce qui compte
         </p>
         <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground">

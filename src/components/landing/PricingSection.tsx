@@ -47,7 +47,7 @@ const PricingSection = () => (
   <section id="pricing" className="py-24 md:py-32">
     <div className="container">
       <ScrollReveal className="text-center mb-16 md:mb-20">
-        <p className="text-brand-light text-sm uppercase tracking-[0.2em] mb-4 font-body">Tarifs</p>
+        <p className="text-gold text-sm uppercase tracking-[0.22em] mb-4 font-body">Tarifs</p>
         <h2 className="font-display text-4xl md:text-5xl font-light text-foreground">
           Formules claires
         </h2>

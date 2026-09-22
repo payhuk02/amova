@@ -29,7 +29,7 @@ const HowItWorksSection = () => (
   <section id="how" className="py-24 md:py-32 bg-secondary/20">
     <div className="container">
       <ScrollReveal className="max-w-2xl mb-14 md:mb-20">
-        <p className="text-brand-light text-sm uppercase tracking-[0.2em] mb-4 font-body">
+        <p className="text-gold text-sm uppercase tracking-[0.22em] mb-4 font-body">
           Le parcours
         </p>
         <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground">
@@ -45,7 +45,7 @@ const HowItWorksSection = () => (
                 <step.icon className="w-5 h-5 md:w-6 md:h-6 text-brand" strokeWidth={1.5} />
               </div>
               <div className="pt-1">
-                <p className="text-brand-light text-xs uppercase tracking-[0.15em] mb-2 font-body">
+                <p className="text-gold/80 text-xs uppercase tracking-[0.15em] mb-2 font-body">
                   Étape {step.step}
                 </p>
                 <h3 className="font-display text-2xl md:text-3xl font-medium mb-3">{step.title}</h3>

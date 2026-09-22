@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Logo from "@/components/Logo";
+import Atmosphere from "@/components/landing/Atmosphere";
 import { toast } from "sonner";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
@@ -94,7 +95,8 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col safe-area-top safe-area-bottom bg-background">
+    <div className="amova-canvas min-h-[100dvh] flex flex-col safe-area-top safe-area-bottom">
+      <Atmosphere />
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
         <div className="w-full max-w-sm">
           <div className="flex items-center justify-between mb-8 sm:mb-10">
@@ -111,7 +113,8 @@ const AuthPage = () => {
           <p className="font-display text-3xl sm:text-4xl font-medium tracking-tight text-foreground mb-2">
             Amova
           </p>
-          <h1 className="font-display text-xl sm:text-2xl font-light text-foreground/90 mb-2">
+          <div className="hairline w-16 mb-5" aria-hidden />
+          <h1 className="font-display text-xl sm:text-2xl font-normal italic text-foreground/90 mb-2">
             {isLogin ? "Connexion" : "Créer un compte"}
           </h1>
           <p className="text-muted-foreground text-sm mb-6 sm:mb-8 leading-relaxed">

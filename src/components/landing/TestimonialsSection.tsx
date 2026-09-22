@@ -20,7 +20,7 @@ const TestimonialsSection = () => (
   <section id="engagements" className="py-20 md:py-24 bg-secondary/30 border-y border-border/40">
     <div className="container">
       <ScrollReveal className="max-w-2xl mb-12 md:mb-14">
-        <p className="text-brand-light text-sm uppercase tracking-[0.2em] mb-3 font-body">
+        <p className="text-gold text-sm uppercase tracking-[0.22em] mb-3 font-body">
           Engagements
         </p>
         <h2 className="font-display text-3xl md:text-4xl font-light text-foreground">

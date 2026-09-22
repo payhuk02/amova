@@ -273,7 +273,7 @@ const ProfilePage = () => {
         {/* Bio */}
         {profile.bio && (
           <section className="mb-6 sm:mb-8">
-            <h2 className="text-brand-light text-xs uppercase tracking-[0.16em] mb-3 font-body">À propos</h2>
+            <h2 className="text-gold text-xs uppercase tracking-[0.18em] mb-3 font-body">À propos</h2>
             <p className="text-sm sm:text-base text-foreground/80 leading-relaxed">{profile.bio}</p>
           </section>
         )}
@@ -281,7 +281,7 @@ const ProfilePage = () => {
         {/* Details — editorial list, no cards */}
         {details.length > 0 && (
           <section className="mb-6 sm:mb-8 border-y border-border/40 py-5">
-            <h2 className="text-brand-light text-xs uppercase tracking-[0.16em] mb-4 font-body">Profil</h2>
+            <h2 className="text-gold text-xs uppercase tracking-[0.18em] mb-4 font-body">Profil</h2>
             <dl className="grid sm:grid-cols-2 gap-x-8 gap-y-3">
               {details.map((d) => (
                 <div key={d.label}>
@@ -296,7 +296,7 @@ const ProfilePage = () => {
         {/* Interests */}
         {profile.interests && profile.interests.length > 0 && (
           <section className="mb-6 sm:mb-8">
-            <h2 className="text-brand-light text-xs uppercase tracking-[0.16em] mb-3 font-body">Centres d&apos;intérêt</h2>
+            <h2 className="text-gold text-xs uppercase tracking-[0.18em] mb-3 font-body">Centres d&apos;intérêt</h2>
             <div className="flex flex-wrap gap-1.5">
               {profile.interests.map((interest) => (
                 <InterestTag key={interest}>{interest}</InterestTag>
@@ -344,7 +344,7 @@ const ProfilePage = () => {
         {/* Gallery */}
         {photos.length > 0 && (
           <section className="mb-6">
-            <h2 className="text-brand-light text-xs uppercase tracking-[0.16em] mb-4 font-body">Photos</h2>
+            <h2 className="text-gold text-xs uppercase tracking-[0.18em] mb-4 font-body">Photos</h2>
             <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
               {photos.map((photo) => (
                 <button

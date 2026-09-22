@@ -122,7 +122,7 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <div className="flex h-[100dvh] overflow-hidden bg-background">
+    <div className="flex h-[100dvh] overflow-hidden bg-background amova-canvas">
       <IncomingCallOverlay />
 
       <aside className="hidden lg:flex flex-col w-64 border-r border-border/40 bg-elevated z-40">

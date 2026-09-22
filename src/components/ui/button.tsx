@@ -5,12 +5,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-premium-sm hover:bg-primary/90 hover:shadow-premium",
+          "bg-primary text-primary-foreground shadow-premium-sm hover:bg-primary/90",
         destructive:
           "bg-destructive text-destructive-foreground shadow-premium-sm hover:bg-destructive/90",
         outline:
@@ -24,15 +24,15 @@ const buttonVariants = cva(
         trust:
           "bg-accent text-accent-foreground shadow-premium-sm hover:bg-accent/90",
         hero:
-          "bg-primary text-primary-foreground font-display text-base tracking-wide shadow-premium hover:bg-primary/90 hover:shadow-premium",
+          "bg-primary text-primary-foreground font-body text-[15px] font-semibold tracking-[0.04em] uppercase shadow-premium hover:bg-primary/92",
         "hero-outline":
-          "border border-champagne/25 bg-transparent text-foreground font-display text-base tracking-wide hover:bg-champagne/10 hover:border-champagne/40",
+          "border border-border/60 bg-transparent text-foreground font-body text-[15px] font-medium tracking-[0.04em] uppercase hover:bg-secondary/40 hover:border-border",
       },
       size: {
         default: "h-10 px-5 py-2",
-        sm: "h-9 rounded-lg px-3.5 text-xs",
-        lg: "h-11 rounded-xl px-8",
-        xl: "h-12 rounded-xl px-10 text-base",
+        sm: "h-9 rounded-md px-3.5 text-xs",
+        lg: "h-11 rounded-lg px-8",
+        xl: "h-12 rounded-lg px-10 text-base",
         icon: "h-10 w-10",
       },
     },

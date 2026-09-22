@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Sun, Moon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const ThemeToggle = () => {
+const ThemeToggle = ({ className }: { className?: string }) => {
   const [light, setLight] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("amova-theme") === "light";
@@ -17,7 +18,10 @@ const ThemeToggle = () => {
   return (
     <button
       onClick={() => setLight(!light)}
-      className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors active:scale-95"
+      className={cn(
+        "p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors active:scale-95",
+        className,
+      )}
       aria-label={light ? "Passer en mode sombre" : "Passer en mode clair"}
     >
       {light ? <Moon size={18} /> : <Sun size={18} />}

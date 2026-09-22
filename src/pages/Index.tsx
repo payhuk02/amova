@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
+import Atmosphere from "@/components/landing/Atmosphere";
 import Seo, { OrganizationJsonLd, WebsiteJsonLd } from "@/components/Seo";
 import { DEFAULT_DESCRIPTION } from "@/lib/seo";
 
@@ -14,7 +15,8 @@ const Footer = lazy(() => import("@/components/landing/Footer"));
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="amova-canvas min-h-screen">
+      <Atmosphere />
       <Seo
         title="Amova — Rencontres sincères, histoires vraies"
         description={DEFAULT_DESCRIPTION}
@@ -24,13 +26,15 @@ const Index = () => {
       <Navbar />
       <HeroSection />
       <Suspense fallback={null}>
-        <TrustKycSection />
-        <HowItWorksSection />
-        <FeaturesSection />
-        <PricingSection />
-        <TestimonialsSection />
-        <CTASection />
-        <Footer />
+        <div className="section-depth">
+          <TrustKycSection />
+          <HowItWorksSection />
+          <FeaturesSection />
+          <PricingSection />
+          <TestimonialsSection />
+          <CTASection />
+          <Footer />
+        </div>
       </Suspense>
     </div>
   );
