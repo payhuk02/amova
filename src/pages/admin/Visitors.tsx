@@ -9,20 +9,24 @@ import {
   Tablet,
   ExternalLink,
   RefreshCw,
+  Globe,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout, { AdminPageHeader, AdminTable } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { countryFlagEmoji, countryLabel } from "@/lib/countries";
 
 type TopPage = { path: string; views: number; sessions: number };
 type TopReferrer = { referrer: string; views: number };
+type TopCountry = { country_code: string; views: number; sessions: number };
 type DayRow = { day: string; views: number; sessions: number };
 type RecentRow = {
   path: string;
   referrer_host: string | null;
   is_authed: boolean;
   device: string;
+  country_code: string | null;
   created_at: string;
 };
 
@@ -34,6 +38,7 @@ type VisitorStats = {
   unique_sessions_period: number;
   authed_visits_period: number;
   devices: Record<string, number>;
+  top_countries: TopCountry[];
   top_pages: TopPage[];
   top_referrers: TopReferrer[];
   by_day: DayRow[];
@@ -89,7 +94,7 @@ export default function AdminVisitors() {
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-2">
         <AdminPageHeader
           title="Visiteurs"
-          description="Trafic sur la plateforme (pages vues, sessions). Données first-party, sans adresse IP."
+          description="Trafic sur la plateforme (pages vues, sessions, pays). Données first-party, sans adresse IP."
         />
         <div className="flex flex-wrap items-center gap-2 shrink-0">
           {PERIODS.map((p) => (
@@ -203,32 +208,43 @@ export default function AdminVisitors() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div>
-              <h2 className="font-display text-lg font-medium mb-3">Pages les plus vues</h2>
+              <h2 className="font-display text-lg font-medium mb-3 flex items-center gap-2">
+                <Globe size={18} className="text-muted-foreground" />
+                Pays de provenance
+              </h2>
               <AdminTable>
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border/50 text-left text-muted-foreground">
-                      <th className="px-4 py-3 font-medium">Page</th>
+                      <th className="px-4 py-3 font-medium">Pays</th>
                       <th className="px-4 py-3 font-medium text-right">Vues</th>
                       <th className="px-4 py-3 font-medium text-right">Sessions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {stats.top_pages.length === 0 && (
+                    {(stats.top_countries?.length ?? 0) === 0 && (
                       <tr>
                         <td colSpan={3} className="px-4 py-6 text-center text-muted-foreground">
-                          —
+                          Les pays apparaîtront sur les prochaines visites.
                         </td>
                       </tr>
                     )}
-                    {stats.top_pages.map((p) => (
-                      <tr key={p.path} className="border-b border-border/30 last:border-0">
-                        <td className="px-4 py-2.5 font-mono text-xs truncate max-w-[220px]">
-                          {p.path}
+                    {(stats.top_countries ?? []).map((c) => (
+                      <tr key={c.country_code} className="border-b border-border/30 last:border-0">
+                        <td className="px-4 py-2.5">
+                          <span className="inline-flex items-center gap-2">
+                            <span aria-hidden>{countryFlagEmoji(c.country_code)}</span>
+                            <span className="font-medium">{countryLabel(c.country_code)}</span>
+                            {c.country_code !== "??" && (
+                              <span className="text-[10px] text-muted-foreground font-mono">
+                                {c.country_code}
+                              </span>
+                            )}
+                          </span>
                         </td>
-                        <td className="px-4 py-2.5 text-right tabular-nums">{p.views}</td>
+                        <td className="px-4 py-2.5 text-right tabular-nums">{c.views}</td>
                         <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-                          {p.sessions}
+                          {c.sessions}
                         </td>
                       </tr>
                     ))}
@@ -273,6 +289,41 @@ export default function AdminVisitors() {
           </div>
 
           <div>
+            <h2 className="font-display text-lg font-medium mb-3">Pages les plus vues</h2>
+            <AdminTable>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/50 text-left text-muted-foreground">
+                    <th className="px-4 py-3 font-medium">Page</th>
+                    <th className="px-4 py-3 font-medium text-right">Vues</th>
+                    <th className="px-4 py-3 font-medium text-right">Sessions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.top_pages.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-4 py-6 text-center text-muted-foreground">
+                        —
+                      </td>
+                    </tr>
+                  )}
+                  {stats.top_pages.map((p) => (
+                    <tr key={p.path} className="border-b border-border/30 last:border-0">
+                      <td className="px-4 py-2.5 font-mono text-xs truncate max-w-[220px]">
+                        {p.path}
+                      </td>
+                      <td className="px-4 py-2.5 text-right tabular-nums">{p.views}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+                        {p.sessions}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </AdminTable>
+          </div>
+
+          <div>
             <h2 className="font-display text-lg font-medium mb-3">Activité récente</h2>
             <AdminTable>
               <table className="w-full text-sm">
@@ -280,6 +331,7 @@ export default function AdminVisitors() {
                   <tr className="border-b border-border/50 text-left text-muted-foreground">
                     <th className="px-4 py-3 font-medium">Quand</th>
                     <th className="px-4 py-3 font-medium">Page</th>
+                    <th className="px-4 py-3 font-medium">Pays</th>
                     <th className="px-4 py-3 font-medium">Appareil</th>
                     <th className="px-4 py-3 font-medium">Compte</th>
                     <th className="px-4 py-3 font-medium">Referrer</th>
@@ -295,6 +347,12 @@ export default function AdminVisitors() {
                         })}
                       </td>
                       <td className="px-4 py-2.5 font-mono text-xs">{r.path}</td>
+                      <td className="px-4 py-2.5 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1.5">
+                          <span aria-hidden>{countryFlagEmoji(r.country_code)}</span>
+                          <span className="text-xs">{countryLabel(r.country_code)}</span>
+                        </span>
+                      </td>
                       <td className="px-4 py-2.5 capitalize">{r.device}</td>
                       <td className="px-4 py-2.5">
                         {r.is_authed ? (

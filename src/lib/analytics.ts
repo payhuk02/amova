@@ -1,5 +1,6 @@
 /**
  * Analytics: Plausible (optional) + first-party page views for admin.
+ * Country is resolved once per session (no IP stored server-side).
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -12,8 +13,10 @@ declare global {
 
 const SESSION_KEY = "amova_visit_sid";
 const LAST_PATH_KEY = "amova_visit_last";
+const COUNTRY_KEY = "amova_visit_cc";
 
 let initialized = false;
+let countryPromise: Promise<string | null> | null = null;
 
 export function initAnalytics() {
   const domain = import.meta.env.VITE_PLAUSIBLE_DOMAIN as string | undefined;
@@ -69,6 +72,49 @@ function referrerHost(): string | null {
   }
 }
 
+/** Resolve visitor country once per session (Cloudflare trace — no IP kept). */
+async function detectCountryCode(): Promise<string | null> {
+  try {
+    const cached = sessionStorage.getItem(COUNTRY_KEY);
+    if (cached === "-") return null;
+    if (cached && /^[A-Z]{2}$/.test(cached)) return cached;
+  } catch {
+    // ignore
+  }
+
+  if (!countryPromise) {
+    countryPromise = (async () => {
+      try {
+        const ctrl = new AbortController();
+        const timer = window.setTimeout(() => ctrl.abort(), 2500);
+        const res = await fetch("https://www.cloudflare.com/cdn-cgi/trace", {
+          signal: ctrl.signal,
+          cache: "no-store",
+        });
+        window.clearTimeout(timer);
+        const text = await res.text();
+        const match = text.match(/(?:^|\n)loc=([A-Z]{2})(?:\n|$)/);
+        const code = match?.[1] ?? null;
+        try {
+          sessionStorage.setItem(COUNTRY_KEY, code ?? "-");
+        } catch {
+          // ignore
+        }
+        return code;
+      } catch {
+        try {
+          sessionStorage.setItem(COUNTRY_KEY, "-");
+        } catch {
+          // ignore
+        }
+        return null;
+      }
+    })();
+  }
+
+  return countryPromise;
+}
+
 /** Record SPA navigation for the admin Visiteurs dashboard. */
 export async function trackPageView(path?: string) {
   trackEvent("pageview");
@@ -76,7 +122,6 @@ export async function trackPageView(path?: string) {
   if (typeof window === "undefined") return;
 
   const pathname = path ?? window.location.pathname;
-  // Don't flood the DB with admin polling while looking at visitors
   if (pathname.startsWith("/admin/visitors")) return;
 
   try {
@@ -92,11 +137,14 @@ export async function trackPageView(path?: string) {
   }
 
   const sessionId = getOrCreateSessionId();
+  const country = await detectCountryCode();
+
   const { error } = await supabase.rpc("record_page_view", {
     p_path: pathname,
     p_session_id: sessionId,
     p_referrer_host: referrerHost(),
     p_device: detectDevice(),
+    p_country_code: country,
   });
   if (error && import.meta.env.DEV) {
     console.warn("[analytics] record_page_view failed", error.message);

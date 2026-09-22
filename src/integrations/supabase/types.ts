@@ -961,6 +961,7 @@ export type Database = {
           p_session_id: string
           p_referrer_host?: string | null
           p_device?: string
+          p_country_code?: string | null
         }
         Returns: undefined
       }
