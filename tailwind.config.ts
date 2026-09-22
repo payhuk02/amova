@@ -59,6 +59,7 @@ export default {
         violet: "hsl(var(--violet))",
         plum: "hsl(var(--plum))",
         elevated: "hsl(var(--elevated))",
+        surface: "hsl(var(--surface))",
         gold: {
           DEFAULT: "hsl(var(--gold))",
           muted: "hsl(var(--gold-muted))",

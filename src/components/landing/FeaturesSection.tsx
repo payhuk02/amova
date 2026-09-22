@@ -25,23 +25,23 @@ const features = [
 ];
 
 const FeaturesSection = () => (
-  <section id="features" className="py-24 md:py-32">
+  <section id="features" className="py-24 md:py-32 section-band">
     <div className="container">
       <ScrollReveal className="max-w-2xl mb-14 md:mb-20">
         <p className="text-gold text-sm uppercase tracking-[0.22em] mb-4 font-body">
           Ce qui compte
         </p>
-        <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground">
+        <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-medium text-foreground">
           Conçue pour des rencontres sérieuses
         </h2>
       </ScrollReveal>
 
-      <div className="grid sm:grid-cols-2 gap-x-12 gap-y-12 md:gap-y-14 max-w-4xl">
+      <div className="grid sm:grid-cols-2 gap-4 md:gap-5 max-w-4xl">
         {features.map((feature, i) => (
           <ScrollReveal key={feature.title} delay={i * 50}>
-            <div className="flex gap-4 md:gap-5">
+            <div className="panel flex gap-4 md:gap-5 p-5 md:p-6 h-full">
               <feature.icon
-                className="w-6 h-6 text-brand shrink-0 mt-1"
+                className="w-6 h-6 text-brand shrink-0 mt-0.5"
                 strokeWidth={1.5}
               />
               <div>

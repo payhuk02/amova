@@ -44,30 +44,30 @@ const plans = [
 ];
 
 const PricingSection = () => (
-  <section id="pricing" className="py-24 md:py-32">
+  <section id="pricing" className="py-24 md:py-32 bg-background">
     <div className="container">
-      <ScrollReveal className="text-center mb-16 md:mb-20">
+      <ScrollReveal className="max-w-2xl mb-14 md:mb-16">
         <p className="text-gold text-sm uppercase tracking-[0.22em] mb-4 font-body">Tarifs</p>
-        <h2 className="font-display text-4xl md:text-5xl font-light text-foreground">
+        <h2 className="font-display text-4xl md:text-5xl font-medium text-foreground">
           Formules claires
         </h2>
-        <p className="text-muted-foreground mt-4 max-w-md mx-auto text-sm md:text-base">
+        <p className="text-muted-foreground mt-4 max-w-md text-sm md:text-base">
           −15 % trimestriel, −30 % annuel. Paiement Orange Money, MTN et Wave.
         </p>
       </ScrollReveal>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto items-stretch px-4 sm:px-6 md:px-0">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 max-w-6xl items-stretch">
         {plans.map((plan, i) => (
           <ScrollReveal key={plan.name} delay={i * 60}>
             <div
-              className={`rounded-2xl p-6 md:p-7 h-full flex flex-col border bg-card transition-colors ${
+              className={`panel p-6 md:p-7 h-full flex flex-col transition-colors ${
                 plan.highlighted
-                  ? "border-brand/40 relative"
-                  : "border-border/50 hover:border-border"
+                  ? "border-brand relative ring-1 ring-brand/30"
+                  : "hover:border-foreground/20"
               }`}
             >
               {plan.highlighted && (
-                <span className="absolute top-0 left-4 -translate-y-1/2 bg-background border border-brand/40 text-brand text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-md">
+                <span className="absolute top-0 left-4 -translate-y-1/2 bg-card border border-brand text-brand text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-md">
                   Populaire
                 </span>
               )}
@@ -85,7 +85,7 @@ const PricingSection = () => (
                 {plan.features.map((f) => (
                   <li key={f} className="flex items-start gap-2.5 text-sm">
                     <Check className="w-4 h-4 text-success mt-0.5 flex-shrink-0" strokeWidth={2} />
-                    <span className="text-foreground/80">{f}</span>
+                    <span className="text-foreground/85">{f}</span>
                   </li>
                 ))}
               </ul>

@@ -26,29 +26,29 @@ const steps = [
 ];
 
 const HowItWorksSection = () => (
-  <section id="how" className="py-24 md:py-32 bg-secondary/20">
+  <section id="how" className="py-24 md:py-32 bg-background">
     <div className="container">
       <ScrollReveal className="max-w-2xl mb-14 md:mb-20">
         <p className="text-gold text-sm uppercase tracking-[0.22em] mb-4 font-body">
           Le parcours
         </p>
-        <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground">
+        <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-medium text-foreground">
           Trois étapes simples
         </h2>
       </ScrollReveal>
 
-      <div className="max-w-3xl space-y-12 md:space-y-14">
+      <div className="max-w-3xl space-y-5 md:space-y-6">
         {steps.map((step, i) => (
           <ScrollReveal key={step.step} delay={i * 80}>
-            <div className="flex gap-5 md:gap-8 items-start">
-              <div className="flex-shrink-0 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full border border-border/50 bg-background">
+            <div className="panel flex gap-5 md:gap-8 items-start p-5 md:p-6">
+              <div className="flex-shrink-0 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-lg bg-secondary border border-border">
                 <step.icon className="w-5 h-5 md:w-6 md:h-6 text-brand" strokeWidth={1.5} />
               </div>
-              <div className="pt-1">
-                <p className="text-gold/80 text-xs uppercase tracking-[0.15em] mb-2 font-body">
+              <div className="pt-0.5">
+                <p className="text-gold text-xs uppercase tracking-[0.15em] mb-2 font-body">
                   Étape {step.step}
                 </p>
-                <h3 className="font-display text-2xl md:text-3xl font-medium mb-3">{step.title}</h3>
+                <h3 className="font-display text-2xl md:text-3xl font-medium mb-2">{step.title}</h3>
                 <p className="text-muted-foreground leading-relaxed max-w-md">{step.description}</p>
               </div>
             </div>

@@ -4,61 +4,61 @@
 
 @layer base {
   :root {
-    /* Amova — cinéma premium (qualité Farata, identité magenta) */
-    --background: 270 18% 5%;
-    --foreground: 40 20% 96%;
+    /* Fond sombre ≠ surfaces UI (contraste volontaire) */
+    --background: 270 14% 4%;
+    --foreground: 40 18% 96%;
 
-    --card: 270 16% 8%;
-    --card-foreground: 40 20% 96%;
+    --card: 270 10% 12%;
+    --card-foreground: 40 18% 96%;
 
-    --popover: 270 14% 9%;
-    --popover-foreground: 40 20% 96%;
+    --popover: 270 10% 13%;
+    --popover-foreground: 40 18% 96%;
 
-    --primary: 330 68% 50%;
+    --primary: 330 72% 54%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 270 12% 11%;
-    --secondary-foreground: 270 8% 72%;
+    --secondary: 270 9% 16%;
+    --secondary-foreground: 40 12% 88%;
 
-    --muted: 270 10% 12%;
-    --muted-foreground: 270 6% 55%;
+    --muted: 270 8% 14%;
+    --muted-foreground: 270 6% 68%;
 
-    --accent: 330 40% 38%;
+    --accent: 330 48% 42%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 8 55% 55%;
+    --destructive: 8 58% 58%;
     --destructive-foreground: 40 20% 98%;
 
-    --success: 152 42% 45%;
+    --success: 152 48% 48%;
     --success-foreground: 0 0% 100%;
 
-    --border: 270 10% 16%;
-    --input: 270 10% 16%;
-    --ring: 330 68% 50%;
+    --border: 270 8% 24%;
+    --input: 270 8% 20%;
+    --ring: 330 72% 54%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 270 16% 6%;
-    --sidebar-foreground: 270 8% 68%;
-    --sidebar-primary: 330 68% 50%;
+    --sidebar-background: 270 12% 7%;
+    --sidebar-foreground: 270 8% 78%;
+    --sidebar-primary: 330 72% 54%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 270 12% 11%;
-    --sidebar-accent-foreground: 40 20% 96%;
-    --sidebar-border: 270 10% 14%;
-    --sidebar-ring: 330 68% 50%;
+    --sidebar-accent: 270 9% 14%;
+    --sidebar-accent-foreground: 40 18% 96%;
+    --sidebar-border: 270 8% 20%;
+    --sidebar-ring: 330 72% 54%;
 
-    --brand: 330 68% 50%;
-    --brand-light: 338 55% 70%;
-    --brand-dark: 330 45% 32%;
-    --trust: 330 35% 42%;
-    --trust-muted: 270 12% 38%;
-    --elevated: 270 14% 8%;
-    --magenta: 330 68% 50%;
-    --violet: 300 25% 28%;
-    --plum: 270 20% 4%;
-    /* Or rose discret — accent luxe, pas glitter */
-    --gold: 38 28% 58%;
-    --gold-muted: 38 16% 42%;
+    --brand: 330 72% 54%;
+    --brand-light: 338 62% 72%;
+    --brand-dark: 330 48% 36%;
+    --trust: 330 42% 48%;
+    --trust-muted: 270 10% 48%;
+    --elevated: 270 10% 10%;
+    --surface: 270 11% 9%;
+    --magenta: 330 72% 54%;
+    --violet: 300 28% 36%;
+    --plum: 270 16% 3%;
+    --gold: 38 42% 64%;
+    --gold-muted: 38 22% 48%;
 
     --champagne: var(--brand);
     --champagne-light: var(--brand-light);
@@ -70,57 +70,58 @@
   }
 
   .light {
-    --background: 40 12% 97%;
-    --foreground: 270 18% 10%;
+    --background: 40 14% 94%;
+    --foreground: 270 20% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 270 18% 10%;
+    --card-foreground: 270 20% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 270 18% 10%;
+    --popover-foreground: 270 20% 10%;
 
-    --primary: 330 65% 42%;
+    --primary: 330 68% 42%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 40 10% 94%;
-    --secondary-foreground: 270 12% 28%;
+    --secondary: 40 12% 88%;
+    --secondary-foreground: 270 14% 24%;
 
-    --muted: 40 8% 93%;
-    --muted-foreground: 270 8% 40%;
+    --muted: 40 10% 90%;
+    --muted-foreground: 270 10% 38%;
 
-    --accent: 330 35% 36%;
+    --accent: 330 40% 36%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 8 55% 44%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 152 40% 34%;
+    --success: 152 42% 34%;
     --success-foreground: 0 0% 100%;
 
-    --border: 40 8% 88%;
-    --input: 40 8% 88%;
-    --ring: 330 65% 42%;
+    --border: 40 10% 82%;
+    --input: 40 10% 86%;
+    --ring: 330 68% 42%;
 
-    --sidebar-background: 40 10% 96%;
-    --sidebar-foreground: 270 12% 28%;
-    --sidebar-primary: 330 65% 42%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 270 14% 24%;
+    --sidebar-primary: 330 68% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 10% 94%;
-    --sidebar-accent-foreground: 270 18% 10%;
-    --sidebar-border: 40 8% 88%;
-    --sidebar-ring: 330 65% 42%;
+    --sidebar-accent: 40 12% 92%;
+    --sidebar-accent-foreground: 270 20% 10%;
+    --sidebar-border: 40 10% 86%;
+    --sidebar-ring: 330 68% 42%;
 
-    --brand: 330 65% 42%;
-    --brand-light: 338 50% 48%;
-    --brand-dark: 330 40% 28%;
-    --trust: 330 32% 36%;
-    --trust-muted: 270 8% 48%;
+    --brand: 330 68% 42%;
+    --brand-light: 338 55% 48%;
+    --brand-dark: 330 42% 28%;
+    --trust: 330 36% 38%;
+    --trust-muted: 270 8% 46%;
     --elevated: 0 0% 100%;
-    --magenta: 330 65% 42%;
-    --violet: 300 20% 32%;
-    --plum: 270 20% 4%;
-    --gold: 38 32% 42%;
-    --gold-muted: 38 14% 48%;
+    --surface: 40 16% 97%;
+    --magenta: 330 68% 42%;
+    --violet: 300 22% 34%;
+    --plum: 270 16% 3%;
+    --gold: 38 45% 38%;
+    --gold-muted: 38 18% 42%;
 
     --champagne: var(--brand);
     --champagne-light: var(--brand-light);
@@ -191,8 +192,8 @@
   }
 
   .glass-card {
-    @apply bg-card/80 border border-border/40;
-    box-shadow: 0 1px 0 hsl(0 0% 100% / 0.04) inset, 0 8px 32px hsl(270 20% 2% / 0.35);
+    @apply bg-card border border-border;
+    box-shadow: 0 1px 0 hsl(0 0% 100% / 0.06) inset, 0 12px 40px hsl(270 20% 2% / 0.45);
   }
 
   .glow-copper,
@@ -224,23 +225,22 @@
     position: absolute;
     inset: -20%;
     background:
-      radial-gradient(ellipse 55% 40% at 8% 12%, hsl(330 45% 28% / 0.16), transparent 55%),
-      radial-gradient(ellipse 45% 35% at 92% 18%, hsl(270 30% 22% / 0.14), transparent 50%),
-      radial-gradient(ellipse 50% 40% at 78% 88%, hsl(330 40% 22% / 0.1), transparent 55%),
-      radial-gradient(ellipse 40% 30% at 20% 75%, hsl(38 30% 30% / 0.05), transparent 50%);
+      radial-gradient(ellipse 55% 40% at 8% 12%, hsl(330 45% 28% / 0.1), transparent 55%),
+      radial-gradient(ellipse 45% 35% at 92% 18%, hsl(270 30% 22% / 0.08), transparent 50%),
+      radial-gradient(ellipse 50% 40% at 78% 88%, hsl(330 40% 22% / 0.06), transparent 55%);
   }
 
   .light .amova-atmosphere__wells {
     background:
-      radial-gradient(ellipse 55% 40% at 10% 0%, hsl(330 40% 70% / 0.12), transparent 55%),
-      radial-gradient(ellipse 45% 35% at 90% 15%, hsl(38 40% 80% / 0.15), transparent 50%),
-      radial-gradient(ellipse 50% 40% at 50% 100%, hsl(270 15% 80% / 0.2), transparent 55%);
+      radial-gradient(ellipse 55% 40% at 10% 0%, hsl(330 40% 70% / 0.08), transparent 55%),
+      radial-gradient(ellipse 45% 35% at 90% 15%, hsl(38 40% 80% / 0.1), transparent 50%),
+      radial-gradient(ellipse 50% 40% at 50% 100%, hsl(270 15% 80% / 0.12), transparent 55%);
   }
 
   .amova-atmosphere__grain {
     position: absolute;
     inset: 0;
-    opacity: 0.045;
+    opacity: 0.035;
     mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-repeat: repeat;
@@ -248,35 +248,32 @@
   }
 
   .light .amova-atmosphere__grain {
-    opacity: 0.03;
+    opacity: 0.025;
     mix-blend-mode: multiply;
   }
 
   .amova-atmosphere__vignette {
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse 75% 70% at 50% 45%, transparent 40%, hsl(270 22% 3% / 0.55) 100%);
+    background: radial-gradient(ellipse 80% 75% at 50% 45%, transparent 45%, hsl(270 14% 3% / 0.4) 100%);
   }
 
   .light .amova-atmosphere__vignette {
-    background: radial-gradient(ellipse 80% 70% at 50% 40%, transparent 50%, hsl(40 10% 90% / 0.5) 100%);
+    background: radial-gradient(ellipse 85% 75% at 50% 40%, transparent 55%, hsl(40 10% 88% / 0.35) 100%);
   }
 
   .section-depth {
     position: relative;
   }
 
-  .section-depth::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(
-      180deg,
-      hsl(var(--background) / 0) 0%,
-      hsl(330 30% 20% / 0.04) 50%,
-      hsl(var(--background) / 0) 100%
-    );
+  .section-band {
+    background-color: hsl(var(--surface));
+    border-block: 1px solid hsl(var(--border) / 0.7);
+  }
+
+  .panel {
+    @apply bg-card border border-border rounded-xl;
+    box-shadow: 0 1px 0 hsl(0 0% 100% / 0.04) inset;
   }
 
   .hairline {
@@ -284,8 +281,8 @@
     background: linear-gradient(
       90deg,
       transparent,
-      hsl(var(--gold) / 0.35),
-      hsl(var(--brand) / 0.25),
+      hsl(var(--gold) / 0.55),
+      hsl(var(--brand) / 0.4),
       transparent
     );
   }
