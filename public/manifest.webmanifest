@@ -1,12 +1,13 @@
 {
-  "name": "Amova — Rencontres sincères",
+  "name": "Amova — Rencontres vérifiées",
   "short_name": "Amova",
-  "description": "Rencontres homme ↔ femme en Afrique : vérification manuelle, matching H↔F, Mobile Money.",
+  "description": "Site de rencontres homme ↔ femme en Afrique : vérification manuelle, matching H↔F, Mobile Money.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#100A14",
-  "theme_color": "#100A14",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
   "lang": "fr",
+  "categories": ["lifestyle", "social"],
   "icons": [
     {
       "src": "/icon-192.png",

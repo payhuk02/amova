@@ -31,6 +31,9 @@ const MARKETING_PATHS = new Set([
   "/conditions",
   "/faq",
   "/contact",
+  "/tarifs",
+  "/verification-identite",
+  "/rencontres",
 ]);
 
 function parseSseChunk(buffer: string): { events: string[]; rest: string } {
@@ -68,6 +71,7 @@ export default function AiChatbot() {
 
   const hide =
     MARKETING_PATHS.has(location.pathname) ||
+    location.pathname.startsWith("/rencontres") ||
     location.pathname.startsWith("/admin") ||
     location.pathname === "/coach" ||
     location.pathname === "/auth" ||

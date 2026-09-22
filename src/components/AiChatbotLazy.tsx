@@ -9,6 +9,9 @@ const HIDDEN_EXACT = new Set([
   "/conditions",
   "/faq",
   "/contact",
+  "/tarifs",
+  "/verification-identite",
+  "/rencontres",
   "/coach",
   "/auth",
 ]);
@@ -19,6 +22,7 @@ export default function AiChatbotLazy() {
   const hidden = useMemo(
     () =>
       HIDDEN_EXACT.has(pathname) ||
+      pathname.startsWith("/rencontres/") ||
       pathname.startsWith("/admin") ||
       pathname.startsWith("/premium/callback"),
     [pathname],

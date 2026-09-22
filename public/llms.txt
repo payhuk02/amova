@@ -7,15 +7,19 @@ Site: https://www.amova.space
 Langue: Français
 Contact: https://www.amova.space/contact
 FAQ: https://www.amova.space/faq
+Tarifs: https://www.amova.space/tarifs
 
-## Pages publiques
+## Pages publiques (indexables)
 
 - [Accueil](https://www.amova.space/): présentation produit, confiance, tarifs
-- [Inscription / Connexion](https://www.amova.space/auth)
+- [Tarifs](https://www.amova.space/tarifs): abonnements FCFA / Mobile Money
+- [Vérification d'identité](https://www.amova.space/verification-identite): KYC manuel
+- [Rencontres par ville](https://www.amova.space/rencontres): Abidjan, Dakar, Lomé, Cotonou, Ouagadougou, Bamako
 - [FAQ](https://www.amova.space/faq): abonnements, KYC, sécurité, messages
 - [Contact](https://www.amova.space/contact)
 - [Conditions d'utilisation](https://www.amova.space/conditions)
 - [Confidentialité](https://www.amova.space/confidentialite)
+- Inscription / Connexion: https://www.amova.space/auth (noindex)
 
 ## Produit (faits)
 
@@ -28,7 +32,7 @@ FAQ: https://www.amova.space/faq
 ## Abonnements (FCFA / mois)
 
 - Gratuit: 50 swipes/jour, 1 Super Like, 15 messages/jour, photos floutées
-- Plus (2900): galerie HD, Qui m'aime, messages illimités, filtres avancés, 100 swipes
+- Plus (2900): galerie HD, Qui m'aime, messages illimités, filtres avancés, 100 swipes, Coach IA
 - Premium (5900): swipes illimités + 1 boost/jour
 - VIP (12900): incognito, matching prioritaire, 3 boosts/jour, Spotlight hebdo
 - Essai Premium 3 jours: 990 FCFA (une fois)

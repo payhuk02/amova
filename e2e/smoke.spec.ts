@@ -4,7 +4,7 @@ test.describe("Amova smoke tests", () => {
   test("landing page loads", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.locator("nav")).toBeVisible({ timeout: 15_000 });
-    await expect(page.locator("body")).toContainText(/Amova|rencontre/i);
+    await expect(page.locator("body")).toContainText(/Amova|rencontre/i, { timeout: 15_000 });
   });
 
   test("auth page loads", async ({ page }) => {
@@ -28,5 +28,22 @@ test.describe("Amova smoke tests", () => {
 
     await page.goto("/faq", { waitUntil: "domcontentloaded" });
     await expect(page.locator("body")).toContainText(/FAQ|question/i);
+  });
+
+  test("SEO marketing pages load", async ({ page }) => {
+    await page.goto("/tarifs", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(/Tarifs/i, {
+      timeout: 15_000,
+    });
+
+    await page.goto("/verification-identite", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(/Vérification/i, {
+      timeout: 15_000,
+    });
+
+    await page.goto("/rencontres/abidjan", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(/Abidjan/i, {
+      timeout: 15_000,
+    });
   });
 });

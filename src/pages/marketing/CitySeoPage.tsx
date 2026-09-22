@@ -1,0 +1,113 @@
+import { Link, Navigate, useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import MarketingLayout from "@/components/MarketingLayout";
+import Seo, { BreadcrumbJsonLd } from "@/components/Seo";
+import {
+  SEO_CITIES,
+  cityPageDescription,
+  cityPageTitle,
+  DEFAULT_KEYWORDS,
+  getSeoCity,
+  SITE_URL,
+} from "@/lib/seo";
+
+export default function CitySeoPage() {
+  const { citySlug } = useParams<{ citySlug: string }>();
+  const city = getSeoCity(citySlug);
+
+  if (!city) {
+    return <Navigate to="/" replace />;
+  }
+
+  const path = `/rencontres/${city.slug}`;
+  const title = cityPageTitle(city);
+  const description = cityPageDescription(city);
+
+  return (
+    <>
+      <Seo
+        title={title}
+        description={description}
+        path={path}
+        keywords={`${DEFAULT_KEYWORDS}, rencontres ${city.name}, dating ${city.name}, ${city.country}`}
+        jsonLd={[
+          BreadcrumbJsonLd([
+            { name: "Accueil", path: "/" },
+            { name: "Rencontres", path: "/rencontres" },
+            { name: city.name, path },
+          ]),
+          {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: title,
+            description,
+            url: `${SITE_URL}${path}`,
+            about: {
+              "@type": "Place",
+              name: city.name,
+              containedInPlace: {
+                "@type": "Country",
+                name: city.country,
+              },
+            },
+            isPartOf: { "@type": "WebSite", name: "Amova", url: SITE_URL },
+          },
+        ]}
+      />
+      <MarketingLayout
+        title={`Rencontres vérifiées ${city.adjective}`}
+        subtitle={city.blurb}
+        breadcrumbs={[
+          { label: "Accueil", to: "/" },
+          { label: "Rencontres", to: "/rencontres" },
+          { label: city.name },
+        ]}
+      >
+        <p>
+          Amova est un site de rencontres sérieuses homme ↔ femme pour les adultes{" "}
+          {city.adjective} et en {city.country}. L&apos;inscription est gratuite ; les profils
+          peuvent demander une vérification d&apos;identité manuelle pour afficher un badge de
+          confiance.
+        </p>
+
+        <h2 className="font-display text-xl font-medium text-foreground pt-2">
+          Pourquoi Amova {city.adjective} ?
+        </h2>
+        <ul className="list-disc pl-5 space-y-2">
+          <li>Matching hétérosexuel strict (H↔F uniquement)</li>
+          <li>Vérification d&apos;identité humaine, pas un robot opaque</li>
+          <li>Photos floutées sur le plan Gratuit — nettes avec Plus ou après match</li>
+          <li>Paiements Mobile Money en FCFA</li>
+          <li>Signalements et blocages traités par l&apos;équipe</li>
+        </ul>
+
+        <h2 className="font-display text-xl font-medium text-foreground pt-4">
+          Autres villes
+        </h2>
+        <p className="flex flex-wrap gap-x-3 gap-y-1">
+          {SEO_CITIES.filter((c) => c.slug !== city.slug).map((c) => (
+            <Link
+              key={c.slug}
+              to={`/rencontres/${c.slug}`}
+              className="text-brand hover:underline"
+            >
+              {c.name}
+            </Link>
+          ))}
+        </p>
+
+        <div className="flex flex-wrap gap-3 pt-6 not-prose">
+          <Button variant="hero" asChild>
+            <Link to="/auth">Créer mon compte</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link to="/verification-identite">Comment on vérifie</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link to="/tarifs">Tarifs</Link>
+          </Button>
+        </div>
+      </MarketingLayout>
+    </>
+  );
+}

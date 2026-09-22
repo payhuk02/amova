@@ -1,7 +1,7 @@
 import LegalLayout from "@/components/legal/LegalLayout";
 import { Link } from "react-router-dom";
 import { PLAN_PRICES, CONSUMABLE_PRICES, PAID_TRIAL, formatFcfa } from "@/lib/plans";
-import Seo from "@/components/Seo";
+import Seo, { BreadcrumbJsonLd } from "@/components/Seo";
 import { SITE_URL } from "@/lib/seo";
 
 const faqs = [
@@ -50,22 +50,28 @@ const faqs = [
 const FAQPage = () => (
   <>
     <Seo
-      title="FAQ — Questions fréquentes"
-      description="Réponses sur les abonnements Amova, la vérification d'identité, les messages, la sécurité et Mobile Money."
+      title="FAQ — Questions fréquentes sur Amova"
+      description="Abonnements, vérification d'identité, messages, sécurité, photos floutées et Mobile Money : toutes les réponses Amova."
       path="/faq"
-      jsonLd={{
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        mainEntity: faqs.map((item) => ({
-          "@type": "Question",
-          name: item.q,
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: item.a,
-          },
-        })),
-        url: `${SITE_URL}/faq`,
-      }}
+      jsonLd={[
+        BreadcrumbJsonLd([
+          { name: "Accueil", path: "/" },
+          { name: "FAQ", path: "/faq" },
+        ]),
+        {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((item) => ({
+            "@type": "Question",
+            name: item.q,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: item.a,
+            },
+          })),
+          url: `${SITE_URL}/faq`,
+        },
+      ]}
     />
     <LegalLayout title="Foire aux questions">
       <div className="space-y-8">

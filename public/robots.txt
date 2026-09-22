@@ -1,16 +1,51 @@
 # Amova — https://www.amova.space
-# Public pages: /, /auth, /faq, /contact, /conditions, /confidentialite
-# Private app areas are disallowed for indexing.
+# Public: /, /faq, /contact, /tarifs, /verification-identite, /rencontres, /conditions, /confidentialite
+# /auth is crawlable but noindex (funnel page). Private app areas are disallowed.
 
-User-agent: Googlebot
+User-agent: *
 Allow: /
-Allow: /auth
 Allow: /faq
 Allow: /contact
+Allow: /tarifs
+Allow: /verification-identite
+Allow: /rencontres
 Allow: /conditions
 Allow: /confidentialite
 Allow: /llms.txt
 Allow: /sitemap.xml
+Allow: /auth
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /discover
+Disallow: /messages
+Disallow: /settings
+Disallow: /edit-profile
+Disallow: /profile-setup
+Disallow: /profile/
+Disallow: /premium
+Disallow: /premium/callback
+Disallow: /liked-me
+Disallow: /nearby
+Disallow: /stories
+Disallow: /events
+Disallow: /coach
+Disallow: /speed-dating
+Disallow: /notifications
+Disallow: /verification
+Disallow: /api/
+
+User-agent: Googlebot
+Allow: /
+Allow: /faq
+Allow: /contact
+Allow: /tarifs
+Allow: /verification-identite
+Allow: /rencontres
+Allow: /conditions
+Allow: /confidentialite
+Allow: /llms.txt
+Allow: /sitemap.xml
+Allow: /auth
 Disallow: /admin
 Disallow: /dashboard
 Disallow: /discover
@@ -35,58 +70,77 @@ Allow: /
 Allow: /llms.txt
 Allow: /faq
 Allow: /contact
+Allow: /tarifs
+Allow: /verification-identite
+Allow: /rencontres
 Allow: /conditions
 Allow: /confidentialite
 Disallow: /admin
 Disallow: /dashboard
+Disallow: /discover
 Disallow: /messages
 Disallow: /settings
-Disallow: /edit-profile
-Disallow: /profile-setup
+Disallow: /premium
 Disallow: /premium/callback
 
 User-agent: Bingbot
 Allow: /
+Allow: /faq
+Allow: /contact
+Allow: /tarifs
+Allow: /verification-identite
+Allow: /rencontres
 Allow: /llms.txt
+Allow: /sitemap.xml
 Disallow: /admin
 Disallow: /dashboard
+Disallow: /discover
 Disallow: /messages
 Disallow: /settings
 Disallow: /edit-profile
 Disallow: /profile-setup
+Disallow: /premium
 Disallow: /premium/callback
+Disallow: /verification
 
 User-agent: GPTBot
 Allow: /
 Allow: /llms.txt
 Allow: /faq
 Allow: /contact
+Allow: /tarifs
+Allow: /verification-identite
+Allow: /rencontres
 Allow: /conditions
 Allow: /confidentialite
 Disallow: /admin
 Disallow: /dashboard
 Disallow: /messages
 Disallow: /settings
-Disallow: /edit-profile
-Disallow: /profile-setup
 Disallow: /premium/callback
 
 User-agent: ChatGPT-User
 Allow: /
 Allow: /llms.txt
 Allow: /faq
+Allow: /tarifs
 
 User-agent: OAI-SearchBot
 Allow: /
 Allow: /llms.txt
 Allow: /faq
 Allow: /contact
+Allow: /tarifs
+Allow: /rencontres
 
 User-agent: ClaudeBot
 Allow: /
 Allow: /llms.txt
 Allow: /faq
 Allow: /contact
+Allow: /tarifs
+Allow: /verification-identite
+Allow: /rencontres
 Allow: /conditions
 Allow: /confidentialite
 Disallow: /admin
@@ -102,10 +156,14 @@ User-agent: PerplexityBot
 Allow: /
 Allow: /llms.txt
 Allow: /faq
+Allow: /tarifs
+Allow: /rencontres
 
 User-agent: Applebot
 Allow: /
 Allow: /llms.txt
+Allow: /faq
+Allow: /tarifs
 
 User-agent: Applebot-Extended
 Allow: /
@@ -128,19 +186,5 @@ Allow: /
 User-agent: LinkedInBot
 Allow: /
 
-User-agent: *
-Allow: /
-Allow: /llms.txt
-Allow: /sitemap.xml
-Disallow: /admin
-Disallow: /dashboard
-Disallow: /messages
-Disallow: /settings
-Disallow: /edit-profile
-Disallow: /profile-setup
-Disallow: /premium/callback
-Disallow: /api/
-
 Sitemap: https://www.amova.space/sitemap.xml
-# AI / LLM context file
-# https://www.amova.space/llms.txt
+# AI context: https://www.amova.space/llms.txt

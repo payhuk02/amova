@@ -3,20 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Amova — Rencontres sincères, histoires vraies</title>
+    <title>Amova — Site de rencontres vérifiées en Afrique | Homme ↔ Femme</title>
     <meta
       name="description"
-      content="Amova : rencontres homme ↔ femme en Afrique, vérification d'identité manuelle et paiements Mobile Money."
+      content="Amova, site de rencontres sérieuses homme ↔ femme en Afrique francophone. Profils vérifiés à la main, matching H↔F, photos protégées et paiements Mobile Money (FCFA)."
     />
     <meta
       name="keywords"
-      content="Amova, rencontres, dating, Afrique, Abidjan, Dakar, profils vérifiés, Mobile Money, matching"
+      content="Amova, site de rencontres Afrique, rencontres vérifiées, dating Abidjan, dating Dakar, rencontres homme femme, profils vérifiés, Mobile Money, KYC, matching hétérosexuel, Côte d'Ivoire, Sénégal"
     />
     <meta name="author" content="Amova" />
     <meta name="theme-color" content="#FFFFFF" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="googlebot" content="index, follow" />
     <link rel="canonical" href="https://www.amova.space/" />
+    <link rel="alternate" hreflang="fr" href="https://www.amova.space/" />
+    <link rel="alternate" hreflang="x-default" href="https://www.amova.space/" />
     <link rel="alternate" type="text/plain" title="llms.txt" href="https://www.amova.space/llms.txt" />
 
     <link rel="icon" type="image/png" href="/favicon.png" />
@@ -35,22 +37,22 @@
     <meta property="og:site_name" content="Amova" />
     <meta property="og:locale" content="fr_FR" />
     <meta property="og:url" content="https://www.amova.space/" />
-    <meta property="og:title" content="Amova — Rencontres sincères, histoires vraies" />
+    <meta property="og:title" content="Amova — Site de rencontres vérifiées en Afrique | Homme ↔ Femme" />
     <meta
       property="og:description"
-      content="Amova : rencontres homme ↔ femme en Afrique, vérification d'identité manuelle et paiements Mobile Money."
+      content="Amova, site de rencontres sérieuses homme ↔ femme en Afrique francophone. Profils vérifiés à la main, matching H↔F, photos protégées et paiements Mobile Money (FCFA)."
     />
     <meta property="og:image" content="https://www.amova.space/og-image.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Amova — Rencontres sincères en Afrique" />
+    <meta property="og:image:alt" content="Amova — Rencontres vérifiées homme ↔ femme en Afrique" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@Amova" />
-    <meta name="twitter:title" content="Amova — Rencontres sincères, histoires vraies" />
+    <meta name="twitter:title" content="Amova — Site de rencontres vérifiées en Afrique | Homme ↔ Femme" />
     <meta
       name="twitter:description"
-      content="Amova : rencontres homme ↔ femme en Afrique, vérification d'identité manuelle et paiements Mobile Money."
+      content="Amova, site de rencontres sérieuses homme ↔ femme en Afrique francophone. Profils vérifiés à la main, matching H↔F, photos protégées et paiements Mobile Money (FCFA)."
     />
     <meta name="twitter:image" content="https://www.amova.space/og-image.jpg" />
 
@@ -82,10 +84,18 @@
         "@graph": [
           {
             "@type": "Organization",
+            "@id": "https://www.amova.space/#organization",
             "name": "Amova",
             "url": "https://www.amova.space",
-            "logo": "https://www.amova.space/logo.png",
-            "description": "Rencontres homme ↔ femme en Afrique, vérification d'identité manuelle et Mobile Money.",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://www.amova.space/logo.png"
+            },
+            "description": "Site de rencontres sérieuses homme ↔ femme en Afrique francophone. Profils vérifiés à la main, Mobile Money.",
+            "areaServed": {
+              "@type": "Place",
+              "name": "Afrique de l'Ouest francophone"
+            },
             "contactPoint": {
               "@type": "ContactPoint",
               "contactType": "customer support",
@@ -95,31 +105,36 @@
           },
           {
             "@type": "WebSite",
+            "@id": "https://www.amova.space/#website",
             "name": "Amova",
             "url": "https://www.amova.space",
-            "description": "Amova : rencontres homme ↔ femme en Afrique, vérification d'identité manuelle et paiements Mobile Money.",
+            "description": "Amova, site de rencontres sérieuses homme ↔ femme en Afrique francophone. Profils vérifiés à la main, matching H↔F, photos protégées et paiements Mobile Money (FCFA).",
             "inLanguage": "fr-FR",
-            "publisher": {
-              "@type": "Organization",
-              "name": "Amova",
-              "url": "https://www.amova.space"
+            "publisher": { "@id": "https://www.amova.space/#organization" },
+            "potentialAction": {
+              "@type": "RegisterAction",
+              "target": "https://www.amova.space/auth",
+              "name": "Créer un compte Amova"
             }
           },
           {
             "@type": "SoftwareApplication",
             "name": "Amova",
-            "applicationCategory": "LifestyleApplication",
+            "applicationCategory": "DatingApplication",
             "operatingSystem": "Web, Android, iOS",
-            "offers": {
-              "@type": "Offer",
-              "price": "0",
-              "priceCurrency": "XOF"
-            }
+            "url": "https://www.amova.space",
+            "offers": [
+              { "@type": "Offer", "name": "Gratuit", "price": "0", "priceCurrency": "XOF" },
+              { "@type": "Offer", "name": "Plus", "price": "2900", "priceCurrency": "XOF" },
+              { "@type": "Offer", "name": "Premium", "price": "5900", "priceCurrency": "XOF" },
+              { "@type": "Offer", "name": "VIP", "price": "12900", "priceCurrency": "XOF" }
+            ]
           }
         ]
       }
     </script>
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
