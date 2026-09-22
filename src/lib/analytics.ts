@@ -92,10 +92,13 @@ export async function trackPageView(path?: string) {
   }
 
   const sessionId = getOrCreateSessionId();
-  void supabase.rpc("record_page_view", {
+  const { error } = await supabase.rpc("record_page_view", {
     p_path: pathname,
     p_session_id: sessionId,
     p_referrer_host: referrerHost(),
     p_device: detectDevice(),
   });
+  if (error && import.meta.env.DEV) {
+    console.warn("[analytics] record_page_view failed", error.message);
+  }
 }
