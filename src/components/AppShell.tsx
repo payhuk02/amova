@@ -41,7 +41,7 @@ function SidebarNav({
 }) {
   const itemClass = (active: boolean) =>
     cn(
-      "w-full flex items-center gap-3 text-sm font-medium transition-colors touch-manipulation",
+      "w-full flex items-center gap-3 text-sm font-semibold transition-colors touch-manipulation",
       variant === "desktop" ? "px-3 py-2.5 rounded-lg" : "px-5 py-3 active:scale-[0.98]",
       active
         ? variant === "desktop"

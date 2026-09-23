@@ -42,14 +42,14 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             key={item.path}
             to={item.path}
             onClick={onNavigate}
-            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-sm ${
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-sm font-semibold ${
               active
                 ? "bg-primary text-primary-foreground shadow-md"
                 : "text-muted-foreground hover:bg-secondary hover:text-foreground"
             }`}
           >
             <item.icon size={18} />
-            <span className="font-medium">{item.label}</span>
+            <span>{item.label}</span>
           </Link>
         );
       })}

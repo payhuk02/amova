@@ -83,7 +83,7 @@ const PricingSection = () => (
         {plans.map((plan, i) => (
           <ScrollReveal key={plan.name} delay={i * 60}>
             <article
-              className={`panel p-6 h-full flex flex-col text-center items-center ${
+              className={`panel p-6 h-full flex flex-col items-stretch ${
                 plan.highlighted
                   ? "border-brand relative ring-1 ring-brand/25 shadow-md"
                   : ""
@@ -94,11 +94,11 @@ const PricingSection = () => (
                   Recommandé
                 </span>
               )}
-              <div className="mb-5 w-full">
+              <div className="mb-5 w-full text-center">
                 <h3 className="font-display text-xl font-medium mb-1 text-foreground">{plan.name}</h3>
                 <p className="text-muted-foreground text-sm leading-snug">{plan.description}</p>
               </div>
-              <div className="mb-5">
+              <div className="mb-5 text-center">
                 <span className="font-display text-2xl md:text-3xl font-semibold text-foreground tabular-nums">
                   {plan.price}
                 </span>
@@ -106,11 +106,14 @@ const PricingSection = () => (
                   <span className="text-muted-foreground text-sm ml-1">{plan.period}</span>
                 )}
               </div>
-              <ul className="space-y-2.5 mb-7 flex-1 w-full text-left">
+              <ul className="space-y-2.5 mb-7 flex-1 w-full">
                 {plan.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-sm justify-center sm:justify-start">
+                  <li
+                    key={f}
+                    className="grid grid-cols-[1rem_1fr] gap-x-2.5 items-start text-sm"
+                  >
                     <Check className="w-4 h-4 text-success mt-0.5 shrink-0" strokeWidth={2} />
-                    <span className="text-foreground/80 text-left">{f}</span>
+                    <span className="text-foreground/80 text-left leading-snug">{f}</span>
                   </li>
                 ))}
               </ul>
