@@ -42,6 +42,7 @@ const TarifsPage = lazy(() => import("./pages/marketing/TarifsPage.tsx"));
 const VerificationSeoPage = lazy(() => import("./pages/marketing/VerificationSeoPage.tsx"));
 const RencontresHubPage = lazy(() => import("./pages/marketing/RencontresHubPage.tsx"));
 const CitySeoPage = lazy(() => import("./pages/marketing/CitySeoPage.tsx"));
+const PromoVideoPage = lazy(() => import("./pages/marketing/PromoVideoPage.tsx"));
 
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard.tsx"));
 const AdminUsers = lazy(() => import("./pages/admin/Users.tsx"));
@@ -84,6 +85,7 @@ const App = () => (
               <Route path="/verification-identite" element={<VerificationSeoPage />} />
               <Route path="/rencontres" element={<RencontresHubPage />} />
               <Route path="/rencontres/:citySlug" element={<CitySeoPage />} />
+              <Route path="/video" element={<PromoVideoPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/profile-setup" element={<ProtectedRoute requireProfile={false}><ProfileSetup /></ProtectedRoute>} />
               <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />

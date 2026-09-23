@@ -9,6 +9,7 @@ const PAGE_OWNED_SEO = new Set([
   "/tarifs",
   "/verification-identite",
   "/rencontres",
+  "/video",
 ]);
 
 const PUBLIC_SEO: Record<

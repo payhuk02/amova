@@ -41,6 +41,9 @@ const Footer = () => {
             <Link to="/rencontres" className="hover:text-foreground transition-colors">
               Pays
             </Link>
+            <Link to="/video" className="hover:text-foreground transition-colors">
+              Vidéo
+            </Link>
             <Link to="/faq" className="hover:text-foreground transition-colors">
               FAQ
             </Link>
