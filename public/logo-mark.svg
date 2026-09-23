@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Amova">
+  <defs>
+    <linearGradient id="amovaMarkPink" x1="18%" y1="8%" x2="78%" y2="92%">
+      <stop offset="0%" stop-color="#FF6BB0"/>
+      <stop offset="50%" stop-color="#F06292"/>
+      <stop offset="100%" stop-color="#E91E63"/>
+    </linearGradient>
+    <linearGradient id="amovaMarkPurple" x1="22%" y1="8%" x2="82%" y2="92%">
+      <stop offset="0%" stop-color="#AB47BC"/>
+      <stop offset="45%" stop-color="#8E24AA"/>
+      <stop offset="100%" stop-color="#4A148C"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(64 70)">
+    <circle cx="-32" cy="-40" r="15.5" fill="url(#amovaMarkPink)"/>
+    <path
+      fill="url(#amovaMarkPink)"
+      d="M-44.5-23c-1.8 15.5 4.5 33 24 50.5 11.5 10.5 22 15.5 29 17.5
+         C-6 28-20.5 8-28.5-12c-1.5-7.5-4-11.5-12.5-13-5.5-1-9.8 2-10.5 7.5z"
+    />
+    <circle cx="32" cy="-40" r="15.5" fill="url(#amovaMarkPurple)"/>
+    <path
+      fill="url(#amovaMarkPurple)"
+      d="M44.5-23c1.8 15.5-4.5 33-24 50.5-11.5 10.5-22 15.5-29 17.5
+         C6 28 20.5 8 28.5-12c1.5-7.5 4-11.5 12.5-13 5.5-1 9.8 2 10.5 7.5z"
+    />
+    <path
+      fill="#FF2E7E"
+      d="M0 8.5c-1.2-1.2-10.2-8.4-10.2-15.6 0-4.3 3.3-7.5 7.4-7.5 2.3 0 4.3 1 5.4 2.7
+         1.1-1.7 3.1-2.7 5.4-2.7 4.1 0 7.4 3.2 7.4 7.5 0 7.2-9 14.4-10.2 15.6z"
+    />
+  </g>
+</svg>

@@ -9,19 +9,26 @@ import sharp from "sharp";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const logoPath = join(root, "public", "logo.png");
+const markPath = join(root, "public", "logo-mark.png");
 const logoBytes = readFileSync(logoPath);
 const logo = sharp(logoBytes);
 const meta = await logo.metadata();
 const { width = 1024, height = 1024 } = meta;
 
-const markHeight = Math.round(height * 0.42);
-const markSize = Math.min(width, markHeight);
-const left = Math.round((width - markSize) / 2);
-
-const markBuffer = await sharp(logoBytes)
-  .extract({ left, top: 0, width: markSize, height: markSize })
-  .png()
-  .toBuffer();
+/** Prefer pre-extracted mark when available (new stacked logo). */
+let markBuffer;
+try {
+  markBuffer = readFileSync(markPath);
+  console.log("Using public/logo-mark.png for icons");
+} catch {
+  const markHeight = Math.round(height * 0.42);
+  const markSize = Math.min(width, markHeight);
+  const left = Math.round((width - markSize) / 2);
+  markBuffer = await sharp(logoBytes)
+    .extract({ left, top: 0, width: markSize, height: markSize })
+    .png()
+    .toBuffer();
+}
 
 function roundedMaskSvg(size) {
   const r = Math.round(size * 0.22);
