@@ -1,6 +1,6 @@
 import { useLocation } from "react-router-dom";
 import Seo from "@/components/Seo";
-import { DEFAULT_DESCRIPTION, getSeoCity } from "@/lib/seo";
+import { DEFAULT_DESCRIPTION, getSeoPlace } from "@/lib/seo";
 
 /** Routes whose page component mounts <Seo> (avoid double head updates). */
 const PAGE_OWNED_SEO = new Set([
@@ -48,7 +48,7 @@ export default function RouteSeo() {
 
   const cityMatch = pathname.match(/^\/rencontres\/([^/]+)\/?$/);
   if (cityMatch) {
-    if (getSeoCity(cityMatch[1])) return null;
+    if (getSeoPlace(cityMatch[1])) return null;
     return (
       <Seo title="Amova" description={DEFAULT_DESCRIPTION} path={pathname} noIndex />
     );

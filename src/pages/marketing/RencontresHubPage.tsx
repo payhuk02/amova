@@ -1,14 +1,14 @@
 import { Link } from "react-router-dom";
 import MarketingLayout from "@/components/MarketingLayout";
 import Seo, { BreadcrumbJsonLd } from "@/components/Seo";
-import { SEO_CITIES, DEFAULT_KEYWORDS, SITE_URL } from "@/lib/seo";
+import { SEO_COUNTRIES, SEO_CITIES, DEFAULT_KEYWORDS, SITE_URL } from "@/lib/seo";
 
 export default function RencontresHubPage() {
   return (
     <>
       <Seo
-        title="Rencontres vérifiées en Afrique — villes Amova"
-        description="Site de rencontres homme ↔ femme en Afrique francophone : Abidjan, Dakar, Lomé, Cotonou, Ouagadougou, Bamako. Profils vérifiés, Mobile Money."
+        title="Rencontres vérifiées en Afrique — tous les pays | Amova"
+        description="Site de rencontres homme ↔ femme dans toute l'Afrique. Côte d'Ivoire, Sénégal, Cameroun, Maroc, RD Congo et 50+ pays. Profils vérifiés, Mobile Money."
         path="/rencontres"
         keywords={DEFAULT_KEYWORDS}
         jsonLd={[
@@ -19,8 +19,9 @@ export default function RencontresHubPage() {
           {
             "@context": "https://schema.org",
             "@type": "ItemList",
-            name: "Villes Amova",
-            itemListElement: SEO_CITIES.map((c, i) => ({
+            name: "Pays Amova",
+            numberOfItems: SEO_COUNTRIES.length,
+            itemListElement: SEO_COUNTRIES.map((c, i) => ({
               "@type": "ListItem",
               position: i + 1,
               name: `Rencontres ${c.name}`,
@@ -31,22 +32,39 @@ export default function RencontresHubPage() {
       />
       <MarketingLayout
         title="Rencontres en Afrique"
-        subtitle="Amova couvre les grandes villes d'Afrique de l'Ouest francophone. Choisissez votre ville pour en savoir plus."
+        subtitle="Amova est ouvert à tous les pays d'Afrique. Choisissez le vôtre pour en savoir plus sur les rencontres vérifiées homme ↔ femme."
         breadcrumbs={[
           { label: "Accueil", to: "/" },
-          { label: "Rencontres" },
+          { label: "Pays" },
         ]}
       >
-        <ul className="grid sm:grid-cols-2 gap-3 list-none p-0 m-0 not-prose">
+        <h2 className="font-display text-xl font-medium text-foreground pt-1">
+          Tous les pays ({SEO_COUNTRIES.length})
+        </h2>
+        <ul className="grid sm:grid-cols-2 md:grid-cols-3 gap-2 list-none p-0 m-0 not-prose">
+          {SEO_COUNTRIES.map((c) => (
+            <li key={c.slug}>
+              <Link
+                to={`/rencontres/${c.slug}`}
+                className="block rounded-lg border border-border bg-card px-3.5 py-3 hover:border-brand/40 transition-colors"
+              >
+                <span className="font-medium text-foreground text-sm">{c.name}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        <h2 className="font-display text-xl font-medium text-foreground pt-6">
+          Grandes villes
+        </h2>
+        <ul className="grid sm:grid-cols-2 gap-2 list-none p-0 m-0 not-prose">
           {SEO_CITIES.map((c) => (
             <li key={c.slug}>
               <Link
                 to={`/rencontres/${c.slug}`}
-                className="block rounded-xl border border-border bg-card p-4 hover:border-brand/40 transition-colors"
+                className="block rounded-lg border border-border bg-card px-3.5 py-3 hover:border-brand/40 transition-colors"
               >
-                <span className="font-display text-lg font-medium text-foreground">
-                  {c.name}
-                </span>
+                <span className="font-medium text-foreground text-sm">{c.name}</span>
                 <span className="block text-xs text-muted-foreground mt-0.5">
                   {c.country}
                 </span>

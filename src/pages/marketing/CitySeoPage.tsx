@@ -3,25 +3,30 @@ import { Button } from "@/components/ui/button";
 import MarketingLayout from "@/components/MarketingLayout";
 import Seo, { BreadcrumbJsonLd } from "@/components/Seo";
 import {
+  SEO_COUNTRIES,
   SEO_CITIES,
   cityPageDescription,
   cityPageTitle,
   DEFAULT_KEYWORDS,
-  getSeoCity,
+  getSeoPlace,
   SITE_URL,
 } from "@/lib/seo";
 
 export default function CitySeoPage() {
   const { citySlug } = useParams<{ citySlug: string }>();
-  const city = getSeoCity(citySlug);
+  const place = getSeoPlace(citySlug);
 
-  if (!city) {
-    return <Navigate to="/" replace />;
+  if (!place) {
+    return <Navigate to="/rencontres" replace />;
   }
 
-  const path = `/rencontres/${city.slug}`;
-  const title = cityPageTitle(city);
-  const description = cityPageDescription(city);
+  const path = `/rencontres/${place.slug}`;
+  const title = cityPageTitle(place);
+  const description = cityPageDescription(place);
+  const relatedCountries = SEO_COUNTRIES.filter((c) => c.slug !== place.slug).slice(0, 12);
+  const relatedCities = SEO_CITIES.filter(
+    (c) => c.slug !== place.slug && (place.kind === "country" ? c.country === place.name : true),
+  );
 
   return (
     <>
@@ -29,12 +34,12 @@ export default function CitySeoPage() {
         title={title}
         description={description}
         path={path}
-        keywords={`${DEFAULT_KEYWORDS}, rencontres ${city.name}, dating ${city.name}, ${city.country}`}
+        keywords={`${DEFAULT_KEYWORDS}, rencontres ${place.name}, dating ${place.name}, ${place.country}`}
         jsonLd={[
           BreadcrumbJsonLd([
             { name: "Accueil", path: "/" },
-            { name: "Rencontres", path: "/rencontres" },
-            { name: city.name, path },
+            { name: "Pays", path: "/rencontres" },
+            { name: place.name, path },
           ]),
           {
             "@context": "https://schema.org",
@@ -42,50 +47,70 @@ export default function CitySeoPage() {
             name: title,
             description,
             url: `${SITE_URL}${path}`,
-            about: {
-              "@type": "Place",
-              name: city.name,
-              containedInPlace: {
-                "@type": "Country",
-                name: city.country,
-              },
-            },
+            about:
+              place.kind === "country"
+                ? { "@type": "Country", name: place.name }
+                : {
+                    "@type": "City",
+                    name: place.name,
+                    containedInPlace: { "@type": "Country", name: place.country },
+                  },
             isPartOf: { "@type": "WebSite", name: "Amova", url: SITE_URL },
           },
         ]}
       />
       <MarketingLayout
-        title={`Rencontres vérifiées ${city.adjective}`}
-        subtitle={city.blurb}
+        title={`Rencontres vérifiées ${place.adjective}`}
+        subtitle={place.blurb}
         breadcrumbs={[
           { label: "Accueil", to: "/" },
-          { label: "Rencontres", to: "/rencontres" },
-          { label: city.name },
+          { label: "Pays", to: "/rencontres" },
+          { label: place.name },
         ]}
       >
         <p>
           Amova est un site de rencontres sérieuses homme ↔ femme pour les adultes{" "}
-          {city.adjective} et en {city.country}. L&apos;inscription est gratuite ; les profils
-          peuvent demander une vérification d&apos;identité manuelle pour afficher un badge de
-          confiance.
+          {place.adjective}
+          {place.kind === "city" ? ` (${place.country})` : ""}. L&apos;inscription est
+          gratuite ; les profils peuvent demander une vérification d&apos;identité manuelle
+          pour afficher un badge de confiance.
         </p>
 
         <h2 className="font-display text-xl font-medium text-foreground pt-2">
-          Pourquoi Amova {city.adjective} ?
+          Pourquoi Amova {place.adjective} ?
         </h2>
         <ul className="list-disc pl-5 space-y-2">
           <li>Matching hétérosexuel strict (H↔F uniquement)</li>
           <li>Vérification d&apos;identité humaine, pas un robot opaque</li>
           <li>Photos floutées sur le plan Gratuit — nettes avec Plus ou après match</li>
-          <li>Paiements Mobile Money en FCFA</li>
+          <li>Paiements Mobile Money</li>
           <li>Signalements et blocages traités par l&apos;équipe</li>
         </ul>
 
+        {relatedCities.length > 0 && (
+          <>
+            <h2 className="font-display text-xl font-medium text-foreground pt-4">
+              Villes
+            </h2>
+            <p className="flex flex-wrap gap-x-3 gap-y-1">
+              {relatedCities.map((c) => (
+                <Link
+                  key={c.slug}
+                  to={`/rencontres/${c.slug}`}
+                  className="text-brand hover:underline"
+                >
+                  {c.name}
+                </Link>
+              ))}
+            </p>
+          </>
+        )}
+
         <h2 className="font-display text-xl font-medium text-foreground pt-4">
-          Autres villes
+          Autres pays
         </h2>
         <p className="flex flex-wrap gap-x-3 gap-y-1">
-          {SEO_CITIES.filter((c) => c.slug !== city.slug).map((c) => (
+          {relatedCountries.map((c) => (
             <Link
               key={c.slug}
               to={`/rencontres/${c.slug}`}
@@ -94,6 +119,9 @@ export default function CitySeoPage() {
               {c.name}
             </Link>
           ))}
+          <Link to="/rencontres" className="font-semibold text-brand hover:underline">
+            Suite
+          </Link>
         </p>
 
         <div className="flex flex-wrap gap-3 pt-6 not-prose">

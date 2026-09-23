@@ -3,22 +3,33 @@ import {
   DEFAULT_TITLE,
   DEFAULT_DESCRIPTION,
   SEO_CITIES,
+  SEO_COUNTRIES,
   getSeoCity,
+  getSeoPlace,
   cityPageTitle,
   pageTitle,
   absoluteUrl,
+  FOOTER_COUNTRIES_PREVIEW,
 } from "@/lib/seo";
 
 describe("seo helpers", () => {
   it("keeps brand-forward default title", () => {
     expect(DEFAULT_TITLE).toMatch(/Amova/);
     expect(DEFAULT_TITLE.toLowerCase()).toMatch(/rencontres|afrique/);
-    expect(DEFAULT_DESCRIPTION.toLowerCase()).toMatch(/mobile money|vérif/);
+    expect(DEFAULT_DESCRIPTION.toLowerCase()).toMatch(/mobile money|vérif|afrique/);
   });
 
   it("formats page titles with Amova suffix", () => {
     expect(pageTitle("FAQ")).toBe("FAQ | Amova");
     expect(pageTitle(DEFAULT_TITLE)).toBe(DEFAULT_TITLE);
+  });
+
+  it("lists all African countries", () => {
+    expect(SEO_COUNTRIES.length).toBeGreaterThanOrEqual(50);
+    expect(FOOTER_COUNTRIES_PREVIEW).toBeLessThan(SEO_COUNTRIES.length);
+    const senegal = getSeoPlace("senegal");
+    expect(senegal?.kind).toBe("country");
+    expect(cityPageTitle(senegal!)).toMatch(/Sénégal/);
   });
 
   it("resolves city landings", () => {
@@ -31,7 +42,7 @@ describe("seo helpers", () => {
     );
   });
 
-  it("rejects unknown city slugs", () => {
-    expect(getSeoCity("paris")).toBeUndefined();
+  it("rejects unknown place slugs", () => {
+    expect(getSeoPlace("paris")).toBeUndefined();
   });
 });

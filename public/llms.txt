@@ -1,6 +1,6 @@
 # Amova
 
-> Amova est une plateforme de rencontres homme ↔ femme en Afrique (Côte d'Ivoire, Sénégal et région).
+> Amova est une plateforme de rencontres homme ↔ femme en Afrique (54 pays + villes majeures).
 > Matching hétérosexuel strict, profils 18+, vérification d'identité manuelle, paiements Mobile Money.
 
 Site: https://www.amova.space
@@ -14,7 +14,7 @@ Tarifs: https://www.amova.space/tarifs
 - [Accueil](https://www.amova.space/): présentation produit, confiance, tarifs
 - [Tarifs](https://www.amova.space/tarifs): abonnements FCFA / Mobile Money
 - [Vérification d'identité](https://www.amova.space/verification-identite): KYC manuel
-- [Rencontres par ville](https://www.amova.space/rencontres): Abidjan, Dakar, Lomé, Cotonou, Ouagadougou, Bamako
+- [Rencontres par pays](https://www.amova.space/rencontres): tous les pays d'Afrique + villes (Abidjan, Dakar, Lomé, Cotonou, Ouagadougou, Bamako)
 - [FAQ](https://www.amova.space/faq): abonnements, KYC, sécurité, messages
 - [Contact](https://www.amova.space/contact)
 - [Conditions d'utilisation](https://www.amova.space/conditions)
@@ -23,7 +23,7 @@ Tarifs: https://www.amova.space/tarifs
 
 ## Produit (faits)
 
-- Public cible: adultes 18+ en Afrique francophone
+- Public cible: adultes 18+ en Afrique
 - Matching: hommes voient uniquement des femmes, et inversement
 - Sécurité: KYC (pièce d'identité recto/verso + selfie live), signalements, blocage
 - Photos: floutées sur le plan Gratuit ; nettes avec Plus+ ou après match
