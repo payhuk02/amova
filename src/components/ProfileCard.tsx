@@ -54,14 +54,14 @@ export default function ProfileCard({
     <article
       className={cn(
         "rounded-2xl overflow-hidden border border-border/50 bg-card group hover:border-border transition-colors duration-200",
-        "flex flex-col h-full min-h-[420px]",
+        "flex flex-col h-full",
         className,
       )}
     >
-      {/* Photo — fixed ratio for equal cards */}
+      {/* Photo — fixed portrait ratio; absolute img so intrinsic size can't stretch the card */}
       <div
         className={cn(
-          "aspect-[4/3] bg-secondary/30 relative shrink-0",
+          "relative w-full aspect-[3/4] shrink-0 overflow-hidden bg-secondary/30",
           shouldBlur && onUnlockPhoto && "cursor-pointer",
         )}
         onClick={shouldBlur && onUnlockPhoto ? onUnlockPhoto : undefined}
@@ -82,11 +82,12 @@ export default function ProfileCard({
           <BlurredPhoto
             src={profile.avatar_url}
             blurred={shouldBlur}
-            className="w-full h-full"
+            className="absolute inset-0 size-full"
+            imgClassName="object-cover object-top"
             showLock={shouldBlur}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center">
             <User className="w-14 h-14 text-muted-foreground/25" strokeWidth={1} />
           </div>
         )}

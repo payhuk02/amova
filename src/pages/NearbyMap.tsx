@@ -221,16 +221,17 @@ const NearbyMap = () => {
                   key={m.user_id}
                   className="glass-card rounded-xl overflow-hidden hover:border-primary/30 transition-all duration-300 group"
                 >
-                  {/* Photo */}
-                  <div className="aspect-[4/3] bg-secondary/30 relative">
+                  {/* Photo — fixed ratio so every card matches */}
+                  <div className="relative w-full aspect-[3/4] overflow-hidden bg-secondary/30">
                     {m.avatar_url ? (
                       <BlurredPhoto
                         src={m.avatar_url}
                         blurred={blurPhotos}
-                        className="w-full h-full"
+                        className="absolute inset-0 size-full"
+                        imgClassName="object-cover object-top"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
+                      <div className="absolute inset-0 flex items-center justify-center">
                         <User className="w-12 h-12 text-muted-foreground/20" />
                       </div>
                     )}
