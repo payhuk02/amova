@@ -1,11 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
 import AppShell from "@/components/AppShell";
 import EmptyState from "@/components/ui/empty-state";
 import { Heart, MessageCircle, Sparkles, Bell, CheckCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import { PLANS_PATH } from "@/lib/limits";
 
 const typeIcons: Record<string, typeof Heart> = {
   match: Heart,
@@ -22,13 +24,26 @@ const typeColors: Record<string, string> = {
 const Notifications = () => {
   const navigate = useNavigate();
   const { notifications, loading, markAsRead, markAllAsRead } = useNotifications();
+  const { limits, currentPlan } = useSubscription();
 
   const handleClick = (n: (typeof notifications)[0]) => {
     if (!n.read) markAsRead(n.id);
+
+    if (n.type === "like") {
+      if (!limits.canSeeWhoLiked || !n.related_user_id) {
+        navigate(limits.canSeeWhoLiked ? "/liked-me" : PLANS_PATH);
+        return;
+      }
+      navigate(`/messages?with=${n.related_user_id}`);
+      return;
+    }
+
     if (n.type === "message" && n.related_user_id) {
       navigate(`/messages?with=${n.related_user_id}`);
-    } else if ((n.type === "match" || n.type === "like") && n.related_user_id) {
+    } else if (n.type === "match" && n.related_user_id) {
       navigate(`/messages?with=${n.related_user_id}`);
+    } else if (!n.related_user_id && currentPlan === "free") {
+      navigate(PLANS_PATH);
     }
   };
 

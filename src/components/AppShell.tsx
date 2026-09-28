@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, X, Shield } from "lucide-react";
+import { Bell, LogOut, Menu, X, Shield } from "lucide-react";
 import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
 import SubscriptionBanner from "@/components/SubscriptionBanner";
@@ -165,26 +165,42 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <SubscriptionBanner />
-        <header className="lg:hidden border-b border-border/40 bg-background/90 backdrop-blur-xl sticky top-0 z-40 safe-area-top">
+        <header className="border-b border-border/40 bg-background/90 backdrop-blur-xl sticky top-0 z-40 safe-area-top">
           <div className="flex h-14 items-center justify-between px-4">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 lg:invisible lg:pointer-events-none">
               <button
                 onClick={() => setDrawerOpen(true)}
-                className="p-2 -ml-1 rounded-lg text-foreground hover:bg-secondary/50 transition-colors touch-manipulation"
+                className="p-2 -ml-1 rounded-lg text-foreground hover:bg-secondary/50 transition-colors touch-manipulation lg:hidden"
                 aria-label="Menu"
               >
                 <Menu size={22} />
               </button>
               <button
                 onClick={() => navigate("/dashboard")}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 lg:hidden"
                 aria-label="Amova — Accueil"
               >
                 <Logo variant="mark" />
                 <span className="font-display text-lg font-medium tracking-tight">Amova</span>
               </button>
             </div>
-            <ThemeToggle />
+            <div className="flex items-center gap-0.5">
+              <button
+                onClick={() => navigate("/notifications")}
+                className="relative p-2 rounded-lg text-foreground hover:bg-secondary/50 transition-colors touch-manipulation"
+                aria-label="Activité"
+              >
+                <Bell size={20} strokeWidth={location.pathname === "/notifications" ? 2.2 : 1.8} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-4 h-4 px-0.5 bg-brand text-primary-foreground text-[9px] rounded-md flex items-center justify-center font-bold leading-none">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+              <div className="lg:hidden">
+                <ThemeToggle />
+              </div>
+            </div>
           </div>
         </header>
 
